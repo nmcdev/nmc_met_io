@@ -52,7 +52,8 @@ def read_micaps_3(fname, limit=None):
     # read contents
     try:
         with open(fname, 'r') as f:
-            txt = f.read().decode('GBK').replace('\n', ' ').split()
+            # txt = f.read().decode('GBK').replace('\n', ' ').split()
+            txt = f.read().replace('\n', ' ').split()
     except IOError as err:
         print("Micaps 3 file error: " + str(err))
         return None
@@ -145,7 +146,8 @@ def read_micaps_4(fname, limit=None):
     # read contents
     try:
         with open(fname, 'r') as f:
-            txt = f.read().decode('GBK').replace('\n', ' ').split()
+            # txt = f.read().decode('GBK').replace('\n', ' ').split()
+            txt = f.read().replace('\n', ' ').split()
     except IOError as err:
         print("Micaps 4 file error: " + str(err))
         return None
