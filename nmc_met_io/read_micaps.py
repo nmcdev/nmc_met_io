@@ -145,7 +145,7 @@ def read_micaps_4(fname, limit=None):
 
     # read contents
     try:
-        with open(fname, 'r') as f:
+        with open(fname, encoding='gb18030',  errors='ignore') as f:
             # txt = f.read().decode('GBK').replace('\n', ' ').split()
             txt = f.read().replace('\n', ' ').split()
     except IOError as err:
@@ -160,11 +160,15 @@ def read_micaps_4(fname, limit=None):
     month = int(txt[4])
     day = int(txt[5])
     hour = int(txt[6])
-    time = datetime(year, month, day, hour)
     fhour = int(txt[7])
+    if hour >= 24:    # some times, micaps file head change the order.
+        hour = int(txt[7])
+        fhour = int(txt[6])
+
+    time = datetime(year, month, day, hour)
 
     # vertical level
-    level = int(txt[8])
+    level = float(txt[8])
 
     # grid information
     xint = float(txt[9])
@@ -212,6 +216,90 @@ def read_micaps_4(fname, limit=None):
     data.attrs['cnEnd'] = cnEnd
     data.attrs['smoothCeof'] = smoothCeof
     data.attrs['boldCeof'] = boldCeof
+
+    # return
+    return data
+
+
+def read_micaps_11(fname, limit=None):
+    """
+    Read Micaps 11 type file (grid u, v vector data)
+
+    :param fname: micaps file name.
+    :param limit: region limit, [min_lat, min_lon, max_lat, max_lon]
+    :return: data, xarray type
+
+    :Examples:
+    >>> data = read_micaps_4('Z:/data/newecmwf_grib/pressure/17032008.006')
+
+    """
+
+    # check file exist
+    if not os.path.isfile(fname):
+        return None
+
+    # read contents
+    try:
+        with open(fname, 'r') as f:
+            # txt = f.read().decode('GBK').replace('\n', ' ').split()
+            txt = f.read().replace('\n', ' ').split()
+    except IOError as err:
+        print("Micaps 4 file error: " + str(err))
+        return None
+
+    # head information
+    head_info = txt[2]
+
+    # date and time
+    year = int(txt[3]) if len(txt[3]) == 4 else int(txt[3]) + 2000
+    month = int(txt[4])
+    day = int(txt[5])
+    hour = int(txt[6])
+    time = datetime(year, month, day, hour)
+    fhour = int(txt[7])
+
+    # vertical level
+    level = float(txt[8])
+
+    # grid information
+    xint = float(txt[9])
+    yint = float(txt[10])
+    slon = float(txt[11])
+    slat = float(txt[13])
+    nlon = int(txt[15])
+    nlat = int(txt[16])
+    lon = slon + np.arange(nlon) * xint
+    lat = slat + np.arange(nlat) * yint
+
+    # extract data
+    data = (np.array(txt[17:])).astype(np.float)
+    data.shape = [2, nlat, nlon]
+
+    # check latitude order
+    if lat[0] > lat[1]:
+        lat = lat[::-1]
+        data = data[:, ::-1, :]
+
+    # create xarray data
+    uwind = np.squeeze(data[0, :, :])
+    vwind = np.squeeze(data[1, :, :])
+    speed = np.sqrt(uwind*uwind + vwind*vwind)
+    data = xr.Dataset({
+        'uwind': (['lat', 'lon'], uwind),
+        'vwind': (['lat', 'lon'], vwind),
+        'speed': (['lat', 'lon'], speed)},
+        coords={'lat':lat, 'lon':lon})
+
+    # subset data
+    if limit is not None:
+        lat_bnds, lon_bnds = [limit[0], limit[2]], [limit[1], limit[3]]
+        data = data.sel(lat=slice(*lat_bnds), lon=slice(*lon_bnds))
+
+    # add attributes
+    data.attrs['time'] = time
+    data.attrs['fhour'] = fhour
+    data.attrs['level'] = level
+    data.attrs['head_info'] = head_info
 
     # return
     return data
