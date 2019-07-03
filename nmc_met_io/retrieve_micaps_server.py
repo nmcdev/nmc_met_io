@@ -407,8 +407,29 @@ def get_station_data(directory, filename=None, suffix="*.000"):
             records['time'] = time
 
             # change column name for common observation
-            records.rename(columns={
-                '1001': 'precipitation', '1201': 'visibility_1min'},
+            records.rename(columns={'3': 'alt',
+                '201': 'wind_angle', '203': 'wind_speed', '205': 'wind_angle_1m_avg', '207': 'wind_speed_1m_avg',
+                '209': 'wind_angle_2m_avg', '211': 'wind_speed_2m_avg', '213': 'wind_angle_10m_avg', '215': 'wind_speed_10m_avg',
+                '217': 'wind_angle_max', '219': 'wind_speed_max', '221': 'wind_angle_instant', '223': 'wind_speed_instant',
+                '225': 'gust_angle', '227': 'gust_speed', '229': 'gust_angle_6h', '231': 'gust_speed_6h',
+                '233': 'gust_angle_12h', '235': 'gust_speed_12h', '237': 'wind_power', 
+                '401': 'sea_level_pressure', '403': 'pressure_3h_trend', '405': 'pressure_24h_trend',
+                '407': 'station_pressure', '409': 'pressure_max', '411': 'pressure_min', '413': 'pressure',
+                '415': 'pressure_day_avg', '417': 'slp_day_avg', '419': 'hight', '421': 'geopotential_hight',
+                '601': 'temp', '603': 'temp_max', '605': 'temp_min', '607': 'temp_24h_trend', 
+                '609': 'temp_24h_max', '611':'temp_24h_min', '613': 'temp_dav_avg',
+                '801': 'dewpoint', '803': 'dewpoint_depression', '805': 'relative_humidity',
+                '807': 'relative_humidity_min', '809': 'relative_humidity_day_avg', 
+                '811': 'water_vapor_pressure', '813': 'water_vapor_pressure_day_avg',
+                '1001': 'rain', '1003': 'rain_1h', '1005': 'rain_3h', '1007': 'rain_6h', '1009': 'rain_12h', '1013': 'rain_day',
+                '1015': 'rain_20-08', '1017': 'rain_08-20', '1019': 'rain_20-20', '1021': 'rain_08-08',
+                '1023': 'evaporation', '1025': 'evaporation_large', '1027': 'precipitable_water',
+                '1201': 'vis_1min', '1203': 'vis_10min', '1205': 'vis_min', '1207': 'vis_manual',
+                '1401': 'total_cloud_cover', '1403': 'low_cloud_cover', '1405': 'cloud_base_hight',
+                '1407': 'low_cloud', '1409': 'middle_cloud', '1411': 'high_cloud',
+                '1413': 'tcc_day_avg', '1415': 'lcc_day_avg', '1417': 'cloud_cover', '1419': 'cloud_type',
+                '1601': 'weather_current', '1603': 'weather_past_1', '1606': 'weather_past_2',
+                '2001': 'surface_temp', '2003': 'surface_temp_max', '2005': 'surface_temp_min'},
                 inplace=True)
 
             # return
