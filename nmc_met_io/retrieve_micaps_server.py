@@ -58,6 +58,11 @@ class GDSDataService:
             self.gdsIp, self.gdsPort, "/DataService" +
             self.get_concate_url("getData", directory, fileName, ""))
 
+    def getFileList(self,directory):
+        return get_http_result(
+            self.gdsIp, self.gdsPort, "/DataService" + 
+            self.get_concate_url("getFileList", directory, "",""))
+
     # 将请求参数拼接到url
     def get_concate_url(self, requestType, directory, fileName, filter):
         url = ""
@@ -67,6 +72,23 @@ class GDSDataService:
         url += "&filter=" + filter
         return url
 
+def get_file_list(path):
+    # connect to data service
+    service = GDSDataService()
+    # 获得指定目录下的所有文件
+    status, response = service.getFileList(path)
+    MappingResult = DataBlock_pb2.MapResult()
+    file_list = []
+    if status == 200:
+        if MappingResult is not None:
+            # Protobuf的解析
+            MappingResult.ParseFromString(response)
+            results = MappingResult.resultMap
+            # 遍历指定目录
+            for name_size_pair in results.items():
+                if (name_size_pair[1] != 'D'):
+                    file_list.append(name_size_pair[0])
+    return file_list
 
 def get_model_grid(directory, filename=None, suffix="*.024"):
     """
