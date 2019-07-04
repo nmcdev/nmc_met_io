@@ -72,7 +72,17 @@ class GDSDataService:
         url += "&filter=" + filter
         return url
 
+
 def get_file_list(path):
+    """return file list of cassandra data servere path
+    
+    Args:
+        path (string): cassandra data servere path.
+    
+    Returns:
+        list: list of filenames.
+    """
+
     # connect to data service
     service = GDSDataService()
     # 获得指定目录下的所有文件
@@ -89,6 +99,7 @@ def get_file_list(path):
                 if (name_size_pair[1] != 'D'):
                     file_list.append(name_size_pair[0])
     return file_list
+
 
 def get_model_grid(directory, filename=None, suffix="*.024"):
     """
