@@ -171,7 +171,7 @@ def get_model_grid(directory, filename=None, suffix="*.024"):
                           ('Extent', 'S92')]
 
             # read head information
-            head_info = np.fromstring(byteArray[0:278], dtype=head_dtype)
+            head_info = np.frombuffer(byteArray[0:278], dtype=head_dtype)
 
             # get required grid information
             data_type = head_info['type'][0]
@@ -191,7 +191,7 @@ def get_model_grid(directory, filename=None, suffix="*.024"):
 
             # read data
             if nmem == 0:
-                data = np.fromstring(byteArray[278:], dtype=data_dtype)
+                data = np.frombuffer(byteArray[278:], dtype=data_dtype)
                 data = np.squeeze(data['data'])
             else:
                 if data_type == 4:
@@ -200,10 +200,10 @@ def get_model_grid(directory, filename=None, suffix="*.024"):
                     data = np.full((2, nmem, nlat, nlon), np.nan)
                 ind = 0
                 for imem in range(nmem):
-                    head_info_mem = np.fromstring(
+                    head_info_mem = np.frombuffer(
                         byteArray[ind:(ind+278)], dtype=head_dtype)
                     ind += 278
-                    data_mem = np.fromstring(
+                    data_mem = np.frombuffer(
                         byteArray[ind:(ind+data_len)], dtype=data_dtype)
                     ind += data_len
                     number = head_info_mem['perturbationNumber'][0]
@@ -324,7 +324,7 @@ def get_model_grid(directory, filename=None, suffix="*.024"):
         return None
 
 
-def get_station_data(directory, filename=None, suffix="*.000"):
+def get_station_data(directory, filename=None, suffix="*.000", dropna=True):
     """
     Retrieve station data from MICAPS cassandra service.
 
@@ -332,10 +332,12 @@ def get_station_data(directory, filename=None, suffix="*.000"):
     :param filename: the data filename, if none, will be the latest file.
     :param suffix: the filename filter pattern which will
                    be used to find the specified file.
+    :param dropna: the column which values is all na will be dropped.
     :return: pandas DataFrame.
 
     :example:
     >>> data = get_station_data("SURFACE/PLOT_10MIN")
+    >>> data = get_station_data("SURFACE/TMP_MAX_24H_NATIONAL", filename="20190705150000.000")
     """
 
     # connect to data service
@@ -379,16 +381,16 @@ def get_station_data(directory, filename=None, suffix="*.000"):
                           ('Timezone', 'i4'), ('extent', 'S100')]
 
             # read head information
-            head_info = np.fromstring(byteArray[0:288], dtype=head_dtype)
+            head_info = np.frombuffer(byteArray[0:288], dtype=head_dtype)
             ind = 288
 
             # read the number of stations
-            station_number = np.fromstring(
+            station_number = np.frombuffer(
                 byteArray[ind:(ind+4)], dtype='i4')[0]
             ind += 4
 
             # read the number of elements
-            element_number = np.fromstring(
+            element_number = np.frombuffer(
                 byteArray[ind:(ind+2)], dtype='i2')[0]
             ind += 2
 
@@ -398,9 +400,9 @@ def get_station_data(directory, filename=None, suffix="*.000"):
             element_map = {}
             for i in range(element_number):
                 element_id = str(
-                    np.fromstring(byteArray[ind:(ind+2)], dtype='i2')[0])
+                    np.frombuffer(byteArray[ind:(ind+2)], dtype='i2')[0])
                 ind += 2
-                element_type = np.fromstring(
+                element_type = np.frombuffer(
                     byteArray[ind:(ind+2)], dtype='i2')[0]
                 ind += 2
                 element_map[element_id] = element_type_map[element_type]
@@ -410,7 +412,7 @@ def get_station_data(directory, filename=None, suffix="*.000"):
                 ('ID', 'i4'), ('lon', 'f4'), ('lat', 'f4'), ('numb', 'i2')]
             records = []
             for i in range(station_number):
-                record_head = np.fromstring(
+                record_head = np.frombuffer(
                     byteArray[ind:(ind+14)], dtype=record_head_dtype)
                 ind += 14
                 record = {
@@ -418,11 +420,11 @@ def get_station_data(directory, filename=None, suffix="*.000"):
                     'lat': record_head['lat'][0]}
                 for j in range(record_head['numb'][0]):    # the record element number is not same, missing value is not included.
                     element_id = str(
-                        np.fromstring(byteArray[ind:(ind + 2)], dtype='i2')[0])
+                        np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0])
                     ind += 2
                     element_type = element_map[element_id]
                     element_len = int(element_type[1])
-                    record[element_id] = np.fromstring(
+                    record[element_id] = np.frombuffer(
                         byteArray[ind:(ind + element_len)],
                         dtype=element_type)[0]
                     ind += element_len
@@ -440,30 +442,34 @@ def get_station_data(directory, filename=None, suffix="*.000"):
             records['time'] = time
 
             # change column name for common observation
-            records.rename(columns={'3': 'alt',
-                '201': 'wind_angle', '203': 'wind_speed', '205': 'wind_angle_1m_avg', '207': 'wind_speed_1m_avg',
-                '209': 'wind_angle_2m_avg', '211': 'wind_speed_2m_avg', '213': 'wind_angle_10m_avg', '215': 'wind_speed_10m_avg',
-                '217': 'wind_angle_max', '219': 'wind_speed_max', '221': 'wind_angle_instant', '223': 'wind_speed_instant',
-                '225': 'gust_angle', '227': 'gust_speed', '229': 'gust_angle_6h', '231': 'gust_speed_6h',
-                '233': 'gust_angle_12h', '235': 'gust_speed_12h', '237': 'wind_power', 
-                '401': 'sea_level_pressure', '403': 'pressure_3h_trend', '405': 'pressure_24h_trend',
-                '407': 'station_pressure', '409': 'pressure_max', '411': 'pressure_min', '413': 'pressure',
-                '415': 'pressure_day_avg', '417': 'slp_day_avg', '419': 'hight', '421': 'geopotential_hight',
-                '601': 'temp', '603': 'temp_max', '605': 'temp_min', '607': 'temp_24h_trend', 
-                '609': 'temp_24h_max', '611':'temp_24h_min', '613': 'temp_dav_avg',
-                '801': 'dewpoint', '803': 'dewpoint_depression', '805': 'relative_humidity',
-                '807': 'relative_humidity_min', '809': 'relative_humidity_day_avg', 
-                '811': 'water_vapor_pressure', '813': 'water_vapor_pressure_day_avg',
-                '1001': 'rain', '1003': 'rain_1h', '1005': 'rain_3h', '1007': 'rain_6h', '1009': 'rain_12h', '1013': 'rain_day',
-                '1015': 'rain_20-08', '1017': 'rain_08-20', '1019': 'rain_20-20', '1021': 'rain_08-08',
-                '1023': 'evaporation', '1025': 'evaporation_large', '1027': 'precipitable_water',
-                '1201': 'vis_1min', '1203': 'vis_10min', '1205': 'vis_min', '1207': 'vis_manual',
-                '1401': 'total_cloud_cover', '1403': 'low_cloud_cover', '1405': 'cloud_base_hight',
-                '1407': 'low_cloud', '1409': 'middle_cloud', '1411': 'high_cloud',
-                '1413': 'tcc_day_avg', '1415': 'lcc_day_avg', '1417': 'cloud_cover', '1419': 'cloud_type',
-                '1601': 'weather_current', '1603': 'weather_past_1', '1606': 'weather_past_2',
-                '2001': 'surface_temp', '2003': 'surface_temp_max', '2005': 'surface_temp_min'},
+            records.rename(columns={'3': 'Alt', '4': 'Grade', '5': 'Type', '21': 'Name',
+                '201': 'Wind_angle', '203': 'Wind_speed', '205': 'Wind_angle_1m_avg', '207': 'Wind_speed_1m_avg',
+                '209': 'Wind_angle_2m_avg', '211': 'Wind_speed_2m_avg', '213': 'Wind_angle_10m_avg', '215': 'Wind_speed_10m_avg',
+                '217': 'Wind_angle_max', '219': 'Wind_speed_max', '221': 'Wind_angle_instant', '223': 'Wind_speed_instant',
+                '225': 'Gust_angle', '227': 'Gust_speed', '229': 'Gust_angle_6h', '231': 'Gust_speed_6h',
+                '233': 'Gust_angle_12h', '235': 'Gust_speed_12h', '237': 'Wind_power', 
+                '401': 'Sea_level_pressure', '403': 'Pressure_3h_trend', '405': 'Pressure_24h_trend',
+                '407': 'Station_pressure', '409': 'Pressure_max', '411': 'Pressure_min', '413': 'Pressure',
+                '415': 'Pressure_day_avg', '417': 'SLP_day_avg', '419': 'Hight', '421': 'Geopotential_hight',
+                '601': 'Temp', '603': 'Temp_max', '605': 'Temp_min', '607': 'Temp_24h_trend', 
+                '609': 'Temp_24h_max', '611':'Temp_24h_min', '613': 'Temp_dav_avg',
+                '801': 'Dewpoint', '803': 'Dewpoint_depression', '805': 'Relative_humidity',
+                '807': 'Relative_humidity_min', '809': 'Relative_humidity_day_avg', 
+                '811': 'Water_vapor_pressure', '813': 'Water_vapor_pressure_day_avg',
+                '1001': 'Rain', '1003': 'Rain_1h', '1005': 'Rain_3h', '1007': 'Rain_6h', '1009': 'Rain_12h', '1013': 'Rain_day',
+                '1015': 'Rain_20-08', '1017': 'Rain_08-20', '1019': 'Rain_20-20', '1021': 'Rain_08-08',
+                '1023': 'Evaporation', '1025': 'Evaporation_large', '1027': 'Precipitable_water',
+                '1201': 'Vis_1min', '1203': 'Vis_10min', '1205': 'Vis_min', '1207': 'Vis_manual',
+                '1401': 'Total_cloud_cover', '1403': 'Low_cloud_cover', '1405': 'Cloud_base_hight',
+                '1407': 'Low_cloud', '1409': 'Middle_cloud', '1411': 'High_cloud',
+                '1413': 'TCC_day_avg', '1415': 'LCC_day_avg', '1417': 'Cloud_cover', '1419': 'Cloud_type',
+                '1601': 'Weather_current', '1603': 'Weather_past_1', '1606': 'Weather_past_2',
+                '2001': 'Surface_temp', '2003': 'Surface_temp_max', '2005': 'Surface_temp_min'},
                 inplace=True)
+
+            # drop all NaN columns
+            if dropna:
+                records = records.dropna(axis=1, how='all')
 
             # return
             return records
@@ -561,13 +567,13 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX"):
                 ('dataLengthOfCalibration', 'i2'),
                 ('dataLengthOfGeolocation', 'i2'),
                 ('reserved', 'i2')]
-            head_info = np.fromstring(byteArray[0:104], dtype=head_dtype)
+            head_info = np.frombuffer(byteArray[0:104], dtype=head_dtype)
             ind = 104
 
             # head rest information
             head_rest_len = (head_info['recordLength'][0].astype(np.int) *
                              head_info['headRecordNumber'][0] - ind)
-            head_rest = np.fromstring(
+            head_rest = np.frombuffer(
                 byteArray[ind:(ind + head_rest_len)],
                 dtype='u1', count=head_rest_len)
             ind += head_rest_len
@@ -575,7 +581,7 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX"):
             # retrieve data records
             data_len = (head_info['recordLength'][0].astype(np.int) *
                         head_info['dataRecordNumber'][0])
-            data = np.fromstring(
+            data = np.frombuffer(
                 byteArray[ind:(ind + data_len)], dtype='u1',
                 count=data_len)
             data.shape = (head_info['recordLength'][0],
@@ -667,7 +673,7 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON"):
                           ]
 
             # read head information
-            head_info = np.fromstring(byteArray[0:256], dtype=head_dtype)
+            head_info = np.frombuffer(byteArray[0:256], dtype=head_dtype)
             ind = 256
 
             # define data variable
@@ -679,15 +685,15 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON"):
 
             # put data into array
             while ind < len(byteArray):
-                irow = np.fromstring(byteArray[ind:(ind + 2)], dtype='i2')[0]
+                irow = np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0]
                 ind += 2
-                icol = np.fromstring(byteArray[ind:(ind + 2)], dtype='i2')[0]
+                icol = np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0]
                 ind += 2
                 if irow == -1 or icol == -1:
                     break
-                nrec = np.fromstring(byteArray[ind:(ind + 2)], dtype='i2')[0]
+                nrec = np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0]
                 ind += 2
-                recd = np.fromstring(
+                recd = np.frombuffer(
                     byteArray[ind:(ind + 2*nrec)], dtype='i2', count=nrec)
                 ind += 2*nrec
                 position = (irow-1)*cols+icol-1
