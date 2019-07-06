@@ -101,7 +101,10 @@ def get_file_list(path):
     return file_list
 
 
-def get_model_grid(directory, filename=None, suffix="*.024"):
+def get_model_grid(directory, filename=None, suffix="*.024",
+                   varname='data', varattrs={'units':''}, 
+                   levattrs={'long_name':'pressure_level', 'units':'hPa',
+                             '_CoordinateAxisType':'Pressure'}):
     """
     Retrieve numeric model grid forecast from MICAPS cassandra service.
     Support ensemble member forecast.
@@ -110,6 +113,9 @@ def get_model_grid(directory, filename=None, suffix="*.024"):
     :param filename: the data filename, if none, will be the latest file.
     :param suffix: the filename filter pattern which will be used to
                    find the specified file.
+    :param varname: set variable name.
+    :param varattrs: set variable attributes, dictionary type.
+    :param levattrs: set level coordinate attributes, diectionary type.
     :return: data, xarray type
 
     :Examples:
@@ -233,34 +239,51 @@ def get_model_grid(directory, filename=None, suffix="*.024"):
             if nmem != 0:
                 number = np.arange(nmem)
 
+            # define coordinates
+            time_coord = ('time', time)
+            lon_coord = ('lon', lon, {
+                'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+            lat_coord = ('lat', lat, {
+                'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+            if level[0] != 0:
+                level_coord = ('level', level, levattrs)
+            if nmem != 0:
+                number_coord = ('number', number, {'_CoordinateAxisType':'Ensemble'})
+
             # create to xarray
             if data_type == 4:
                 if nmem == 0:
                     if level[0] == 0:
                         data = data[np.newaxis, ...]
-                        data = xr.DataArray(
-                            data, coords=[time, lat, lon],
-                            dims=['time', 'lat', 'lon'], name="data")
+                        data = xr.Dataset({
+                            varname:(['time', 'lat', 'lon'], data, varattrs)},
+                            coords={
+                                'time':time_coord, 'lat':lat_coord, 'lon':lon_coord})
                     else:
                         data = data[np.newaxis, np.newaxis, ...]
-                        data = xr.DataArray(
-                            data, coords=[time, level, lat, lon],
-                            dims=['time', 'level', 'lat', 'lon'],
-                            name="data")
+                        data = xr.Dataset({
+                            varname:(['time', 'level', 'lat', 'lon'], data, varattrs)},
+                            coords={
+                                'time':time_coord, 'level':level_coord, 
+                                'lat':lat_coord, 'lon':lon_coord})
                 else:
                     if level[0] == 0:
                         data = data[np.newaxis, ...]
-                        data = xr.DataArray(
-                            data, coords=[time, number, lat, lon],
-                            dims=['time', 'number', 'lat', 'lon'],
-                            name="data")
+                        data = xr.Dataset({
+                            varname:(['time', 'number', 'lat', 'lon'], data, varattrs)},
+                            coords={
+                                'time':time_coord, 'number':number_coord, 
+                                'lat':lat_coord, 'lon':lon_coord})
                     else:
                         data = data[np.newaxis, :, np.newaxis, ...]
-                        data = xr.DataArray(
-                            data, coords=[time, number, level, lat, lon],
-                            dims=['time', 'number', 'level', 'lat', 'lon'],
-                            name="data")
+                        data = xr.Dataset({
+                            varname:(['time', 'number', 'level', 'lat', 'lon'], data, varattrs)},
+                            coords={
+                                'time':time_coord, 'number':number_coord, 'level':level_coord, 
+                                'lat':lat_coord, 'lon':lon_coord})
             elif data_type == 11:
+                speedattrs = {'long_name':'wind speed', 'units':'m/s'}
+                angleattrs = {'long_name':'wind angle', 'units':'degree'}
                 if nmem == 0:
                     speed = np.squeeze(data[0, :, :])
                     angle = np.squeeze(data[1, :, :])
@@ -268,17 +291,17 @@ def get_model_grid(directory, filename=None, suffix="*.024"):
                         speed = speed[np.newaxis, ...]
                         angle = angle[np.newaxis, ...]
                         data = xr.Dataset({
-                            'speed': (['time', 'lat', 'lon'], speed),
-                            'angle': (['time', 'lat', 'lon'], angle)},
-                            coords={'lon': lon, 'lat': lat, 'time': time})
+                            'speed': (['time', 'lat', 'lon'], speed, speedattrs),
+                            'angle': (['time', 'lat', 'lon'], angle, angleattrs)},
+                            coords={'lon': lon_coord, 'lat': lat_coord, 'time': time_coord})
                     else:
                         speed = speed[np.newaxis, np.newaxis, ...]
                         angle = angle[np.newaxis, np.newaxis, ...]
                         data = xr.Dataset({
-                            'speed': (['time', 'level', 'lat', 'lon'], speed),
-                            'angle': (['time', 'level', 'lat', 'lon'], angle)},
-                            coords={'lon': lon, 'lat': lat, 'level': level,
-                                    'time': time})
+                            'speed': (['time', 'level', 'lat', 'lon'], speed, speedattrs),
+                            'angle': (['time', 'level', 'lat', 'lon'], angle, angleattrs)},
+                            coords={'lon': lon_coord, 'lat': lat_coord, 
+                                    'level': level_coord, 'time': time_coord})
                 else:
                     speed = np.squeeze(data[0, :, :, :])
                     angle = np.squeeze(data[1, :, :, :])
@@ -287,33 +310,34 @@ def get_model_grid(directory, filename=None, suffix="*.024"):
                         angle = angle[np.newaxis, ...]
                         data = xr.Dataset({
                             'speed': (
-                                ['time', 'number', 'lat', 'lon'], speed),
+                                ['time', 'number', 'lat', 'lon'], speed, speedattrs),
                             'angle': (
-                                ['time', 'number', 'lat', 'lon'], angle)},
+                                ['time', 'number', 'lat', 'lon'], angle, angleattrs)},
                             coords={
-                                'lon': lon, 'lat': lat, 'number': number,
-                                'time': time})
+                                'lon': lon_coord, 'lat': lat_coord,
+                                'number': number_coord, 'time': time_coord})
                     else:
                         speed = speed[np.newaxis, :, np.newaxis, ...]
                         angle = angle[np.newaxis, :, np.newaxis, ...]
                         data = xr.Dataset({
                             'speed': (
                                 ['time', 'number', 'level', 'lat', 'lon'],
-                                speed),
+                                speed, speedattrs),
                             'angle': (
                                 ['time', 'number', 'level', 'lat', 'lon'],
-                                angle)},
+                                angle, angleattrs)},
                             coords={
-                                'lon': lon, 'lat': lat, 'level': level,
-                                'number': number, 'time': time})
+                                'lon': lon_coord, 'lat': lat_coord, 'level': level_coord,
+                                'number': number_coord, 'time': time_coord})
+            
             # add time coordinates
-            data.coords['init_time'] = ('time', init_time)
-            data.coords['fhour'] = ('time', fhour)
+            data.coords['forecast_reference_time'] = init_time[0]
+            data.coords['forecast_period'] = ('time', fhour, {
+                'long_name':'forecast_period', 'units':'hour'})
 
             # add attributes
-            data.attrs['data_directory'] = directory
-            data.attrs['data_filename'] = filename
-            data.attrs['organization'] = 'Created by NMC.'
+            data.attrs['Conventions'] = "CF-1.6"
+            data.attrs['Origin'] = 'MICAPS Cassandra Server'
 
             # return data
             return data
