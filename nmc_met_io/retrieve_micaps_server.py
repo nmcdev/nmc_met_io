@@ -348,6 +348,38 @@ def get_model_grid(directory, filename=None, suffix="*.024",
         return None
 
 
+def get_model_grids(directory, filenames):
+    """
+    Retrieve multiple time grids from MICAPS cassandra service.
+    
+    Args:
+        directory (string): the data directory on the service.
+        filenames (list): the list of filenames.
+    """
+
+    dataset = []
+    for filename in filenames:
+        data = get_model_grid(directory, filename=filename)
+        if data:
+            dataset.append(data)
+    
+    return xr.concat(dataset, dim='time')
+
+
+def get_model_points(directory, filenames, points):
+    """
+    Retrieve point time series from MICAPS cassandra service.
+    
+    Args:
+        directory (string): the data directory on the service.
+        filenames (list): the list of filenames.
+        points (dict): dictionary, {'lon':[...], 'lat':[...]}.
+    """
+
+    data = get_model_grids(directory, filenames)
+    return data.interp(lon=('points', points['lon']), lat=('points', points['lat']))
+
+
 def get_station_data(directory, filename=None, suffix="*.000", dropna=True):
     """
     Retrieve station data from MICAPS cassandra service.
