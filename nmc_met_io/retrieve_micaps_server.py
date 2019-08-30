@@ -120,8 +120,8 @@ def get_model_grid(directory, filename=None, suffix="*.024",
 
     :Examples:
     >>> data = get_model_grid("ECMWF_HR/TMP/850")
-    >>> data_ens = get_model_grid("ECMWF_ENSEMBLE/RAW/HGT/500",
-                                  filename='18021708.024')
+    >>> data_ens = get_model_grid("ECMWF_ENSEMBLE/RAW/HGT/500", filename='18021708.024')
+    >>> data_ens = get_model_grid('ECMWF_ENSEMBLE/RAW/TMP_2M', '19083008.024')
     """
 
     # connect to data service
@@ -153,6 +153,8 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     ByteArrayResult = DataBlock_pb2.ByteArrayResult()
     if status == 200:
         ByteArrayResult.ParseFromString(response)
+        if ByteArrayResult.errorCode == 1:
+            return None
         if ByteArrayResult is not None:
             byteArray = ByteArrayResult.byteArray
 
