@@ -374,6 +374,13 @@ def get_model_points(directory, filenames, points):
         directory (string): the data directory on the service.
         filenames (list): the list of filenames.
         points (dict): dictionary, {'lon':[...], 'lat':[...]}.
+
+    Examples:
+    >>> directory = "NWFD_SCMOC/TMP/2M_ABOVE_GROUND"
+    >>> fhours = np.arange(3, 75, 3)
+    >>> filenames = ["19083008."+str(fhour).zfill(3) for fhour in fhours]
+    >>> points = {'lon':[116.3833, 110.0], 'lat':[39.9, 32]}
+    >>> data = get_model_points(dataDir, filenames, points)
     """
 
     data = get_model_grids(directory, filenames)
