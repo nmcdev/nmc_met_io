@@ -11,6 +11,7 @@ Checking url, like:
 http://10.32.8.164:8080/DataService?requestType=getLatestDataName&directory=ECMWF_HR/TMP/850&fileName=&filter=*.024
 """
 
+import warnings
 import re
 import http.client
 from datetime import datetime, timedelta
@@ -350,13 +351,14 @@ def get_model_grid(directory, filename=None, suffix="*.024",
         return None
 
 
-def get_model_grids(directory, filenames):
+def get_model_grids(directory, filenames, allExists=True):
     """
     Retrieve multiple time grids from MICAPS cassandra service.
     
     Args:
         directory (string): the data directory on the service.
         filenames (list): the list of filenames.
+        allExists (boolean): all files should exist, or return None.
     """
 
     dataset = []
@@ -364,6 +366,10 @@ def get_model_grids(directory, filenames):
         data = get_model_grid(directory, filename=filename)
         if data:
             dataset.append(data)
+        else:
+            if allExists:
+                warnings.warn("{} doese not exists.".format(directory+'/'+filename))
+                return None
     
     return xr.concat(dataset, dim='time')
 
@@ -386,7 +392,73 @@ def get_model_points(directory, filenames, points):
     """
 
     data = get_model_grids(directory, filenames)
-    return data.interp(lon=('points', points['lon']), lat=('points', points['lat']))
+    if data:
+        return data.interp(lon=('points', points['lon']), lat=('points', points['lat']))
+    else:
+        return None
+
+
+def get_model_3D_grid(directory, filename, levels, allExists=True):
+    """
+    Retrieve 3D [level, lat, lon] grids from  MICAPS cassandra service.
+    
+    Args:
+        directory (string): the data directory on the service, which includes all levels.
+        filename (string): the data file name.
+        levels (list): the high levels.
+
+    Examples:
+    >>> directory = "ECMWF_HR/TMP"
+    >>> levels = [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 100]
+    >>> filename = "19083008.024"
+    >>> data = get_model_3D_grid(directory, filename, levels)
+    """
+
+    dataset = []
+    for level in levels:
+        if directory[-1] == '/':
+            dataDir = directory + str(int(level)).strip()
+        else:
+            dataDir = directory + '/' + str(int(level)).strip()
+        data = get_model_grid(dataDir, filename=filename)
+        if data:
+                dataset.append(data)
+        else:
+            if allExists:
+                warnings.warn("{} doese not exists.".format(dataDir+'/'+filename))
+                return None
+
+    return xr.concat(dataset, dim='level')
+
+
+def get_model_3D_grids(directory, filenames, levels, allExists=True):
+    """
+     Retrieve 3D [time, level, lat, lon] grids from  MICAPS cassandra service.
+    
+    Args:
+        directory (string): the data directory on the service, which includes all levels.
+        filenames (list): the list of data filenames.
+        levels (list): the high levels.
+        allExists (bool, optional): all files should exist, or return None.. Defaults to True.
+
+    Examples:
+    >>> directory = "ECMWF_HR/TMP"
+    >>> levels = [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 100]
+    >>> fhours = np.arange(0, 75, 3)
+    >>> filenames = ["19083008."+str(fhour).zfill(3) for fhour in fhours]
+    >>> data =  get_model_3D_grids(directory, filenames, levels)
+    """
+
+    dataset = []
+    for filename in filenames:
+        data = get_model_3D_grid(directory, filename, levels)
+        if data:
+            dataset.append(data)
+        else:
+            if allExists:
+                return None
+    
+    return xr.concat(dataset, dim='time')
 
 
 def get_station_data(directory, filename=None, suffix="*.000", dropna=True):
