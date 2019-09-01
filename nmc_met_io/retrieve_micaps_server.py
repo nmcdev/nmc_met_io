@@ -235,8 +235,8 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                                  head_info['day'][0], head_info['hour'][0])
             fhour = np.array([head_info['period'][0]], dtype=np.float)
             time = init_time + timedelta(hours=fhour[0])
-            init_time = np.array([init_time], dtype='datetime64[m]')
-            time = np.array([time], dtype='datetime64[m]')
+            init_time = np.array([init_time], dtype='datetime64[ms]')
+            time = np.array([time], dtype='datetime64[ms]')
 
             # construct ensemble number
             if nmem != 0:

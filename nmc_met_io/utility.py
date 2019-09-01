@@ -11,13 +11,14 @@ from datetime import datetime, timedelta
 import numpy as np
 
 
-def get_filenames(initTime, fhours="0/72/3;"):
+def get_filenames(initTime, fhours="0/72/3;", zeroFill=3):
     """
     Construct filenames 
     
     Args:
         initTime (string or datatime): initTime
-        fhours (str, optional): [description]. Defaults to "0/72/3;".
+        fhours (str, optional): forecast hours description. Defaults to "0/72/3;".
+        zeroFill (integer, optional): fill zero for fix length of forecast hour.
 
     Examples:
     >>> filenames =  get_filenames('19083020', fhours="0/72/3;72/246/6")
@@ -39,7 +40,7 @@ def get_filenames(initTime, fhours="0/72/3;"):
         end = int(fhour[1])
         step = int(fhour[2])
         for fh in np.arange(start, end, step):
-            filenames.append(initTimeStr+"."+str(fh))
+            filenames.append(initTimeStr+"."+str(fh).zfill(zeroFill))
 
     return filenames
 
