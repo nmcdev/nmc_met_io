@@ -86,6 +86,7 @@ def get_file_list(path):
 
     # connect to data service
     service = GDSDataService()
+
     # 获得指定目录下的所有文件
     status, response = service.getFileList(path)
     MappingResult = DataBlock_pb2.MapResult()
@@ -100,6 +101,41 @@ def get_file_list(path):
                 if (name_size_pair[1] != 'D'):
                     file_list.append(name_size_pair[0])
     return file_list
+
+
+def get_latest_initTime(directory, suffix="*.006"):
+    """
+    Get the latest initial time string.
+    
+    Args:
+        directory (string): the data directory on the service.
+        suffix (string, optional):  the filename filter pattern.
+
+    Examples:
+    >>> initTime = get_latest_initTime("ECMWF_HR/TMP/850")
+    """
+
+    # connect to data service
+    service = GDSDataService()
+
+    # get lastest data filename
+    try:
+        status, response = service.getLatestDataName(directory, suffix)
+    except ValueError:
+        print('Can not retrieve data from ' + directory)
+        return None
+    StringResult = DataBlock_pb2.StringResult()
+    if status == 200:
+        StringResult.ParseFromString(response)
+        if StringResult is not None:
+            filename = StringResult.name
+            if filename == '':
+                return None
+        else:
+            return None
+
+    # extract initial time
+    return filename.split(".")[0]
 
 
 def get_model_grid(directory, filename=None, suffix="*.024",
