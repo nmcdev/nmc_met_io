@@ -16,13 +16,84 @@ def read_awx_cloud(fname):
 
     :param fname: file pathname.
     :return: data list
+
+    :Example:
+    >>> headinfo, data = read_awx_cloud("./data/ANI_IR1_R04_20191026_2100_FY2G.AWX")
     """
 
     # read part of binary
     # refer to
     # https://stackoverflow.com/questions/14245094/how-to-read-part-of-binary-file-with-numpy
 
-    pass
+    # open file
+    with open(fname, 'rb') as fh:
+        # read file content
+        ba = bytearray(fh.read())
+
+        # define head structure
+        head_dtype = [
+            ('SAT96', 'S12'),    # SAT96 filename
+            ('byteSequence', 'i2'),    # integer number byte sequence
+            ('firstClassHeadLength', 'i2'),
+            ('secondClassHeadLength', 'i2'),
+            ('padDataLength', 'i2'),
+            ('recordLength', 'i2'),
+            ('headRecordNumber', 'i2'),
+            ('dataRecordNumber', 'i2'),
+            ('productCategory', 'i2'),
+            ('compressMethod', 'i2'),
+            ('formatString', 'S8'),
+            ('qualityFlag', 'i2'),
+            ('satelliteName', 'S8'),
+            ('year', 'i2'), ('month', 'i2'),
+            ('day', 'i2'), ('hour', 'i2'),
+            ('minute', 'i2'),
+            ('channel', 'i2'),
+            ('flagOfProjection', 'i2'),
+            ('widthOfImage', 'i2'),
+            ('heightOfImage', 'i2'),
+            ('scanLineNumberOfImageTopLeft', 'i2'),
+            ('pixelNumberOfImageTopLeft', 'i2'),
+            ('sampleRatio', 'i2'),
+            ('latitudeOfNorth', 'i2'),
+            ('latitudeOfSouth', 'i2'),
+            ('longitudeOfWest', 'i2'),
+            ('longitudeOfEast', 'i2'),
+            ('centerLatitudeOfProjection', 'i2'),
+            ('centerLongitudeOfProjection', 'i2'),
+            ('standardLatitude1', 'i2'),
+            ('standardLatitude2', 'i2'),
+            ('horizontalResolution', 'i2'),
+            ('verticalResolution', 'i2'),
+            ('overlapFlagGeoGrid', 'i2'),
+            ('overlapValueGeoGrid', 'i2'),
+            ('dataLengthOfColorTable', 'i2'),
+            ('dataLengthOfCalibration', 'i2'),
+            ('dataLengthOfGeolocation', 'i2'),
+            ('reserved', 'i2')]
+
+        head_info = np.frombuffer(ba[0:104], dtype=head_dtype)
+        ind = 104
+
+        # head rest information
+        head_rest_len = (head_info['recordLength'][0].astype(np.int) *
+                        head_info['headRecordNumber'][0] - ind)
+        head_rest = np.frombuffer(
+            ba[ind:(ind + head_rest_len)],
+            dtype='u1', count=head_rest_len)
+        ind += head_rest_len
+
+        # retrieve data records
+        data_len = (head_info['recordLength'][0].astype(np.int) *
+                    head_info['dataRecordNumber'][0])
+        data = np.frombuffer(
+            ba[ind:(ind + data_len)], dtype='u1',
+            count=data_len)
+        data.shape = (head_info['recordLength'][0],
+                    head_info['dataRecordNumber'][0])
+
+        # return
+        return head_info, data
 
 
 def read_himawari(fname, resolution):
