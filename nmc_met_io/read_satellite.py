@@ -76,21 +76,21 @@ def read_awx_cloud(fname):
         ind = 104
 
         # head rest information
-        head_rest_len = (head_info['recordLength'][0].astype(np.int) *
-                        head_info['headRecordNumber'][0] - ind)
+        head_rest_len = (head_info['dataRecordNumber'][0].astype(np.int) *
+                         head_info['recordLength'][0] - ind)
         head_rest = np.frombuffer(
             ba[ind:(ind + head_rest_len)],
             dtype='u1', count=head_rest_len)
         ind += head_rest_len
 
         # retrieve data records
-        data_len = (head_info['recordLength'][0].astype(np.int) *
-                    head_info['dataRecordNumber'][0])
+        data_len = (head_info['dataRecordNumber'][0].astype(np.int) *
+                    head_info['recordLength'][0])
         data = np.frombuffer(
             ba[ind:(ind + data_len)], dtype='u1',
             count=data_len)
-        data.shape = (head_info['recordLength'][0],
-                    head_info['dataRecordNumber'][0])
+        data.shape = (head_info['dataRecordNumber'][0],
+                      head_info['recordLength'][0])
 
         # return
         return head_info, data
