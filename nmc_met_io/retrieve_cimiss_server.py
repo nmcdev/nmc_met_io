@@ -478,3 +478,44 @@ def cimiss_model_by_piont(init_time_str,
     data[fcst_ele] = pd.to_numeric(data[fcst_ele])
 
     return data
+
+
+def cimiss_model_by_piont_levels(init_time_str,
+                                 data_code='NAFP_FOR_FTM_HIGH_EC_ANEA',
+                                 fcst_levels=[1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200],
+                                 time_range=[0, 72], 
+                                 point="39.90/116.40", fcst_ele="TEM"):
+    """
+    Retrieve grid point data from CIMISS service.
+
+    :param init_time_str: model run time, like "2020020600"
+    :param data_code: MUSIC data code, default is "NAFP_FOR_FTM_HIGH_EC_ANEA"
+    :param fcst_level: vertical level, default is 850.
+    :param time_range: [minimum, maximum] forecast hour, default is [0, 72]
+    :param point: point location "latitude/longitude"
+    :param fcst_ele: forecast element, default is temperature "TEM"
+    :return: pandas dataframe
+    """
+
+    # loop every level
+    data = None
+    for fcst_level in fcst_levels:
+        temp = cimiss_model_by_piont(
+            init_time_str, data_code=data_code, fcst_level=fcst_level,
+            time_range=time_range, points=point, fcst_ele=fcst_ele)
+        if temp is None:
+            return None
+        
+        temp['level'] = fcst_level
+        if data is None:
+            data = temp
+        else:
+            data = pd.concat([data, temp])
+
+    data = data.pivot(index='Validtime', columns='level',values=fcst_ele)
+    data = xr.DataArray(data, coords=[data.index.values, data.columns.values],
+                        dims=['time', 'level'], name=fcst_ele)
+    data = data.loc[{'level':sorted(data.coords['level'].values, reverse=True)}]
+    data = data.loc[{'time':sorted(data.coords['time'].values)}]
+
+    return data
