@@ -359,9 +359,9 @@ def cimiss_model_by_time(init_time_str, limit=None,
     :param limit: [min_lat, min_lon, max_lat, max_lon]
     :param data_code: MUSIC data code, default is "NAFP_FOR_FTM_HIGH_EC_GLB"
     :param fcst_level: vertical level, default is 0.
-    :param valid_time: forecast element, default is 2m temperature "TEF2"
-    :param fcst_ele: forecast hour, default is 0
-    :return:
+    :param valid_time: forecast hour, default is 0
+    :param fcst_ele: forecast element, default is 2m temperature "TEF2"
+    :return: xarray dataset.
     """
 
     # set retrieve parameters
@@ -431,4 +431,50 @@ def cimiss_model_by_time(init_time_str, limit=None,
     data.attrs['organization'] = 'Created by NMC.'
 
     # return data
+    return data
+
+
+def cimiss_model_by_piont(init_time_str,
+                          data_code='NAFP_FOR_FTM_HIGH_EC_ANEA',
+                          fcst_level=850, time_range=[0, 72], 
+                          points="39.90/116.40", fcst_ele="TEM"):
+    """
+    Retrieve grid point data from CIMISS service.
+
+    :param init_time_str: model run time, like "2020020600"
+    :param data_code: MUSIC data code, default is "NAFP_FOR_FTM_HIGH_EC_ANEA"
+    :param fcst_level: vertical level, default is 850.
+    :param time_range: [minimum, maximum] forecast hour, default is [0, 72]
+    :param points: point location "latitude/longitude", also support
+                   multiple points like "39.90/116.40,32.90/112.40"
+    :param fcst_ele: forecast element, default is temperature "TEM"
+    :return: pandas dataframe
+    """
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'time': init_time_str + '0000',
+              'fcstLevel': '{:d}'.format(fcst_level),
+              'minVT': '{:d}'.format(time_range[0]),
+              'maxVT': '{:d}'.format(time_range[1]),
+              'latLons': points,
+              'fcstEle': fcst_ele}
+    interface_id = 'getNafpEleAtPointByTimeAndLevelAndValidtimeRange'
+
+
+    # retrieve data contents
+    contents = get_http_result(interface_id, params)
+    if contents is None:
+        return None
+    contents = json.loads(contents.decode('utf-8'))
+    if contents['returnCode'] != '0':
+        return None
+
+    # convert to numeric
+    data = pd.DataFrame(contents['DS'])
+    data['Lat'] = pd.to_numeric(data['Lat'])
+    data['Lon'] = pd.to_numeric(data['Lon'])
+    data['Validtime'] = pd.to_datetime(data['Validtime'], format="%Y%m%d%H%M%S")
+    data[fcst_ele] = pd.to_numeric(data[fcst_ele])
+
     return data
