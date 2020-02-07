@@ -427,7 +427,7 @@ def get_model_grids(directory, filenames, allExists=True, pbar=False):
     return xr.concat(dataset, dim='time')
 
 
-def get_model_points(directory, filenames, points):
+def get_model_points(directory, filenames, points, pbar=False):
     """
     Retrieve point time series from MICAPS cassandra service.
     
@@ -444,7 +444,7 @@ def get_model_points(directory, filenames, points):
     >>> data = get_model_points(dataDir, filenames, points)
     """
 
-    data = get_model_grids(directory, filenames)
+    data = get_model_grids(directory, filenames, pbar=pbar)
     if data:
         return data.interp(lon=('points', points['lon']), lat=('points', points['lat']))
     else:
