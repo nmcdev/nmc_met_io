@@ -13,6 +13,7 @@ Other required packages:
 - pyproj
 - protobuf
 - urllib3
+- tqdm
 - python-dateutil
 
 ## Install
@@ -29,7 +30,7 @@ or download the package and install:
 ```
 
 ## 设置CIMISS和MICAPS服务器的地址及用户信息
-在系统用户目录下("C:\Users\用户名"), 新建文本文件config_met_io.ini, 里面内容模板为:
+在系统用户目录下("C:\Users\用户名\.nmcdev\"或"/home/用户名/.nmcdev/"), 新建文本文件config.ini, 里面内容模板为:
 ```
 [CIMISS]
 DNS = xx.xx.xx.xx
@@ -39,5 +40,8 @@ PASSWORD = xxxxxxxx
 [MICAPS]
 GDS_IP = xx.xx.xx.xx
 GDS_PORT = xxxx
+# Cached file directory, if not set,
+#   /home/user/.nmcdev/cache will be used.
+# CACHE_DIR = ~ 
 ```
 这里xxxx用相应的地址, 接口和用户信息代替.

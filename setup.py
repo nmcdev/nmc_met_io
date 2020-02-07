@@ -37,6 +37,8 @@ setup(
       'Programming Language :: Python :: 3',
     ],
 
+    python_requires='>3.5',
+
     packages=find_packages(exclude=['docs', 'tests', 'build', 'dist']),
     include_package_data=True,
     exclude_package_data={'': ['.gitignore']},
@@ -48,6 +50,7 @@ setup(
                       'pyproj>=1.9.5.1',
                       'protobuf>=3.5.0',
                       'urllib3>=1.20',
+                      'tqdm>=4.40.0',
                       'python-dateutil']
 )
 

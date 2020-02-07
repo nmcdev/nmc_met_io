@@ -490,7 +490,7 @@ def cimiss_model_by_piont_levels(init_time_str,
 
     :param init_time_str: model run time, like "2020020600"
     :param data_code: MUSIC data code, default is "NAFP_FOR_FTM_HIGH_EC_ANEA"
-    :param fcst_level: vertical level, default is 850.
+    :param fcst_levels: vertical levels, list like [1000, 950, 925, ...]
     :param time_range: [minimum, maximum] forecast hour, default is [0, 72]
     :param point: point location "latitude/longitude"
     :param fcst_ele: forecast element, default is temperature "TEM"

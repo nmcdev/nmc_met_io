@@ -14,12 +14,14 @@ http://10.32.8.164:8080/DataService?requestType=getLatestDataName&directory=ECMW
 import warnings
 import re
 import http.client
+import pickle
 from datetime import datetime, timedelta
 import numpy as np
 import xarray as xr
 import pandas as pd
+from tqdm import tqdm, tqdm_notebook
 from nmc_met_io import DataBlock_pb2
-from nmc_met_io.config import _get_config_from_rcfile
+import nmc_met_io.config as CONFIG
 
 
 def get_http_result(host, port, url):
@@ -45,9 +47,8 @@ def get_http_result(host, port, url):
 class GDSDataService:
     def __init__(self):
         # set MICAPS GDS服务器地址
-        config = _get_config_from_rcfile()
-        self.gdsIp = config['MICAPS']['GDS_IP']
-        self.gdsPort = config['MICAPS']['GDS_PORT']
+        self.gdsIp = CONFIG.CONFIG['MICAPS']['GDS_IP']
+        self.gdsPort = CONFIG.CONFIG['MICAPS']['GDS_PORT']
 
     def getLatestDataName(self, directory, filter):
         return get_http_result(
@@ -141,7 +142,7 @@ def get_latest_initTime(directory, suffix="*.006"):
 def get_model_grid(directory, filename=None, suffix="*.024",
                    varname='data', varattrs={'units':''}, 
                    levattrs={'long_name':'pressure_level', 'units':'hPa',
-                             '_CoordinateAxisType':'Pressure'}):
+                             '_CoordinateAxisType':'Pressure'}, cache=True):
     """
     Retrieve numeric model grid forecast from MICAPS cassandra service.
     Support ensemble member forecast.
@@ -153,6 +154,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     :param varname: set variable name.
     :param varattrs: set variable attributes, dictionary type.
     :param levattrs: set level coordinate attributes, diectionary type.
+    :param cache: 
     :return: data, xarray type
 
     :Examples:
@@ -161,12 +163,11 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     >>> data_ens = get_model_grid('ECMWF_ENSEMBLE/RAW/TMP_2M', '19083008.024')
     """
 
-    # connect to data service
-    service = GDSDataService()
-
     # get data file name
     if filename is None:
         try:
+            # connect to data service
+            service = GDSDataService()
             status, response = service.getLatestDataName(directory, suffix)
         except ValueError:
             print('Can not retrieve data from ' + directory)
@@ -181,8 +182,17 @@ def get_model_grid(directory, filename=None, suffix="*.024",
             else:
                 return None
 
+    # retrieve data from cached file
+    if cache:
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        if cache_file.is_file():
+            with open(cache_file, 'rb') as f:
+                data = pickle.load(f)
+                return data
+    
     # get data contents
     try:
+        service = GDSDataService()
         status, response = service.getData(directory, filename)
     except ValueError:
         print('Can not retrieve data' + filename + ' from ' + directory)
@@ -378,6 +388,11 @@ def get_model_grid(directory, filename=None, suffix="*.024",
             data.attrs['Conventions'] = "CF-1.6"
             data.attrs['Origin'] = 'MICAPS Cassandra Server'
 
+            # cache data
+            if cache:
+                with open(cache_file, 'wb') as f:
+                    pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+
             # return data
             return data
 
@@ -387,7 +402,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
         return None
 
 
-def get_model_grids(directory, filenames, allExists=True):
+def get_model_grids(directory, filenames, allExists=True, pbar=False):
     """
     Retrieve multiple time grids from MICAPS cassandra service.
     
@@ -398,6 +413,8 @@ def get_model_grids(directory, filenames, allExists=True):
     """
 
     dataset = []
+    if pbar:
+        filenames = tqdm(filenames, desc="Get data: ")
     for filename in filenames:
         data = get_model_grid(directory, filename=filename)
         if data:
@@ -434,7 +451,7 @@ def get_model_points(directory, filenames, points):
         return None
 
 
-def get_model_3D_grid(directory, filename, levels, allExists=True):
+def get_model_3D_grid(directory, filename, levels, allExists=True, pbar=False):
     """
     Retrieve 3D [level, lat, lon] grids from  MICAPS cassandra service.
     
@@ -451,6 +468,8 @@ def get_model_3D_grid(directory, filename, levels, allExists=True):
     """
 
     dataset = []
+    if pbar:
+        levels = tqdm(levels, desc="Get data: ")
     for level in levels:
         if directory[-1] == '/':
             dataDir = directory + str(int(level)).strip()
@@ -467,7 +486,7 @@ def get_model_3D_grid(directory, filename, levels, allExists=True):
     return xr.concat(dataset, dim='level')
 
 
-def get_model_3D_grids(directory, filenames, levels, allExists=True):
+def get_model_3D_grids(directory, filenames, levels, allExists=True, pbar=True):
     """
      Retrieve 3D [time, level, lat, lon] grids from  MICAPS cassandra service.
     
@@ -486,6 +505,8 @@ def get_model_3D_grids(directory, filenames, levels, allExists=True):
     """
 
     dataset = []
+    if pbar:
+        filenames = tqdm(filenames, desc="Get data: ")
     for filename in filenames:
         data = get_model_3D_grid(directory, filename, levels)
         if data:
