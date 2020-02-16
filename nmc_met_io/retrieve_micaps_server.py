@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import xarray as xr
 import pandas as pd
-from tqdm import tqdm, tqdm_notebook
+from tqdm import tqdm
 from nmc_met_io import DataBlock_pb2
 import nmc_met_io.config as CONFIG
 
@@ -33,7 +33,6 @@ def get_http_result(host, port, url):
     try:
         http_client = http.client.HTTPConnection(host, port, timeout=120)
         http_client.request('GET', url)
-
         response = http_client.getresponse()
         return response.status, response.read()
     except Exception as e:
@@ -147,7 +146,7 @@ def get_latest_initTime(directory, suffix="*.006"):
 
 
 def get_model_grid(directory, filename=None, suffix="*.024",
-                   varname='data', varattrs={'units':''}, 
+                   varname='data', varattrs={'units':''}, scale_off=None,
                    levattrs={'long_name':'pressure_level', 'units':'hPa',
                              '_CoordinateAxisType':'Pressure'}, cache=True):
     """
@@ -160,6 +159,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                    find the specified file.
     :param varname: set variable name.
     :param varattrs: set variable attributes, dictionary type.
+    :param scale_off: [scale, offset], return values = values*scale + offset.
     :param levattrs: set level coordinate attributes, diectionary type.
     :param cache: cache retrieved data to local directory, default is True.
     :return: data, xarray type
@@ -276,6 +276,10 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                         data[number, :, :] = np.squeeze(data_mem['data'])
                     else:
                         data[:, number, :, :] = np.squeeze(data_mem['data'])
+
+            # scale and offset the data, if necessary.
+            if scale_off is not None:
+                data = data * scale_off[0] + scale_off[1]
 
             # construct longitude and latitude coordinates
             slon = head_info['startLongitude'][0]
