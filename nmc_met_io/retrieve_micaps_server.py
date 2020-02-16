@@ -75,11 +75,12 @@ class GDSDataService:
         return url
 
 
-def get_file_list(path):
+def get_file_list(path, latest=None):
     """return file list of cassandra data servere path
     
     Args:
         path (string): cassandra data servere path.
+        latest (integer): get the latest n files.
     
     Returns:
         list: list of filenames.
@@ -101,6 +102,12 @@ def get_file_list(path):
             for name_size_pair in results.items():
                 if (name_size_pair[1] != 'D'):
                     file_list.append(name_size_pair[0])
+
+    # sort the file list
+    if latest is not None:
+        file_list.sort(reverse=True)
+        file_list = file_list[0:min(len(file_list), latest)]
+
     return file_list
 
 
@@ -154,7 +161,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     :param varname: set variable name.
     :param varattrs: set variable attributes, dictionary type.
     :param levattrs: set level coordinate attributes, diectionary type.
-    :param cache: 
+    :param cache: cache retrieved data to local directory, default is True.
     :return: data, xarray type
 
     :Examples:
@@ -204,6 +211,9 @@ def get_model_grid(directory, filename=None, suffix="*.024",
             return None
         if ByteArrayResult is not None:
             byteArray = ByteArrayResult.byteArray
+            if byteArray == '':
+                print('There is no data ' + filename + ' in ' + directory)
+                return None
 
             # define head information structure (278 bytes)
             head_dtype = [('discriminator', 'S4'), ('type', 'i2'),
@@ -402,7 +412,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
         return None
 
 
-def get_model_grids(directory, filenames, allExists=True, pbar=False):
+def get_model_grids(directory, filenames, allExists=True, pbar=False, **kargs):
     """
     Retrieve multiple time grids from MICAPS cassandra service.
     
@@ -410,13 +420,15 @@ def get_model_grids(directory, filenames, allExists=True, pbar=False):
         directory (string): the data directory on the service.
         filenames (list): the list of filenames.
         allExists (boolean): all files should exist, or return None.
+        pbar (boolean): Show progress bar, default to False.
+        **kargs: key arguments passed to get_model_grid function.
     """
 
     dataset = []
     if pbar:
-        filenames = tqdm(filenames, desc="Get data: ")
-    for filename in filenames:
-        data = get_model_grid(directory, filename=filename)
+        tqdm_filenames = tqdm(filenames, desc=directory + ": ")
+    for filename in tqdm_filenames:
+        data = get_model_grid(directory, filename=filename, **kargs)
         if data:
             dataset.append(data)
         else:
@@ -427,14 +439,16 @@ def get_model_grids(directory, filenames, allExists=True, pbar=False):
     return xr.concat(dataset, dim='time')
 
 
-def get_model_points(directory, filenames, points, pbar=False):
+def get_model_points(directory, filenames, points, **kargs):
     """
     Retrieve point time series from MICAPS cassandra service.
+    Return xarray, (time, points)
     
     Args:
         directory (string): the data directory on the service.
         filenames (list): the list of filenames.
         points (dict): dictionary, {'lon':[...], 'lat':[...]}.
+        **kargs: key arguments passed to get_model_grids function.
 
     Examples:
     >>> directory = "NWFD_SCMOC/TMP/2M_ABOVE_GROUND"
@@ -444,14 +458,14 @@ def get_model_points(directory, filenames, points, pbar=False):
     >>> data = get_model_points(dataDir, filenames, points)
     """
 
-    data = get_model_grids(directory, filenames, pbar=pbar)
+    data = get_model_grids(directory, filenames, **kargs)
     if data:
         return data.interp(lon=('points', points['lon']), lat=('points', points['lat']))
     else:
         return None
 
 
-def get_model_3D_grid(directory, filename, levels, allExists=True, pbar=False):
+def get_model_3D_grid(directory, filename, levels, allExists=True, pbar=False, **kargs):
     """
     Retrieve 3D [level, lat, lon] grids from  MICAPS cassandra service.
     
@@ -459,6 +473,9 @@ def get_model_3D_grid(directory, filename, levels, allExists=True, pbar=False):
         directory (string): the data directory on the service, which includes all levels.
         filename (string): the data file name.
         levels (list): the high levels.
+        allExists (boolean): all levels should be exist, if not, return None.
+        pbar (boolean): show progress bar.
+        **kargs: key arguments passed to get_model_grid function.
 
     Examples:
     >>> directory = "ECMWF_HR/TMP"
@@ -469,13 +486,13 @@ def get_model_3D_grid(directory, filename, levels, allExists=True, pbar=False):
 
     dataset = []
     if pbar:
-        levels = tqdm(levels, desc="Get data: ")
-    for level in levels:
+        tqdm_levels = tqdm(levels, desc=directory+": ")
+    for level in tqdm_levels:
         if directory[-1] == '/':
             dataDir = directory + str(int(level)).strip()
         else:
             dataDir = directory + '/' + str(int(level)).strip()
-        data = get_model_grid(dataDir, filename=filename)
+        data = get_model_grid(dataDir, filename=filename, **kargs)
         if data:
                 dataset.append(data)
         else:
@@ -486,7 +503,7 @@ def get_model_3D_grid(directory, filename, levels, allExists=True, pbar=False):
     return xr.concat(dataset, dim='level')
 
 
-def get_model_3D_grids(directory, filenames, levels, allExists=True, pbar=True):
+def get_model_3D_grids(directory, filenames, levels, allExists=True, pbar=True, **kargs):
     """
      Retrieve 3D [time, level, lat, lon] grids from  MICAPS cassandra service.
     
@@ -495,6 +512,8 @@ def get_model_3D_grids(directory, filenames, levels, allExists=True, pbar=True):
         filenames (list): the list of data filenames.
         levels (list): the high levels.
         allExists (bool, optional): all files should exist, or return None.. Defaults to True.
+        pbar (boolean): Show progress bar, default to True.
+        **kargs: key arguments passed to get_model_grid function.
 
     Examples:
     >>> directory = "ECMWF_HR/TMP"
@@ -506,19 +525,51 @@ def get_model_3D_grids(directory, filenames, levels, allExists=True, pbar=True):
 
     dataset = []
     if pbar:
-        filenames = tqdm(filenames, desc="Get data: ")
-    for filename in filenames:
-        data = get_model_3D_grid(directory, filename, levels)
-        if data:
-            dataset.append(data)
-        else:
-            if allExists:
-                return None
+        tqdm_filenames = tqdm(filenames, desc=directory+": ")
+    for filename in tqdm_filenames:
+        for level in levels:
+            if directory[-1] == '/':
+                dataDir = directory + str(int(level)).strip()
+            else:
+                dataDir = directory + '/' + str(int(level)).strip()
+            data = get_model_grid(dataDir, filename=filename, **kargs)
+            if data:
+                    dataset.append(data)
+            else:
+                if allExists:
+                    warnings.warn("{} doese not exists.".format(dataDir+'/'+filename))
+                    return None
     
     return xr.concat(dataset, dim='time')
 
 
-def get_station_data(directory, filename=None, suffix="*.000", dropna=True):
+def get_model_profiles(directory, filenames, levels, points, **kargs):
+    """
+    Retrieve time series of vertical profile from 3D [time, level, lat, lon] grids from  MICAPS cassandra service.
+    
+    Args:
+        directory (string): the data directory on the service, which includes all levels.
+        filenames (list): the list of data filenames or one file.
+        levels (list): the high levels.
+        points (dict): dictionary, {'lon':[...], 'lat':[...]}.
+        **kargs: key arguments passed to get_model_3D_grids function.
+
+    Examples:
+      directory = "ECMWF_HR/TMP"
+      levels = [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 100]
+      filenames = ["20021320.024"]
+      points = {'lon':[116.3833, 110.0], 'lat':[39.9, 32]}
+      data = get_model_profiles(directory, filenames, levels, points)
+    """
+
+    data = get_model_3D_grids(directory, filenames, levels, **kargs)
+    if data:
+        return data.interp(lon=('points', points['lon']), lat=('points', points['lat']))
+    else:
+        return None
+
+
+def get_station_data(directory, filename=None, suffix="*.000", dropna=True, cache=True):
     """
     Retrieve station data from MICAPS cassandra service.
 
@@ -527,6 +578,7 @@ def get_station_data(directory, filename=None, suffix="*.000", dropna=True):
     :param suffix: the filename filter pattern which will
                    be used to find the specified file.
     :param dropna: the column which values is all na will be dropped.
+    :param cache: cache retrieved data to local directory, default is True.
     :return: pandas DataFrame.
 
     :example:
@@ -534,12 +586,11 @@ def get_station_data(directory, filename=None, suffix="*.000", dropna=True):
     >>> data = get_station_data("SURFACE/TMP_MAX_24H_NATIONAL", filename="20190705150000.000")
     """
 
-    # connect to data service
-    service = GDSDataService()
-
     # get data file name
     if filename is None:
         try:
+            # connect to data service
+            service = GDSDataService()
             status, response = service.getLatestDataName(directory, suffix)
         except ValueError:
             print('Can not retrieve data from ' + directory)
@@ -554,8 +605,17 @@ def get_station_data(directory, filename=None, suffix="*.000", dropna=True):
             else:
                 return None
 
+    # retrieve data from cached file
+    if cache:
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        if cache_file.is_file():
+            with open(cache_file, 'rb') as f:
+                data = pickle.load(f)
+                return data
+
     # get data contents
     try:
+        service = GDSDataService()
         status, response = service.getData(directory, filename)
     except ValueError:
         print('Can not retrieve data' + filename + ' from ' + directory)
@@ -665,6 +725,11 @@ def get_station_data(directory, filename=None, suffix="*.000", dropna=True):
             if dropna:
                 records = records.dropna(axis=1, how='all')
 
+            # cache records
+            if cache:
+                with open(cache_file, 'wb') as f:
+                    pickle.dump(records, f, protocol=pickle.HIGHEST_PROTOCOL)
+
             # return
             return records
         else:
@@ -673,14 +738,45 @@ def get_station_data(directory, filename=None, suffix="*.000", dropna=True):
         return None
 
 
-def get_fy_awx(directory, filename=None, suffix="*.AWX"):
+def get_station_dataset(directory, filenames, allExists=True, pbar=False, **kargs):
+    """
+    Retrieve multiple station observation from MICAPS cassandra service.
+    
+    Args:
+        directory (string): the data directory on the service.
+        filenames (list): the list of filenames.
+        allExists (boolean): all files should exist, or return None.
+        pbar (boolean): Show progress bar, default to False.
+        **kargs: key arguments passed to get_fy_awx function.
+    """
+
+    dataset = []
+    if pbar:
+        filenames = tqdm(filenames, desc=directory + ": ")
+    for filename in filenames:
+        data = get_station_data(directory, filename=filename, **kargs)
+        if data:
+            dataset.append(data)
+        else:
+            if allExists:
+                warnings.warn("{} doese not exists.".format(directory+'/'+filename))
+                return None
+    
+    return pd.concat(dataset)
+
+
+def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True):
     """
     Retrieve FY satellite cloud awx format file.
+    The awx file format is refered to “气象卫星分发产品及其格式规范AWX2.1”
+    http://satellite.nsmc.org.cn/PortalSite/StaticContent/DocumentDownload.aspx?TypeID=10
 
     :param directory: the data directory on the service
     :param filename: the data filename, if none, will be the latest file.
     :param suffix: the filename filter pattern which will be used to
                    find the specified file.
+    :param units: data units, default is ''.
+    :param cache: cache retrieved data to local directory, default is True.
     :return: satellite information and data.
 
     :Examples:
@@ -688,12 +784,11 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX"):
     >>> data = get_fy_awx(directory)
     """
 
-    # connect to data service
-    service = GDSDataService()
-
     # get data file name
     if filename is None:
         try:
+            # connect to data service
+            service = GDSDataService()
             status, response = service.getLatestDataName(directory, suffix)
         except ValueError:
             print('Can not retrieve data from ' + directory)
@@ -708,8 +803,17 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX"):
             else:
                 return None
 
+    # retrieve data from cached file
+    if cache:
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        if cache_file.is_file():
+            with open(cache_file, 'rb') as f:
+                data = pickle.load(f)
+                return data
+
     # get data contents
     try:
+        service = GDSDataService()
         status, response = service.getData(directory, filename)
     except ValueError:
         print('Can not retrieve data' + filename + ' from ' + directory)
@@ -719,6 +823,9 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX"):
         ByteArrayResult.ParseFromString(response)
         if ByteArrayResult is not None:
             byteArray = ByteArrayResult.byteArray
+            if byteArray == b'':
+                print('There is no data ' + filename + ' in ' + directory)
+                return None
 
             # define head structure
             head_dtype = [
@@ -768,7 +875,7 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX"):
             head_rest_len = (head_info['recordLength'][0].astype(np.int) *
                              head_info['headRecordNumber'][0] - ind)
             head_rest = np.frombuffer(
-                ba[ind:(ind + head_rest_len)],
+                byteArray[ind:(ind + head_rest_len)],
                 dtype='u1', count=head_rest_len)
             ind += head_rest_len
 
@@ -776,20 +883,90 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX"):
             data_len = (head_info['dataRecordNumber'][0].astype(np.int) *
                         head_info['recordLength'][0])
             data = np.frombuffer(
-                ba[ind:(ind + data_len)], dtype='u1',
+                byteArray[ind:(ind + data_len)], dtype='u1',
                 count=data_len)
             data.shape = (head_info['dataRecordNumber'][0],
-                        head_info['recordLength'][0])
+                          head_info['recordLength'][0])
+
+            # construct longitude and latitude coordinates
+            lat = (
+                head_info['latitudeOfNorth'][0]/100. - 
+                np.arange(head_info['heightOfImage'][0])*head_info['verticalResolution'][0]/100.)
+            lon = (
+                head_info['longitudeOfWest'][0]/100. + 
+                np.arange(head_info['widthOfImage'][0])*head_info['horizontalResolution'][0]/100.)
+            
+            # construct time
+            time = datetime(
+                head_info['year'][0], head_info['month'][0],
+                head_info['day'][0], head_info['hour'][0])
+            time = np.array([time], dtype='datetime64[ms]')
+
+            # define coordinates
+            time_coord = ('time', time)
+            lon_coord = ('lon', lon, {
+                'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+            lat_coord = ('lat', lat, {
+                'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+            channel_coord = ('channel', head_info['channel'][0], {'long_name':'channel', 'units':''})
+
+            # create xarray
+            data = data[np.newaxis, ...]
+            varattrs = {
+                'productCategory': head_info['productCategory'][0],  # 产品类型, 1:静止, 2:极轨, 3:格点, 4:离散, 5:图形和分析
+                'formatString': head_info['formatString'][0],  # 产品格式名称
+                'satelliteName': head_info['satelliteName'][0],  # 卫星名称
+                'flagOfProjection': head_info['flagOfProjection'][0], # 投影方式, 0:未投影, 1:兰勃托, 2:麦卡托, 3:极射, 4:等经纬, 5:等面积
+                'units': units}
+            data = xr.Dataset({
+                'image':(['time', 'lat', 'lon'], data, varattrs)},
+                coords={ 'time':time_coord, 'lat':lat_coord, 'lon':lon_coord})
+
+            # add attributes
+            data.attrs['Conventions'] = "CF-1.6"
+            data.attrs['Origin'] = 'MICAPS Cassandra Server'
+
+            # cache data
+            if cache:
+                with open(cache_file, 'wb') as f:
+                    pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
             # return
-            return head_info, data
+            return data
         else:
             return None
     else:
         return None
 
 
-def get_radar_mosaic(directory, filename=None, suffix="*.LATLON"):
+def get_fy_awxs(directory, filenames, allExists=True, pbar=False, **kargs):
+    """
+    Retrieve multiple satellite images from MICAPS cassandra service.
+    
+    Args:
+        directory (string): the data directory on the service.
+        filenames (list): the list of filenames.
+        allExists (boolean): all files should exist, or return None.
+        pbar (boolean): Show progress bar, default to False.
+        **kargs: key arguments passed to get_fy_awx function.
+    """
+
+    dataset = []
+    if pbar:
+        filenames = tqdm(filenames, desc=directory + ": ")
+    for filename in filenames:
+        data = get_fy_awx(directory, filename=filename, **kargs)
+        if data:
+            dataset.append(data)
+        else:
+            if allExists:
+                warnings.warn("{} doese not exists.".format(directory+'/'+filename))
+                return None
+    
+    return xr.concat(dataset, dim='time')
+
+
+def get_radar_mosaic(directory, filename=None, suffix="*.LATLON", cache=True):
     """
     该程序主要用于读取和处理中国气象局CRaMS系统的雷达回波全国拼图数据.
 
@@ -797,18 +974,18 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON"):
     :param filename: the data filename, if none, will be the latest file.
     :param suffix: the filename filter pattern which will be used to
                    find the specified file.
+    :param cache: cache retrieved data to local directory, default is True.
     :return: xarray object.
 
     :Example:
     >>> data = get_radar_mosaic("RADARMOSAIC/CREF/")
     """
 
-    # connect to data service
-    service = GDSDataService()
-
     # get data file name
     if filename is None:
         try:
+            # connect to data service
+            service = GDSDataService()
             status, response = service.getLatestDataName(directory, suffix)
         except ValueError:
             print('Can not retrieve data from ' + directory)
@@ -823,8 +1000,17 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON"):
             else:
                 return None
 
+    # retrieve data from cached file
+    if cache:
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        if cache_file.is_file():
+            with open(cache_file, 'rb') as f:
+                data = pickle.load(f)
+                return data
+
     # get data contents
     try:
+        service = GDSDataService()
         status, response = service.getData(directory, filename)
     except ValueError:
         print('Can not retrieve data' + filename + ' from ' + directory)
@@ -834,6 +1020,9 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON"):
         ByteArrayResult.ParseFromString(response)
         if ByteArrayResult is not None:
             byteArray = ByteArrayResult.byteArray
+            if byteArray == b'':
+                print('There is no data ' + filename + ' in ' + directory)
+                return None
 
             # define head structure
             head_dtype = [
@@ -864,11 +1053,18 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON"):
                 ('min_value', 'i2'),  # 放大后的数据最小取值
                 ('max_value', 'i2'),  # 放大后的数据最大取值
                 ('reserved', 'i2', 6)  # 保留字节
-                          ]
+            ]
 
             # read head information
             head_info = np.frombuffer(byteArray[0:256], dtype=head_dtype)
             ind = 256
+
+            # get data information
+            varname = head_info['name'][0].decode("utf-8", 'ignore').rstrip('\x00')
+            longname = {'CREF': 'Composite Reflectivity', 'QREF': 'Basic Reflectivity',
+                        'VIL': 'Vertically Integrated Liquid', 'OHP': 'One Hour Precipitation'}
+            units = head_info['organization'][0].decode("utf-8", 'ignore').rstrip('\x00')
+            amp = head_info['amp'][0]
 
             # define data variable
             rows = head_info['rows'][0]
@@ -891,18 +1087,23 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON"):
                     byteArray[ind:(ind + 2*nrec)], dtype='i2', count=nrec)
                 ind += 2*nrec
                 position = (irow-1)*cols+icol-1
-                data[position:(position+nrec)] = recd - 1
+                data[position:(position+nrec)] = recd
 
             # reshape data
             data.shape = (rows, cols)
 
+            # deal missing data and restore values
+            data = data.astype(np.float32)
+            data[data < 0] = np.nan
+            data /= amp
+
             # set longitude and latitude coordinates
-            lats = head_info['nlat'][0] - np.arange(rows)*dlat - dlat/2.0
-            lons = head_info['wlon'][0] - np.arange(cols)*dlon - dlon/2.0
+            lat = head_info['nlat'][0] - np.arange(rows)*dlat - dlat/2.0
+            lon = head_info['wlon'][0] + np.arange(cols)*dlon - dlon/2.0
 
             # reverse latitude axis
             data = np.flip(data, 0)
-            lats = lats[::-1]
+            lat = lat[::-1]
 
             # set time coordinates
             time = datetime(1970, 1, 1) + timedelta(
@@ -911,11 +1112,27 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON"):
             time = np.array([time], dtype='datetime64[m]')
             data = np.expand_dims(data, axis=0)
 
+            # define coordinates
+            time_coord = ('time', time)
+            lon_coord = ('lon', lon, {
+                'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+            lat_coord = ('lat', lat, {
+                'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+
             # create xarray
-            data = xr.DataArray(
-                data, coords=[time, lats, lons],
-                dims=['time', 'latitude', 'longitude'],
-                name="radar_mosaic")
+            varattrs = {'long_name': longname.get(varname, 'radar mosaic'), 
+                        'short_name': varname, 'units': units}
+            data = xr.Dataset({'data':(['time', 'lat', 'lon'], data, varattrs)},
+                coords={'time':time_coord, 'lat':lat_coord, 'lon':lon_coord})
+
+            # add attributes
+            data.attrs['Conventions'] = "CF-1.6"
+            data.attrs['Origin'] = 'MICAPS Cassandra Server'
+
+            # cache data
+            if cache:
+                with open(cache_file, 'wb') as f:
+                    pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
             # return
             return data
@@ -925,7 +1142,34 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON"):
         return None
 
 
-def get_tlogp(directory, filename=None, suffix="*.000"):
+def get_radar_mosaics(directory, filenames, allExists=True, pbar=False, **kargs):
+    """
+    Retrieve multiple radar mosaics from MICAPS cassandra service.
+    
+    Args:
+        directory (string): the data directory on the service.
+        filenames (list): the list of filenames.
+        allExists (boolean): all files should exist, or return None.
+        pbar (boolean): Show progress bar, default to False.
+        **kargs: key arguments passed to get_fy_awx function.
+    """
+
+    dataset = []
+    if pbar:
+        filenames = tqdm(filenames, desc=directory + ": ")
+    for filename in filenames:
+        data = get_radar_mosaic(directory, filename=filename, **kargs)
+        if data:
+            dataset.append(data)
+        else:
+            if allExists:
+                warnings.warn("{} doese not exists.".format(directory+'/'+filename))
+                return None
+    
+    return xr.concat(dataset, dim='time')
+
+
+def get_tlogp(directory, filename=None, suffix="*.000", cache=True):
     """
     该程序用于读取micaps服务器上TLOGP数据信息, 文件格式与MICAPS第5类格式相同.
 
@@ -933,17 +1177,17 @@ def get_tlogp(directory, filename=None, suffix="*.000"):
     :param filename: the data filename, if none, will be the latest file.
     :param suffix: the filename filter pattern which will be used to
                    find the specified file.
+    :param cache: cache retrieved data to local directory, default is True.
     :return: pandas DataFrame object.
 
     >>> data = get_tlogp("UPPER_AIR/TLOGP/")
     """
 
-    # connect to data service
-    service = GDSDataService()
-
     # get data file name
     if filename is None:
         try:
+            # connect to data service
+            service = GDSDataService()
             status, response = service.getLatestDataName(directory, suffix)
         except ValueError:
             print('Can not retrieve data from ' + directory)
@@ -958,8 +1202,17 @@ def get_tlogp(directory, filename=None, suffix="*.000"):
             else:
                 return None
 
+    # retrieve data from cached file
+    if cache:
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        if cache_file.is_file():
+            with open(cache_file, 'rb') as f:
+                data = pickle.load(f)
+                return data
+
     # get data contents
     try:
+        service = GDSDataService()
         status, response = service.getData(directory, filename)
     except ValueError:
         print('Can not retrieve data' + filename + ' from ' + directory)
@@ -969,6 +1222,9 @@ def get_tlogp(directory, filename=None, suffix="*.000"):
         ByteArrayResult.ParseFromString(response)
         if ByteArrayResult is not None:
             byteArray = ByteArrayResult.byteArray
+            if byteArray == b'':
+                print('There is no data ' + filename + ' in ' + directory)
+                return None
 
             # decode bytes to string
             txt = byteArray.decode("utf-8")
@@ -1020,6 +1276,11 @@ def get_tlogp(directory, filename=None, suffix="*.000"):
             records = pd.DataFrame(records)
             records.set_index('ID')
 
+            # cache data
+            if cache:
+                with open(cache_file, 'wb') as f:
+                    pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+
             # return
             return records
         else:
@@ -1027,3 +1288,29 @@ def get_tlogp(directory, filename=None, suffix="*.000"):
     else:
         return None
 
+
+def get_tlogps(directory, filenames, allExists=True, pbar=False, **kargs):
+    """
+    Retrieve multiple tlog observation from MICAPS cassandra service.
+    
+    Args:
+        directory (string): the data directory on the service.
+        filenames (list): the list of filenames.
+        allExists (boolean): all files should exist, or return None.
+        pbar (boolean): Show progress bar, default to False.
+        **kargs: key arguments passed to get_fy_awx function.
+    """
+
+    dataset = []
+    if pbar:
+        filenames = tqdm(filenames, desc=directory + ": ")
+    for filename in filenames:
+        data = get_tlogp(directory, filename=filename, **kargs)
+        if data:
+            dataset.append(data)
+        else:
+            if allExists:
+                warnings.warn("{} doese not exists.".format(directory+'/'+filename))
+                return None
+    
+    return pd.concat(dataset)
