@@ -1,5 +1,6 @@
 # 气象数据读写及访问程序库
 提供对MICAPS文件, 卫星云图, 天气雷达等数据的读写, 并访问CIMISS和MICAPS CASSANDRA数据库文件等.
+相应的Jupyter例子文件请见[Examples](https://nbviewer.jupyter.org/github/nmcdev/nmc_met_io/tree/master/examples/)
 
 Only Python 3 is supported.
 
@@ -44,3 +45,5 @@ GDS_PORT = xxxx
 # CACHE_DIR = ~ 
 ```
 这里xxxx用相应的地址, 接口和用户信息代替.
+
+---
