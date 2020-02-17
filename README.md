@@ -10,7 +10,6 @@ Other required packages:
 - scipy
 - xarray
 - pandas
-- pyproj
 - protobuf
 - urllib3
 - tqdm

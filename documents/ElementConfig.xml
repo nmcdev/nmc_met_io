@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 物理量ID和数值类型配置 -->
+<!-- 物理量数据类型: 1: byte, 2: short, 3: int, 4: long, 5: float, 6: double, 7: string -->
+<!-- 除地理信息外偶数ID均表示奇数ID对应的质控码，质控码为1个字节 -->
+<root>
+	<!--
+	地理信息类1-200：
+    1 经度
+	2 纬度
+	3 测站高度
+	4 测站级别(short)
+	5 测站类型(short)
+	6 气压传感器海拔高度
+	7 温湿传感器离地面高度
+	8 温湿传感器距水面高度
+	9 风速传感器距地面高度
+	10 风传感器距甲板平台高度
+	11 风速传感器距水面高度
+	12 移动平台移动方向
+	13 移动平台移动速度
+	14 海盐传感器距海面深度
+	15 浪高传感器距海面高度
+	16 浮标方位
+	17 总水深
+	18 海面/水面以下深度
+	19 船面距海面高度
+	20 方位或方位角
+	21 字符型站名
+    -->
+	<element elementId = "1" elementDataType = "5" />
+	<element elementId = "2" elementDataType = "5" />
+	<element elementId = "3" elementDataType = "5" />
+	<element elementId = "4" elementDataType = "2" />
+	<element elementId = "5" elementDataType = "2" />
+	<element elementId = "6" elementDataType = "5" />
+	<element elementId = "7" elementDataType = "5" />
+	<element elementId = "8" elementDataType = "5" />
+	<element elementId = "9" elementDataType = "5" />
+	<element elementId = "10" elementDataType = "5" />
+	<element elementId = "11" elementDataType = "5" />
+	<element elementId = "12" elementDataType = "5" />
+	<element elementId = "13" elementDataType = "5" />
+	<element elementId = "14" elementDataType = "5" />
+	<element elementId = "15" elementDataType = "5" />
+	<element elementId = "16" elementDataType = "5" />
+	<element elementId = "17" elementDataType = "5" />
+	<element elementId = "18" elementDataType = "5" />
+	<element elementId = "19" elementDataType = "5" />
+	<element elementId = "20" elementDataType = "5" />
+	<element elementId = "21" elementDataType = "7" />
+	
+	<!--
+	风向风速类201-400：
+	201 风向
+	203 风速
+	205 1分钟平均风向
+	207 1分钟平均风速
+	209 2分钟平均风向
+	211 2分钟平均风速
+	213 10分钟平均风向
+	215 10分钟平均风速
+	217 最大风速的风向
+	219 最大风速
+	221 瞬时风向
+	223 瞬时风速
+	225 极大风速的风向
+	227 极大风速
+	229 过去6小时极大瞬时风速的风向
+	231 过去6小时极大瞬时风速
+	233 过去12小时极大瞬时风速的风向
+	235 过去12小时极大瞬时风速
+	237 风力(short)
+	239 垂直阵风风速/垂直速度
+    -->
+	<element elementId = "201" elementDataType = "5" />
+	<element elementId = "203" elementDataType = "5" />
+	<element elementId = "205" elementDataType = "5" />
+	<element elementId = "207" elementDataType = "5" />
+	<element elementId = "209" elementDataType = "5" />
+	<element elementId = "211" elementDataType = "5" />
+	<element elementId = "213" elementDataType = "5" />
+	<element elementId = "215" elementDataType = "5" />
+	<element elementId = "217" elementDataType = "5" />
+	<element elementId = "219" elementDataType = "5" />
+	<element elementId = "221" elementDataType = "5" />
+	<element elementId = "223" elementDataType = "5" />
+	<element elementId = "225" elementDataType = "5" />
+	<element elementId = "227" elementDataType = "5" />
+	<element elementId = "229" elementDataType = "5" />
+	<element elementId = "231" elementDataType = "5" />
+	<element elementId = "233" elementDataType = "5" />
+	<element elementId = "235" elementDataType = "5" />
+	<element elementId = "237" elementDataType = "2" />
+	<element elementId = "239" elementDataType = "5" />
+	
+	<!--
+	气压类401-600：
+	401 海平面气压
+	403 3小时变压
+	405 24小时变压
+	407 本站气压
+	409 最高气压
+	411 最低气压
+	413 气压
+	415 日平均气压
+	417 日平均海平面气压
+	419 高度(探空)
+	421 位势高度(探空)
+    -->
+	<element elementId = "401" elementDataType = "5" />
+	<element elementId = "403" elementDataType = "5" />
+	<element elementId = "405" elementDataType = "5" />
+	<element elementId = "407" elementDataType = "5" />
+	<element elementId = "409" elementDataType = "5" />
+	<element elementId = "411" elementDataType = "5" />
+	<element elementId = "413" elementDataType = "5" />
+	<element elementId = "415" elementDataType = "5" />
+	<element elementId = "417" elementDataType = "5" />
+	<element elementId = "419" elementDataType = "5" />
+	<element elementId = "421" elementDataType = "5" />
+	
+	<!--
+	气温类601-800：
+	601 温度
+	603 最高气温
+	605 最低气温
+	607 24小时变温
+	609 过去24小时最高气温
+	611 过去24小时最低气温
+	613 日平均气温
+    -->
+	<element elementId = "601" elementDataType = "5" />
+	<element elementId = "603" elementDataType = "5" />
+	<element elementId = "605" elementDataType = "5" />
+	<element elementId = "607" elementDataType = "5" />
+	<element elementId = "609" elementDataType = "5" />
+	<element elementId = "611" elementDataType = "5" />
+	<element elementId = "613" elementDataType = "5" />
+	
+	<!--
+	湿度类801-1000：
+	801 露点温度
+	803 温度露点差
+	805 相对湿度
+	807 最小相对湿度
+	809 日平均相对湿度
+	811 水汽压
+	813 日平均水汽压
+    -->
+	<element elementId = "801" elementDataType = "5" />
+	<element elementId = "803" elementDataType = "5" />
+	<element elementId = "805" elementDataType = "5" />
+	<element elementId = "807" elementDataType = "5" />
+	<element elementId = "809" elementDataType = "5" />
+	<element elementId = "811" elementDataType = "5" />
+	<element elementId = "813" elementDataType = "5" />
+	
+	<!--
+	降水蒸发类1001-1200：
+	1001 降水量
+	1003 1小时降水
+	1005 3小时降水
+	1007 6小时降水
+	1009 12小时降水
+	1011 24小时降水
+	1013 日总降水
+	1015 20-08时降水量
+	1017 08-20时降水量
+	1019 20-20时降水量
+	1021 08-08时降水量
+	1023 蒸发
+	1025 蒸发(大型)
+	1027 可降水分(预报降水量)
+    -->
+	<element elementId = "1001" elementDataType = "5" />
+	<element elementId = "1003" elementDataType = "5" />
+	<element elementId = "1005" elementDataType = "5" />
+	<element elementId = "1007" elementDataType = "5" />
+	<element elementId = "1009" elementDataType = "5" />
+	<element elementId = "1011" elementDataType = "5" />
+	<element elementId = "1013" elementDataType = "5" />
+	<element elementId = "1015" elementDataType = "5" />
+	<element elementId = "1017" elementDataType = "5" />
+	<element elementId = "1019" elementDataType = "5" />
+	<element elementId = "1021" elementDataType = "5" />
+	<element elementId = "1023" elementDataType = "5" />
+	<element elementId = "1025" elementDataType = "5" />
+	<element elementId = "1027" elementDataType = "5" />
+	
+	<!--
+	能见度类1201-1400：
+	1201 1分钟平均水平能见度
+	1203 10分钟平均水平能见度
+	1205 最小水平能见度
+	1207 水平能见度(人工)
+    -->
+	<element elementId = "1201" elementDataType = "5" />
+	<element elementId = "1203" elementDataType = "5" />
+	<element elementId = "1205" elementDataType = "5" />
+	<element elementId = "1207" elementDataType = "5" />
+	
+	<!--
+	云类1401-1600：
+	1401 总云量
+	1403 低云量
+	1405 云底高度
+	1407 低云状(short)
+	1409 中云状(short)
+	1411 高云状(short)
+	1413 日平均总云量
+	1415 日平均低云量
+	1417 云量(低云或中云)
+	1419 云类型(short)
+    -->
+	<element elementId = "1401" elementDataType = "5" />
+	<element elementId = "1403" elementDataType = "5" />
+	<element elementId = "1405" elementDataType = "5" />
+	<element elementId = "1407" elementDataType = "2" />
+	<element elementId = "1409" elementDataType = "2" />
+	<element elementId = "1411" elementDataType = "2" />
+	<element elementId = "1413" elementDataType = "5" />
+	<element elementId = "1415" elementDataType = "5" />
+	<element elementId = "1417" elementDataType = "5" />
+	<element elementId = "1419" elementDataType = "2" />
+	
+	<!--
+	天气现象类1601-1800：
+	1601 现在天气(short)
+	1603 过去天气1(short)
+	1605 过去天气2(short)
+	1607 湍流(short)
+    -->
+	<element elementId = "1601" elementDataType = "2" />
+	<element elementId = "1603" elementDataType = "2" />
+	<element elementId = "1605" elementDataType = "2" />
+	<element elementId = "1607" elementDataType = "2" />
+	
+	<!--
+	重要天气现象类1801-2000：
+	1801 龙卷类型(short)
+	1803 龙卷所在方位(short)
+	1805 最大冰雹直径
+	1807 雷暴(short)
+	1809 电流强度(闪电定位)
+    -->
+	<element elementId = "1801" elementDataType = "2" />
+	<element elementId = "1803" elementDataType = "2" />
+	<element elementId = "1805" elementDataType = "5" />
+	<element elementId = "1807" elementDataType = "2" />
+	<element elementId = "1809" elementDataType = "5" />
+	
+	<!--
+	地温类2001-2200：
+	2001 地面温度
+	2003 最高地面温度
+	2005 最低地面温度
+	2007 过去12小时最低地面温度
+	2009 5cm地温
+	2011 10cm地温
+	2013 15cm地温
+	2015 20cm地温
+	2017 40cm地温
+	2019 80cm地温
+	2021 160cm地温
+	2023 320cm地温
+	2025 草面（雪面）温度
+	2027 草面（雪面）最高温度
+	2029 草面（雪面）最低温度
+	2031 日平均地面温度
+	2033 日平均5cm地温
+	2035 日平均10cm地温
+	2037 日平均15cm地温
+	2039 日平均20cm地温
+	2041 日平均40cm地温
+	2043 日平均80cm地温
+	2045 日平均160cm地温
+	2047 日平均320cm地温
+	2049 日平均草面（雪面）温度
+    -->
+	<element elementId = "2001" elementDataType = "5" />
+	<element elementId = "2003" elementDataType = "5" />
+	<element elementId = "2005" elementDataType = "5" />
+	<element elementId = "2007" elementDataType = "5" />
+	<element elementId = "2009" elementDataType = "5" />
+	<element elementId = "2011" elementDataType = "5" />
+	<element elementId = "2013" elementDataType = "5" />
+	<element elementId = "2015" elementDataType = "5" />
+	<element elementId = "2017" elementDataType = "5" />
+	<element elementId = "2019" elementDataType = "5" />
+	<element elementId = "2021" elementDataType = "5" />
+	<element elementId = "2023" elementDataType = "5" />
+	<element elementId = "2025" elementDataType = "5" />
+	<element elementId = "2027" elementDataType = "5" />
+	<element elementId = "2029" elementDataType = "5" />
+	<element elementId = "2031" elementDataType = "5" />
+	<element elementId = "2033" elementDataType = "5" />
+	<element elementId = "2035" elementDataType = "5" />
+	<element elementId = "2037" elementDataType = "5" />
+	<element elementId = "2039" elementDataType = "5" />
+	<element elementId = "2041" elementDataType = "5" />
+	<element elementId = "2043" elementDataType = "5" />
+	<element elementId = "2045" elementDataType = "5" />
+	<element elementId = "2047" elementDataType = "5" />
+	<element elementId = "2049" elementDataType = "5" />
+	
+	<!--
+	积雪冰冻类2201-2400：
+	2201 地面状态(short)
+	2203 积雪深度
+	2205 雪压
+	2207 电线积冰直径
+	2209 电线积冰-现象(short)
+	2211 电线积冰-南北方向直径
+	2213 电线积冰-南北方向厚度
+	2215 电线积冰-南北方向重量
+	2217 电线积冰-东西方向直径
+	2219 电线积冰-东西方向厚度
+	2221 电线积冰-东西方向重量
+	2223 船上结冰原因(short)
+	2225 船上结冰厚度
+	2227 船上结冰速度(short)
+	2229 海冰密集度(short)
+	2231 冰情发展(short)
+	2233 冰总量和类型(short)
+	2235 冰缘方位
+	2237 冰情(short)
+    -->
+	<element elementId = "2201" elementDataType = "2" />
+	<element elementId = "2203" elementDataType = "5" />
+	<element elementId = "2205" elementDataType = "5" />
+	<element elementId = "2207" elementDataType = "5" />
+	<element elementId = "2209" elementDataType = "2" />
+	<element elementId = "2211" elementDataType = "5" />
+	<element elementId = "2213" elementDataType = "5" />
+	<element elementId = "2215" elementDataType = "5" />
+	<element elementId = "2217" elementDataType = "5" />
+	<element elementId = "2219" elementDataType = "5" />
+	<element elementId = "2221" elementDataType = "5" />
+	<element elementId = "2223" elementDataType = "2" />
+	<element elementId = "2225" elementDataType = "5" />
+	<element elementId = "2227" elementDataType = "2" />
+	<element elementId = "2229" elementDataType = "2" />
+	<element elementId = "2231" elementDataType = "2" />
+	<element elementId = "2233" elementDataType = "2" />
+	<element elementId = "2235" elementDataType = "5" />
+	<element elementId = "2237" elementDataType = "2" />
+	
+	<!--
+	时间类10001-14000：
+	10001 最高气压出现时间
+	10003 最低气压出现时间
+	10005 最高气温出现时间
+	10007 最低气温出现时间
+	10009 最小相对湿度出现时间
+	10011 最大风速出现时间
+	10013 极大风速出现时间
+	10015 最高地面温度出现时间
+	10017 最低地面温度出现时间
+	10019 草面（雪面）最低温度出现时间
+	10021 草面（雪面）最高温度出现时间
+	10023 最小水平能见度出现时间
+	10025 天气出现时间
+	10027 海表最高温度出现时间
+	10029 海表最低温度出现时间
+	10031 最大波高出现时间
+	10033 资料时间
+	10035 观测时间
+    -->
+	<element elementId = "10001" elementDataType = "4" />
+	<element elementId = "10003" elementDataType = "4" />
+	<element elementId = "10005" elementDataType = "4" />
+	<element elementId = "10007" elementDataType = "4" />
+	<element elementId = "10009" elementDataType = "4" />
+	<element elementId = "10011" elementDataType = "4" />
+	<element elementId = "10013" elementDataType = "4" />
+	<element elementId = "10015" elementDataType = "4" />
+	<element elementId = "10017" elementDataType = "4" />
+	<element elementId = "10019" elementDataType = "4" />
+	<element elementId = "10021" elementDataType = "4" />
+	<element elementId = "10023" elementDataType = "4" />
+	<element elementId = "10025" elementDataType = "4" />
+	<element elementId = "10027" elementDataType = "4" />
+	<element elementId = "10029" elementDataType = "4" />
+	<element elementId = "10031" elementDataType = "4" />
+	<element elementId = "10033" elementDataType = "4" />
+	<element elementId = "10035" elementDataType = "4" />
+	
+	<!--
+	方法类2401-2600：
+	2401 风速表类型
+	2403 湿球温度测量方法
+	2405 海面温度测量方法
+	2407 洋流测量方法
+	2409 气压倾向特征
+    -->
+    <element elementId = "2401" elementDataType = "2" />
+    <element elementId = "2403" elementDataType = "2" />
+	<element elementId = "2405" elementDataType = "2" />
+    <element elementId = "2407" elementDataType = "2" />
+    <element elementId = "2409" elementDataType = "2" />
+    
+    <!--
+	海温/盐类2601-2800：
+	2601 海面温度
+	2603 湿球温度
+	2605 海面盐度
+	2607 海表最高温度
+	2609 海表最低温度
+	2611 海水温度
+	2613 海水盐度
+    -->
+    <element elementId = "2601" elementDataType = "5" />
+    <element elementId = "2603" elementDataType = "5" />
+    <element elementId = "2605" elementDataType = "5" />
+    <element elementId = "2607" elementDataType = "5" />
+    <element elementId = "2609" elementDataType = "5" />
+    <element elementId = "2611" elementDataType = "5" />
+    <element elementId = "2613" elementDataType = "5" />
+    
+     <!--
+	洋流/海流类2801-3000：
+	2801 海面海流方向
+	2803 海面海流速度
+	2805 洋流方向和速度的平均周期(short)
+	2807 表层海洋面流速
+	2809 表层海洋面波向
+	2811 海流方向
+	2813 海流速度
+    -->
+    <element elementId = "2801" elementDataType = "5" />
+    <element elementId = "2803" elementDataType = "5" />
+    <element elementId = "2805" elementDataType = "2" />
+    <element elementId = "2807" elementDataType = "5" />
+    <element elementId = "2809" elementDataType = "5" />
+    <element elementId = "2811" elementDataType = "5" />
+    <element elementId = "2813" elementDataType = "5" />
+    
+    <!--
+	海浪类3001-3200：
+	3001 波浪方向
+	3003 波浪周期
+	3005 波浪高度
+	3007 风浪方向
+	3009 风浪周期
+	3011 风浪高度
+	3013 第一涌浪方向
+	3015 第一涌浪周期
+	3017 第一涌浪高度
+	3019 第二涌浪方向
+	3021 第二涌浪周期
+	3023 第二涌浪高度
+	3025 有效波高
+	3027 有效波高的周期
+	3029 平均波高
+	3031 平均波周期
+	3033 最大波高
+	3035 最大波高的周期
+	3037 人工测量浪高
+	3039 仪器测量浪高
+	3041 浪级代码
+    -->
+    <element elementId = "3001" elementDataType = "5" />
+	<element elementId = "3003" elementDataType = "5" />
+	<element elementId = "3005" elementDataType = "5" />
+	<element elementId = "3007" elementDataType = "5" />
+	<element elementId = "3009" elementDataType = "5" />
+	<element elementId = "3011" elementDataType = "5" />
+	<element elementId = "3013" elementDataType = "5" />
+	<element elementId = "3015" elementDataType = "5" />
+	<element elementId = "3017" elementDataType = "5" />
+	<element elementId = "3019" elementDataType = "5" />
+	<element elementId = "3021" elementDataType = "5" />
+	<element elementId = "3023" elementDataType = "5" />
+	<element elementId = "3025" elementDataType = "5" />
+	<element elementId = "3027" elementDataType = "5" />
+	<element elementId = "3029" elementDataType = "5" />
+	<element elementId = "3031" elementDataType = "5" />
+	<element elementId = "3033" elementDataType = "5" />
+	<element elementId = "3035" elementDataType = "5" />
+	<element elementId = "3037" elementDataType = "5" />
+	<element elementId = "3039" elementDataType = "5" />
+	<element elementId = "3041" elementDataType = "5" />
+	
+	<!--
+	飞行设备类3201-3400
+	3201 飞机飞行状态(short)
+	3203 飞机导航系统状态(short)
+	3205 飞行高度
+	-->
+	<element elementId = "3201" elementDataType = "2" />
+	<element elementId = "3203" elementDataType = "2" />
+	<element elementId = "3205" elementDataType = "5" />
+	
+	<!--
+	大气成分类3401-3600
+	3401 PM2.5质量浓度(微克/立方米)
+	-->
+	<element elementId = "3401" elementDataType = "5" />
+</root>

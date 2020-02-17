@@ -47,7 +47,6 @@ setup(
                       'scipy>=0.19.0',
                       'xarray>=0.9.6',
                       'pandas>=0.20.0',
-                      'pyproj>=1.9.5.1',
                       'protobuf>=3.5.0',
                       'urllib3>=1.20',
                       'tqdm>=4.40.0',
