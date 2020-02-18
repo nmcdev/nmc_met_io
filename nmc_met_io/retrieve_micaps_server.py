@@ -431,6 +431,8 @@ def get_model_grids(directory, filenames, allExists=True, pbar=False, **kargs):
     dataset = []
     if pbar:
         tqdm_filenames = tqdm(filenames, desc=directory + ": ")
+    else:
+        tqdm_filenames = filenames
     for filename in tqdm_filenames:
         data = get_model_grid(directory, filename=filename, **kargs)
         if data:
@@ -491,6 +493,8 @@ def get_model_3D_grid(directory, filename, levels, allExists=True, pbar=False, *
     dataset = []
     if pbar:
         tqdm_levels = tqdm(levels, desc=directory+": ")
+    else:
+        tqdm_levels = levels
     for level in tqdm_levels:
         if directory[-1] == '/':
             dataDir = directory + str(int(level)).strip()
@@ -530,6 +534,8 @@ def get_model_3D_grids(directory, filenames, levels, allExists=True, pbar=True, 
     dataset = []
     if pbar:
         tqdm_filenames = tqdm(filenames, desc=directory+": ")
+    else:
+        tqdm_filenames = filenames
     for filename in tqdm_filenames:
         for level in levels:
             if directory[-1] == '/':
@@ -756,7 +762,9 @@ def get_station_dataset(directory, filenames, allExists=True, pbar=False, **karg
 
     dataset = []
     if pbar:
-        filenames = tqdm(filenames, desc=directory + ": ")
+        tqdm_filenames = tqdm(filenames, desc=directory + ": ")
+    else:
+        tqdm_filenames = filenames
     for filename in filenames:
         data = get_station_data(directory, filename=filename, **kargs)
         if data:
@@ -957,8 +965,10 @@ def get_fy_awxs(directory, filenames, allExists=True, pbar=False, **kargs):
 
     dataset = []
     if pbar:
-        filenames = tqdm(filenames, desc=directory + ": ")
-    for filename in filenames:
+        tqdm_filenames = tqdm(filenames, desc=directory + ": ")
+    else:
+        tqdm_filenames = filenames
+    for filename in tqdm_filenames:
         data = get_fy_awx(directory, filename=filename, **kargs)
         if data:
             dataset.append(data)
@@ -1160,8 +1170,10 @@ def get_radar_mosaics(directory, filenames, allExists=True, pbar=False, **kargs)
 
     dataset = []
     if pbar:
-        filenames = tqdm(filenames, desc=directory + ": ")
-    for filename in filenames:
+        tqdm_filenames = tqdm(filenames, desc=directory + ": ")
+    else:
+        tqdm_filenames = filenames
+    for filename in tqdm_filenames:
         data = get_radar_mosaic(directory, filename=filename, **kargs)
         if data:
             dataset.append(data)
@@ -1307,8 +1319,10 @@ def get_tlogps(directory, filenames, allExists=True, pbar=False, **kargs):
 
     dataset = []
     if pbar:
-        filenames = tqdm(filenames, desc=directory + ": ")
-    for filename in filenames:
+        tqdm_filenames = tqdm(filenames, desc=directory + ": ")
+    else:
+        tqdm_filenames = filenames
+    for filename in tqdm_filenames:
         data = get_tlogp(directory, filename=filename, **kargs)
         if data:
             dataset.append(data)
