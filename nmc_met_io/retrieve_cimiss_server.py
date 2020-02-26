@@ -1292,6 +1292,313 @@ def cimiss_analysis_by_times(times_str, pbar=True, allExists=True, **kargs):
     return data
 
 
+def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level,
+                      units=None, scale_off=None, cache=True,
+                      levattrs={'long_name':'height_above_ground', 'units':'m', '_CoordinateAxisType':'Height'}):
+    """
+    Retrieve model grid data from CIMISS service.
+    refer to: http://10.20.76.55/cimissapiweb/apidataclassdefine_list.action
+
+    :param data_code: MUSIC data code, 
+                      "NAFP_FOR_FTM_HIGH_EC_GLB"(default): 欧洲中心数值预报产品-高分辨率C1D-全球
+                      "NAFP_FOR_FTM_HIGH_EC_ASI": 欧洲中心数值预报产品-高分辨率C1D-亚洲地区
+                      "NAFP_FOR_FTM_HIGH_EC_ANEA": 欧洲中心数值预报产品-高分辨率C1D-东北亚地区
+                      ......
+    :param init_time_str: model run time, like "2016081712"
+    :param valid_time: forecast hour, like 0
+    :param fcst_ele: forecast element, like 2m temperature "TEF2"
+    :param fcst_level: vertical level, like 0
+    :param units: forecast element's units, defaults to retrieved units.
+    :param scale_off: [scale, offset], return values = values*scale + offset.
+    :param cache: cache retrieved data to local directory, default is True.
+    :param levattrs: level attributes, like:
+                     {'long_name':'height_above_ground', 'units':'m', '_CoordinateAxisType':'Height'}, default
+                     {'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'}
+                     {'long_name':'geopotential_height', 'units':'gpm', '_CoordinateAxisType':'GeoZ'}
+                     refer to https://www.unidata.ucar.edu/software/netcdf-java/current/reference/CoordinateAttributes.html
+    :return: xarray dataset.
+
+    Examples:
+    >>> data = cimiss_model_grid("NAFP_FOR_FTM_HIGH_EC_ANEA", "2020021512", 24, 'TEM', 850, units="C", scale_off=[1.0, -273.15], 
+                                 levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'})
+    """
+
+    # retrieve data from cached file
+    if cache:
+        directory = os.path.join(data_code, fcst_ele, str(fcst_level))
+        filename = init_time_str + '.' + str(valid_time).zfill(3)
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS_DATA")
+        if cache_file.is_file():
+            with open(cache_file, 'rb') as f:
+                data = pickle.load(f)
+                return data
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'time': init_time_str + '0000',
+              'fcstLevel': '{:d}'.format(fcst_level),
+              'validTime': '{:d}'.format(valid_time),
+              'fcstEle': fcst_ele}
+    interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
+
+    # retrieve data contents
+    contents = get_http_result(interface_id, params)
+    if contents is None:
+        return None
+    contents = json.loads(contents.decode('utf-8'))
+    if contents['returnCode'] != '0':
+        return None
+
+    # get time information
+    init_time = datetime.strptime(init_time_str, '%Y%m%d%H')
+    fhour = np.array([valid_time], dtype=np.float)
+    time = init_time + timedelta(hours=fhour[0])
+    init_time = np.array([init_time], dtype='datetime64[ms]')
+    time = np.array([time], dtype='datetime64[ms]')
+
+    # extract coordinates and data
+    start_lat = float(contents['startLat'])
+    start_lon = float(contents['startLon'])
+    nlon = int(contents['lonCount'])
+    nlat = int(contents['latCount'])
+    dlon = float(contents['lonStep'])
+    dlat = float(contents['latStep'])
+    lon = start_lon + np.arange(nlon)*dlon
+    lat = start_lat + np.arange(nlat)*dlat
+    name = contents['fieldNames']
+    if units is None:
+        units = contents['fieldUnits']
+
+    # define coordinates and variables
+    time_coord = ('time', time)
+    lon_coord = ('lon', lon, {
+        'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+    lat_coord = ('lat', lat, {
+        'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+    if fcst_level != 0:
+        level_coord = ('level', np.array([fcst_level]), levattrs)
+    varname = fcst_ele
+    varattrs = {'long_name': name, 'units': units}
+
+    # construct xarray
+    data = np.array(contents['DS'], dtype=np.float32)
+    if scale_off is not None:
+        data = data * scale_off[0] + scale_off[1]
+    if fcst_level == 0:
+        data = data[np.newaxis, ...]
+        data = xr.Dataset({
+            varname:(['time', 'lat', 'lon'], data, varattrs)},
+            coords={'time':time_coord, 'lat':lat_coord, 'lon':lon_coord})
+    else:
+        data = data[np.newaxis, np.newaxis, ...]
+        data = xr.Dataset({
+            varname:(['time', 'level', 'lat', 'lon'], data, varattrs)},
+            coords={'time':time_coord, 'level':level_coord, 'lat':lat_coord, 'lon':lon_coord})
+
+    # add time coordinates
+    data.coords['forecast_reference_time'] = init_time[0]
+    data.coords['forecast_period'] = ('time', fhour, {
+        'long_name':'forecast_period', 'units':'hour'})
+
+    # add attributes
+    data.attrs['Conventions'] = "CF-1.6"
+    data.attrs['Origin'] = 'CIMISS Server by MUSIC API'
+
+    # cache data
+    if cache:
+        with open(cache_file, 'wb') as f:
+            pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # return data
+    return data
+
+
+def cimiss_model_grids(data_code, init_time_str, valid_times, fcst_ele, fcst_level, allExists=True, pbar=False, **kargs):
+    """
+    Retrieve multiple valid time grids at the same initial time from CIMISS service.
+    
+    :param data_code: MUSIC data code, 
+                      "NAFP_FOR_FTM_HIGH_EC_GLB"(default): 欧洲中心数值预报产品-高分辨率C1D-全球
+                      "NAFP_FOR_FTM_HIGH_EC_ASI": 欧洲中心数值预报产品-高分辨率C1D-亚洲地区
+                      "NAFP_FOR_FTM_HIGH_EC_ANEA": 欧洲中心数值预报产品-高分辨率C1D-东北亚地区
+                      ......
+    :param init_time_str: model run time, like "2016081712"
+    :param valid_times: forecast hours, like [0, 6, 12, 15, 18, ...]
+    :param fcst_ele: forecast element, like 2m temperature "TEF2"
+    :param fcst_level: vertical level, like 0
+    :param allExists (boolean): all files should exist, or return None.
+    :param pbar (boolean): Show progress bar, default to False.
+    :param **kargs: key arguments passed to cimiss_model_grid function.
+
+    Examples:
+    >>> valid_times = [6*i for i in 0:13]
+    >>> data = cimiss_model_grids("NAFP_FOR_FTM_HIGH_EC_ANEA", "2020021512", valid_times, 'TEM', 850, units="C", scale_off=[1.0, -273.15], 
+                                 levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'})
+    """
+
+    dataset = []
+    if pbar:
+        tqdm_valid_times = tqdm(valid_times, desc=data_code + ": ")
+    else:
+        tqdm_valid_times = valid_times
+    for valid_time in tqdm_valid_times:
+        data = cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level, **kargs)
+        if data:
+            dataset.append(data)
+        else:
+            if allExists:
+                warnings.warn("{} doese not exists.".format(data_code+'/'+init_time_str+'.'+str(valid_time).zfill(3)))
+                return None
+    
+    return xr.concat(dataset, dim='time')
+
+
+def cimiss_model_points(data_code, init_time_str, valid_times, fcst_ele, fcst_level, points, **kargs):
+    """
+    Retrieve model point time series at the same initial time from CIMISS service.
+    
+    :param data_code: MUSIC data code, 
+                      "NAFP_FOR_FTM_HIGH_EC_GLB"(default): 欧洲中心数值预报产品-高分辨率C1D-全球
+                      "NAFP_FOR_FTM_HIGH_EC_ASI": 欧洲中心数值预报产品-高分辨率C1D-亚洲地区
+                      "NAFP_FOR_FTM_HIGH_EC_ANEA": 欧洲中心数值预报产品-高分辨率C1D-东北亚地区
+                      ......
+    :param init_time_str: model run time, like "2016081712"
+    :param valid_times: forecast hours, like [0, 6, 12, 15, 18, ...]
+    :param fcst_ele: forecast element, like 2m temperature "TEF2", temperature "TEM"
+    :param fcst_level: vertical level, like 0
+    :param points: dictionary, {'lon':[...], 'lat':[...]}.
+    :param **kargs: key arguments passed to cimiss_model_grids function.
+
+    Examples:
+    >>> valid_times = [6*i for i in 0:13]
+    >>> points = {'lon':[116.3833, 110.0], 'lat':[39.9, 32]}
+    >>> data = cimiss_model_points("NAFP_FOR_FTM_HIGH_EC_ANEA", "2020021512", valid_times, 'TEM', 850, points, units="C", scale_off=[1.0, -273.15], 
+                                   levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'})
+    """
+
+    data = cimiss_model_grids(data_code, init_time_str, valid_times, fcst_ele, **kargs)
+    if data:
+        return data.interp(lon=('points', points['lon']), lat=('points', points['lat']))
+    else:
+        return None
+
+
+def cimiss_model_3D_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_levels, allExists=True, pbar=False, **kargs):
+    """
+    Retrieve multiple level grids at the same initial time from CIMISS service.
+    
+    :param data_code: MUSIC data code, 
+                      "NAFP_FOR_FTM_HIGH_EC_GLB"(default): 欧洲中心数值预报产品-高分辨率C1D-全球
+                      "NAFP_FOR_FTM_HIGH_EC_ASI": 欧洲中心数值预报产品-高分辨率C1D-亚洲地区
+                      "NAFP_FOR_FTM_HIGH_EC_ANEA": 欧洲中心数值预报产品-高分辨率C1D-东北亚地区
+                      ......
+    :param init_time_str: model run time, like "2016081712"
+    :param valid_time: forecast hour, like 0
+    :param fcst_ele: forecast element, like 2m temperature "TEF2", temperature "TEM"
+    :param fcst_levels: vertical levels, like [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 100]
+    :param allExists (boolean): all files should exist, or return None.
+    :param pbar (boolean): Show progress bar, default to False.
+    :param **kargs: key arguments passed to cimiss_model_grid function.
+
+    Examples:
+    >>> levels = [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 100]
+    >>> data = cimiss_model_3D_grid("NAFP_FOR_FTM_HIGH_EC_ANEA", "2020021512", 24, 'TEM', levels, units="C", scale_off=[1.0, -273.15], 
+                                    levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'})
+    """
+
+    dataset = []
+    if pbar:
+        tqdm_fcst_levels = tqdm(fcst_levels, desc=data_code + ": ")
+    else:
+        tqdm_fcst_levels = fcst_levels
+    for fcst_level in tqdm_fcst_levels:
+        data = cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level, **kargs)
+        if data:
+            dataset.append(data)
+        else:
+            if allExists:
+                warnings.warn("{} doese not exists.".format(data_code+'/'+init_time_str+'.'+str(valid_time).zfill(3)))
+                return None
+    
+    return xr.concat(dataset, dim='level')
+
+
+def cimiss_model_3D_grids(data_code, init_time_str, valid_times, fcst_ele, fcst_levels, allExists=True, pbar=False, **kargs):
+    """
+    Retrieve multiple time and level grids at the same initial time from CIMISS service.
+    
+    :param data_code: MUSIC data code, 
+                      "NAFP_FOR_FTM_HIGH_EC_GLB"(default): 欧洲中心数值预报产品-高分辨率C1D-全球
+                      "NAFP_FOR_FTM_HIGH_EC_ASI": 欧洲中心数值预报产品-高分辨率C1D-亚洲地区
+                      "NAFP_FOR_FTM_HIGH_EC_ANEA": 欧洲中心数值预报产品-高分辨率C1D-东北亚地区
+                      ......
+    :param init_time_str: model run time, like "2016081712"
+    :param valid_times: forecast hour, like  [0, 6, 12, 15, 18, ...]
+    :param fcst_ele: forecast element, like 2m temperature "TEF2", temperature "TEM"
+    :param fcst_levels: vertical levels, like [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 100]
+    :param allExists (boolean): all files should exist, or return None.
+    :param pbar (boolean): Show progress bar, default to False.
+    :param **kargs: key arguments passed to cimiss_model_grid function.
+
+    Examples:
+    >>> valid_times = [6*i for i in range(13)]
+    >>> levels = [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 100]
+    >>> data = cimiss_model_3D_grids("NAFP_FOR_FTM_HIGH_EC_ANEA", "2020021512", 24, 'TEM', levels, units="C", scale_off=[1.0, -273.15], 
+                                     levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'})
+    """
+
+    dataset = []
+    if pbar:
+        tqdm_valid_times = tqdm(valid_times, desc=data_code + ": ")
+    else:
+        tqdm_valid_times = valid_times
+    for valid_time in tqdm_valid_times:
+        dataset_temp = []
+        for fcst_level in fcst_levels:
+            data = cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level, **kargs)
+            if data:
+                dataset_temp.append(data)
+            else:
+                if allExists:
+                    warnings.warn("{} doese not exists.".format(data_code+'/'+init_time_str+'.'+str(valid_time).zfill(3)))
+                    return None
+        dataset.append(xr.concat(dataset_temp, dim='level'))
+    
+    return xr.concat(dataset, dim='time')
+
+
+def cimiss_model_profiles(data_code, init_time_str, valid_times, fcst_ele, fcst_levels, points, **kargs):
+    """
+    Retrieve time series of vertical profile from 3D [time, level, lat, lon] grids
+    at the same initial time from CIMISS service.
+    
+    :param data_code: MUSIC data code, 
+                      "NAFP_FOR_FTM_HIGH_EC_GLB"(default): 欧洲中心数值预报产品-高分辨率C1D-全球
+                      "NAFP_FOR_FTM_HIGH_EC_ASI": 欧洲中心数值预报产品-高分辨率C1D-亚洲地区
+                      "NAFP_FOR_FTM_HIGH_EC_ANEA": 欧洲中心数值预报产品-高分辨率C1D-东北亚地区
+                      ......
+    :param init_time_str: model run time, like "2016081712"
+    :param valid_times: forecast hour, like  [0, 6, 12, 15, 18, ...]
+    :param fcst_ele: forecast element, like 2m temperature "TEF2", temperature "TEM"
+    :param fcst_levels: vertical levels, like [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 100]
+    :param point: dictionary, {'lon':[...], 'lat':[...]}.
+    :param **kargs: key arguments passed to cimiss_model_grid function.
+
+    Examples:
+    >>> valid_times = [6*i for i in range(13)]
+    >>> levels = [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 100]
+    >>> points = {'lon':[116.3833, 110.0], 'lat':[39.9, 32]}
+    >>> data = cimiss_model_profiles("NAFP_FOR_FTM_HIGH_EC_ANEA", "2020021512", 24, 'TEM', levels, units="C", points, scale_off=[1.0, -273.15], 
+                                     levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'})
+    """
+
+    data = cimiss_model_3D_grids(data_code, init_time_str, valid_times, fcst_ele, fcst_levels, **kargs)
+    if data:
+        return data.interp(lon=('points', points['lon']), lat=('points', points['lat']))
+    else:
+        return None
+
+
 def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
                          data_code='NAFP_FOR_FTM_HIGH_EC_GLB',
                          levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'},

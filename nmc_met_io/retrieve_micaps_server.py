@@ -517,7 +517,7 @@ def get_model_3D_grids(directory, filenames, levels, allExists=True, pbar=True, 
     
     Args:
         directory (string): the data directory on the service, which includes all levels.
-        filenames (list): the list of data filenames.
+        filenames (list): the list of data filenames, should be the same initial time.
         levels (list): the high levels.
         allExists (bool, optional): all files should exist, or return None.. Defaults to True.
         pbar (boolean): Show progress bar, default to True.
@@ -537,6 +537,7 @@ def get_model_3D_grids(directory, filenames, levels, allExists=True, pbar=True, 
     else:
         tqdm_filenames = filenames
     for filename in tqdm_filenames:
+        dataset_temp = []
         for level in levels:
             if directory[-1] == '/':
                 dataDir = directory + str(int(level)).strip()
@@ -544,11 +545,12 @@ def get_model_3D_grids(directory, filenames, levels, allExists=True, pbar=True, 
                 dataDir = directory + '/' + str(int(level)).strip()
             data = get_model_grid(dataDir, filename=filename, **kargs)
             if data:
-                    dataset.append(data)
+                    dataset_temp.append(data)
             else:
                 if allExists:
                     warnings.warn("{} doese not exists.".format(dataDir+'/'+filename))
                     return None
+        dataset.append(xr.concat(dataset_temp, dim='level'))
     
     return xr.concat(dataset, dim='time')
 
