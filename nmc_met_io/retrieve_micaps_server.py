@@ -662,7 +662,7 @@ def get_station_data(directory, filename=None, suffix="*.000", dropna=True, cach
 
             # construct record structure
             element_type_map = {
-                1: 'b1', 2: 'i2', 3: 'i4', 4: 'i8', 5: 'f4', 6: 'f8', 7: 'S1'}
+                1: 'b1', 2: 'i2', 3: 'i4', 4: 'i8', 5: 'f4', 6: 'f8', 7: 'S'}
             element_map = {}
             for i in range(element_number):
                 element_id = str(
@@ -689,7 +689,11 @@ def get_station_data(directory, filename=None, suffix="*.000", dropna=True, cach
                         np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0])
                     ind += 2
                     element_type = element_map[element_id]
-                    element_len = int(element_type[1])
+                    if element_type == 'S':                # if the element type is string, we need get the length of string
+                        str_len = np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0]
+                        ind += 2
+                        element_type = element_type + str(str_len)
+                    element_len = int(element_type[1:])
                     record[element_id] = np.frombuffer(
                         byteArray[ind:(ind + element_len)],
                         dtype=element_type)[0]
@@ -729,7 +733,7 @@ def get_station_data(directory, filename=None, suffix="*.000", dropna=True, cach
                 '1401': 'Total_cloud_cover', '1403': 'Low_cloud_cover', '1405': 'Cloud_base_hight',
                 '1407': 'Low_cloud', '1409': 'Middle_cloud', '1411': 'High_cloud',
                 '1413': 'TCC_day_avg', '1415': 'LCC_day_avg', '1417': 'Cloud_cover', '1419': 'Cloud_type',
-                '1601': 'Weather_current', '1603': 'Weather_past_1', '1606': 'Weather_past_2',
+                '1601': 'Weather_current', '1603': 'Weather_past_1', '1605': 'Weather_past_2',
                 '2001': 'Surface_temp', '2003': 'Surface_temp_max', '2005': 'Surface_temp_min'},
                 inplace=True)
 
