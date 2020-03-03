@@ -1293,7 +1293,7 @@ def cimiss_analysis_by_times(times_str, pbar=True, allExists=True, **kargs):
 
 
 def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level,
-                      units=None, scale_off=None, cache=True,
+                      varname='data', units=None, scale_off=None, cache=True,
                       levattrs={'long_name':'height_above_ground', 'units':'m', '_CoordinateAxisType':'Height'}):
     """
     Retrieve model grid data from CIMISS service.
@@ -1308,6 +1308,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
     :param valid_time: forecast hour, like 0
     :param fcst_ele: forecast element, like 2m temperature "TEF2"
     :param fcst_level: vertical level, like 0
+    :param varname: set variable name, default is 'data'
     :param units: forecast element's units, defaults to retrieved units.
     :param scale_off: [scale, offset], return values = values*scale + offset.
     :param cache: cache retrieved data to local directory, default is True.
@@ -1377,8 +1378,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
         'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
     if fcst_level != 0:
         level_coord = ('level', np.array([fcst_level]), levattrs)
-    varname = fcst_ele
-    varattrs = {'long_name': name, 'units': units}
+    varattrs = {'short_name': fcst_ele, 'long_name': name, 'units': units}
 
     # construct xarray
     data = np.array(contents['DS'], dtype=np.float32)
@@ -1602,13 +1602,14 @@ def cimiss_model_profiles(data_code, init_time_str, valid_times, fcst_ele, fcst_
 def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
                          data_code='NAFP_FOR_FTM_HIGH_EC_GLB',
                          levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'},
-                         fcst_level=0, fcst_ele="TEF2", units=None, scale_off=None, cache=True):
+                         fcst_level=0, fcst_ele="TEF2", varname='data', units=None, scale_off=None, cache=True):
     """
     Retrieve grid data from CIMISS service.
 
     :param init_time_str: model run time, like "2016081712"
     :param valid_time: forecast hour, default is 0
     :param limit: [min_lat, min_lon, max_lat, max_lon]
+    :param varname: set variable name, default is 'data'
     :param data_code: MUSIC data code, default is "NAFP_FOR_FTM_HIGH_EC_GLB"
     :param fcst_level: vertical level, default is 0.
     :param fcst_ele: forecast element, default is 2m temperature "TEF2"
@@ -1690,7 +1691,6 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
         'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
     if fcst_level != 0:
         level_coord = ('level', np.array([fcst_level]), levattrs)
-    varname = fcst_ele
     varattrs = {'long_name': name, 'units': units}
 
     # construct xarray
