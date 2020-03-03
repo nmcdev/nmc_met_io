@@ -11,7 +11,7 @@ import os.path
 import numpy as np
 import xarray as xr
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def read_micaps_3(fname, limit=None):
@@ -50,12 +50,16 @@ def read_micaps_3(fname, limit=None):
         return None
 
     # read contents
-    try:
-        with open(fname, 'r') as f:
-            # txt = f.read().decode('GBK').replace('\n', ' ').split()
-            txt = f.read().replace('\n', ' ').split()
-    except IOError as err:
-        print("Micaps 3 file error: " + str(err))
+    encodings = ['utf-8', 'gb18030', 'GBK']
+    for encoding in encodings:
+        txt = None
+        try:
+            with open(fname, 'r', encoding=encoding) as f:
+                txt = f.read().replace('\n', ' ').split()
+        except Exception:
+            pass
+    if txt is None:
+        print("Micaps 3 file error: " + fname)
         return None
 
     # head information
@@ -103,11 +107,11 @@ def read_micaps_3(fname, limit=None):
 
     # initial data
     columns = list(['ID', 'lon', 'lat', 'alt'])
-    columns.extend(['V%s' % x for x in range(n_elements)])
+    columns.extend(['Var%s' % x for x in range(n_elements)])
     data = pd.DataFrame(txt, columns=columns)
 
     # convert column type
-    data = data.ix[:, 1:].apply(pd.to_numeric)
+    data = data.iloc[:, 1:].apply(pd.to_numeric)
 
     # cut the region
     if limit is not None:
@@ -126,12 +130,17 @@ def read_micaps_3(fname, limit=None):
     return data
 
 
-def read_micaps_4(fname, limit=None):
+def read_micaps_4(fname, limit=None, varname='data', varattrs={'units':''}, scale_off=None,
+                  levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'}):
     """
     Read Micaps 4 type file (grid)
 
     :param fname: micaps file name.
     :param limit: region limit, [min_lat, min_lon, max_lat, max_lon]
+    :param varname: set variable name.
+    :param varattrs: set variable attributes, dictionary type.
+    :param scale_off: [scale, offset], return values = values*scale + offset.
+    :param levattrs: set level coordinate attributes, diectionary type.
     :return: data, xarray type
 
     :Examples:
@@ -144,12 +153,16 @@ def read_micaps_4(fname, limit=None):
         return None
 
     # read contents
-    try:
-        with open(fname, encoding='gb18030',  errors='ignore') as f:
-            # txt = f.read().decode('GBK').replace('\n', ' ').split()
-            txt = f.read().replace('\n', ' ').split()
-    except IOError as err:
-        print("Micaps 4 file error: " + str(err))
+    encodings = ['utf-8', 'gb18030', 'GBK']
+    for encoding in encodings:
+        txt = None
+        try:
+            with open(fname, 'r', encoding=encoding) as f:
+                txt = f.read().replace('\n', ' ').split()
+        except Exception:
+            pass
+    if txt is None:
+        print("Micaps 4 file error: " + fname)
         return None
 
     # head information
@@ -164,11 +177,14 @@ def read_micaps_4(fname, limit=None):
     if hour >= 24:    # some times, micaps file head change the order.
         hour = int(txt[7])
         fhour = int(txt[6])
-
-    time = datetime(year, month, day, hour)
+    fhour = np.array([fhour], dtype=np.float)
+    init_time = datetime(year, month, day, hour)
+    time = init_time + timedelta(hours=fhour[0])
+    init_time = np.array([init_time], dtype='datetime64[ms]')
+    time = np.array([time], dtype='datetime64[ms]')
 
     # vertical level
-    level = float(txt[8])
+    level = np.array([float(txt[8])])
 
     # grid information
     xint = float(txt[9])
@@ -198,39 +214,62 @@ def read_micaps_4(fname, limit=None):
         lat = lat[::-1]
         data = data[::-1, :]
 
-    # create xarray data
-    data = xr.DataArray(data, coords=[lat, lon], dims=['lat', 'lon'])
+    # scale and offset the data, if necessary.
+    if scale_off is not None:
+        data = data * scale_off[0] + scale_off[1]
+
+    # define coordinates
+    time_coord = ('time', time)
+    lon_coord = ('lon', lon, {
+        'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+    lat_coord = ('lat', lat, {
+        'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+    if level[0] != 0:
+        level_coord = ('level', level, levattrs)
+
+    # create xarray dataset
+    if level[0] == 0:
+        data = data[np.newaxis, ...]
+        data = xr.Dataset({
+            varname:(['time', 'lat', 'lon'], data, varattrs)},
+            coords={
+                'time':time_coord, 'lat':lat_coord, 'lon':lon_coord})
+    else:
+        data = data[np.newaxis, np.newaxis, ...]
+        data = xr.Dataset({
+            varname:(['time', 'level', 'lat', 'lon'], data, varattrs)},
+            coords={
+                'time':time_coord, 'level':level_coord, 
+                'lat':lat_coord, 'lon':lon_coord})
+
+    # add time coordinates
+    data.coords['forecast_reference_time'] = init_time[0]
+    data.coords['forecast_period'] = ('time', fhour, {
+        'long_name':'forecast_period', 'units':'hour'})
 
     # subset data
     if limit is not None:
         lat_bnds, lon_bnds = [limit[0], limit[2]], [limit[1], limit[3]]
         data = data.sel(lat=slice(*lat_bnds), lon=slice(*lon_bnds))
 
-    # add attributes
-    data.attrs['time'] = time
-    data.attrs['fhour'] = fhour
-    data.attrs['level'] = level
-    data.attrs['head_info'] = head_info
-    data.attrs['cnInterval'] = cnInterval
-    data.attrs['cnStart'] = cnStart
-    data.attrs['cnEnd'] = cnEnd
-    data.attrs['smoothCeof'] = smoothCeof
-    data.attrs['boldCeof'] = boldCeof
-
     # return
     return data
 
 
-def read_micaps_11(fname, limit=None):
+def read_micaps_11(fname, limit=None, scale_off=None, no_level=False,
+                   levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'}):
     """
     Read Micaps 11 type file (grid u, v vector data)
 
     :param fname: micaps file name.
     :param limit: region limit, [min_lat, min_lon, max_lat, max_lon]
+    :param scale_off: [scale, offset], return values = values*scale + offset.
+    :param no_level: sometimes, there is no level information in the file, so just ignore.
+    :param levattrs: set level coordinate attributes, diectionary type.
     :return: data, xarray type
 
     :Examples:
-    >>> data = read_micaps_4('Z:/data/newecmwf_grib/pressure/17032008.006')
+    >>> data = read_micaps_4('Z:/data/newecmwf_grib/stream/850/17032008.006')
 
     """
 
@@ -239,12 +278,16 @@ def read_micaps_11(fname, limit=None):
         return None
 
     # read contents
-    try:
-        with open(fname, 'r') as f:
-            # txt = f.read().decode('GBK').replace('\n', ' ').split()
-            txt = f.read().replace('\n', ' ').split()
-    except IOError as err:
-        print("Micaps 4 file error: " + str(err))
+    encodings = ['utf-8', 'gb18030', 'GBK']
+    for encoding in encodings:
+        txt = None
+        try:
+            with open(fname, 'r', encoding=encoding) as f:
+                txt = f.read().replace('\n', ' ').split()
+        except Exception:
+            pass
+    if txt is None:
+        print("Micaps 11 file error: " + fname)
         return None
 
     # head information
@@ -255,24 +298,38 @@ def read_micaps_11(fname, limit=None):
     month = int(txt[4])
     day = int(txt[5])
     hour = int(txt[6])
-    time = datetime(year, month, day, hour)
-    fhour = int(txt[7])
+    fhour = np.array([int(txt[7])], dtype=np.float)
+    init_time = datetime(year, month, day, hour)
+    time = init_time + timedelta(hours=fhour[0])
+    init_time = np.array([init_time], dtype='datetime64[ms]')
+    time = np.array([time], dtype='datetime64[ms]')
 
     # vertical level
-    level = float(txt[8])
+    if no_level:
+        level = np.array([0.0])
+        ind = 8
+    else:
+        level = np.array([float(txt[8])])
+        ind=9
 
     # grid information
-    xint = float(txt[9])
-    yint = float(txt[10])
-    slon = float(txt[11])
-    slat = float(txt[13])
-    nlon = int(txt[15])
-    nlat = int(txt[16])
+    xint = float(txt[ind])
+    ind += 1
+    yint = float(txt[ind])
+    ind += 1
+    slon = float(txt[ind])
+    ind += 2
+    slat = float(txt[ind])
+    ind += 2
+    nlon = int(txt[ind])
+    ind += 1
+    nlat = int(txt[ind])
+    ind += 1
     lon = slon + np.arange(nlon) * xint
     lat = slat + np.arange(nlat) * yint
 
     # extract data
-    data = (np.array(txt[17:])).astype(np.float)
+    data = (np.array(txt[ind:])).astype(np.float)
     data.shape = [2, nlat, nlon]
 
     # check latitude order
@@ -280,26 +337,54 @@ def read_micaps_11(fname, limit=None):
         lat = lat[::-1]
         data = data[:, ::-1, :]
 
+    # scale and offset the data, if necessary.
+    if scale_off is not None:
+        data = data * scale_off[0] + scale_off[1]
+
+    # define coordinates
+    time_coord = ('time', time)
+    lon_coord = ('lon', lon, {
+        'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+    lat_coord = ('lat', lat, {
+        'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+    if level[0] != 0:
+        level_coord = ('level', level, levattrs)
+
     # create xarray data
     uwind = np.squeeze(data[0, :, :])
     vwind = np.squeeze(data[1, :, :])
     speed = np.sqrt(uwind*uwind + vwind*vwind)
-    data = xr.Dataset({
-        'uwind': (['lat', 'lon'], uwind),
-        'vwind': (['lat', 'lon'], vwind),
-        'speed': (['lat', 'lon'], speed)},
-        coords={'lat':lat, 'lon':lon})
+    # create xarray dataset
+    if level[0] == 0:
+        uwind = uwind[np.newaxis, ...]
+        vwind = vwind[np.newaxis, ...]
+        speed = speed[np.newaxis, ...]
+        data = xr.Dataset({
+            'uwind':(['time', 'lat', 'lon'], uwind, {"long_name":"u-component of wind", "units":"m/s"}),
+            'vwind':(['time', 'lat', 'lon'], vwind, {"long_name":"v-component of wind", "units":"m/s"}),
+            'speed':(['time', 'lat', 'lon'], speed, {"long_name":"wind speed", "units":"m/s"})},
+            coords={
+                'time':time_coord, 'lat':lat_coord, 'lon':lon_coord})
+    else:
+        uwind = uwind[np.newaxis, np.newaxis, ...]
+        vwind = vwind[np.newaxis, np.newaxis, ...]
+        speed = speed[np.newaxis, np.newaxis, ...]
+        data = xr.Dataset({
+            'uwind':(['time', 'level', 'lat', 'lon'], uwind, {"long_name":"u-component of wind", "units":"m/s"}),
+            'vwind':(['time', 'level', 'lat', 'lon'], vwind, {"long_name":"v-component of wind", "units":"m/s"}),
+            'speed':(['time', 'level', 'lat', 'lon'], speed, {"long_name":"wind speed", "units":"m/s"})},
+            coords={
+                'time':time_coord, 'level':level_coord, 'lat':lat_coord, 'lon':lon_coord})
+
+    # add time coordinates
+    data.coords['forecast_reference_time'] = init_time[0]
+    data.coords['forecast_period'] = ('time', fhour, {
+        'long_name':'forecast_period', 'units':'hour'})
 
     # subset data
     if limit is not None:
         lat_bnds, lon_bnds = [limit[0], limit[2]], [limit[1], limit[3]]
         data = data.sel(lat=slice(*lat_bnds), lon=slice(*lon_bnds))
-
-    # add attributes
-    data.attrs['time'] = time
-    data.attrs['fhour'] = fhour
-    data.attrs['level'] = level
-    data.attrs['head_info'] = head_info
 
     # return
     return data
@@ -322,11 +407,16 @@ def read_micaps_14(fname):
         return None
 
     # read contents
-    try:
-        with open(fname, 'r') as f:
-            txt = f.read().replace('\n', ' ').split()
-    except IOError as err:
-        print("Micaps 14 file error: " + str(err))
+    encodings = ['utf-8', 'gb18030', 'GBK']
+    for encoding in encodings:
+        txt = None
+        try:
+            with open(fname, 'r', encoding=encoding) as f:
+                txt = f.read().replace('\n', ' ').split()
+        except Exception:
+            pass
+    if txt is None:
+        print("Micaps 14 file error: " + fname)
         return None
 
     # head information
