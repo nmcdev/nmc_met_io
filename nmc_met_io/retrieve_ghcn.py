@@ -15,26 +15,36 @@ https://github.com/scott-hosking/get-station-data
 
 import numpy as np
 import pandas as pd
+import urllib.request
 from datetime import datetime
+from nmc_met_io.config import get_cache_file
 
 missing_id = '-9999'
 
 
-def get_ghcnd_data(my_stns):
+def get_ghcnd_data(my_stns, stn_md=None, reload_stnmeta=False, update=True):
     """
-    Retrieve ghcnd data from 
+    Get daily average weather station data (Global) from Global Historical Climate Network Daily,
+    refer to https://www.ncdc.noaa.gov/ghcn-daily-description and
+    https://nbviewer.jupyter.org/github/scott-hosking/get-station-data/blob/master/Examples/ghcn_daily_data.ipynb
     
     Args:
-        my_stns ([type]): [description]
-    
-    Raises:
-        ValueError: [description]
+        my_stns (DataFrame): dataframe should have the 'station' column, which give the
+                             station ID.
+        stn_md (DataFrame): the station metadata from get_ghcnd_stn_metadata.
+        reload_stnmeta (boolean): redownload the station metadata file or not, default to False.
+        update (boolean): update the data file or not, if False, the cache file will be used. default to True.
     
     Returns:
-        [type]: [description]
+        DataFrame: the daily ghcnd obervations.
+
+    Exampels:
+    >>> my_stns = pd.DataFrame({"station": ["CHM00054511", "CHM00054527", "CHM00054616"]})
+    >>> data = get_ghcnd_data(my_stns)
     """
 
-    stn_md = get_ghcnd_stn_metadata()
+    if stn_md is None:
+        stn_md = get_ghcnd_stn_metadata(download=reload_stnmeta)
     dfs = []
 
     for stn_id in pd.unique(my_stns['station']):
@@ -45,8 +55,19 @@ def get_ghcnd_data(my_stns):
         elev    = stn_md1['elev'].values[0]
         name    = stn_md1['name'].values[0]
 
-        file = 'ftp://ftp.ncdc.noaa.gov/pub/data/ghcn/daily/all/'+stn_id+'.dly'
-        df   = _create_DataFrame_1stn(file)
+        # download the lastest observation data to cache file
+        url = 'ftp://ftp.ncdc.noaa.gov/pub/data/ghcn/daily/all/'+stn_id+'.dly'
+        cache_file = get_cache_file("pub/data/ghcn/daily/all/", stn_id+'.dly', name="GHCN")
+        if update:
+            if cache_file.is_file():
+                cache_file.unlink()
+            urllib.request.urlretrieve(url, cache_file)
+        else:
+            if not cache_file.is_file():
+                urllib.request.urlretrieve(url, cache_file)
+
+        # read file data
+        df   = _create_DataFrame_1stn(cache_file)
 
         if len(pd.unique(df['station'])) == 1:
             df['lon']  = lon
@@ -65,24 +86,69 @@ def get_ghcnd_data(my_stns):
     return df
 
 
-def get_ghcnd_stn_metadata(fname=None):
+def get_ghcnd_stn_metadata(fname=None, download=False):
     """
     Get the ghcnd station metadata from ghcnd-stations.txt.
     China station start with "CHM000...", like "CHM00054511"
     
     Args:
-        fname ([type], optional): [description]. Defaults to None.
+        fname (string, optional): You can specify the station metadata file. 
+                                  Defaults to download the file from website.
     
     Returns:
         [type]: [description]
+
+    Examples:
+    >>> stnmd = get_ghcnd_stn_metadata()
     """
-    url = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt'
+    
     if fname == None:
-        fname = url
-    md = pd.read_fwf(fname, colspecs=[(0,12), (12,21), (21,31), 
-                                            (31,38), (38,69)], 
+        fname = get_cache_file("pub/data/ghcn/daily/", "ghcnd-stations.txt", name="GHCN")
+        if not fname.is_file() or download:
+            url = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt'
+            urllib.request.urlretrieve(url, fname)
+    md = pd.read_fwf(fname, colspecs=[(0,12), (12,21), (21,31), (31,38), (38,69)],
                         names=['station','lat','lon','elev','name'])
     return md
+
+
+def nearest_stn(df, my_x, my_y, n_neighbours=1):
+    """
+    Find the nestest station to the given longitude/latitude locations.
+    
+    Args:
+        df (DataFrame): the station metadata from get_ghcnd_stn_metadata.
+        my_x (numeric): longitude
+        my_y (numeric): laititude
+        n_neighbours (int, optional): retur n nearest stations. Defaults to 1.
+    
+    Returns:
+        DataFrame: the nearest station metadata.
+    """
+
+    from scipy import spatial
+
+    x = df['lon'].values
+    y = df['lat'].values
+
+    if x.min() <= my_x <= x.max():
+        pass
+    else:
+        raise ValueError('my_x not within range of longitudes')
+
+    if y.min() <= my_y <= y.max():
+        pass
+    else:
+        raise ValueError('my_y not within range of latitudes')
+
+    tree = spatial.KDTree(list(zip(x, y)))
+    d, i = tree.query( [(my_x, my_y)], k=n_neighbours )
+
+    if i.ndim == 1: index = i
+    if i.ndim == 2: index = i[0]
+    df1 = df.loc[index]
+
+    return df1
 
 
 def _create_DataFrame_1stn(filename, verbose=False):
