@@ -37,11 +37,20 @@ DNS = xx.xx.xx.xx
 USER_ID = xxxxxxxxx
 PASSWORD = xxxxxxxx
 
+[CMADaaS]
+DNS = xx.xx.xx.xx
+PORT = xx
+USER_ID = xxxxxxxxx
+PASSWORD = xxxxxxxx
+serviceNodeId = NMIC_MUSIC_CMADAAS
+
 [MICAPS]
 GDS_IP = xx.xx.xx.xx
 GDS_PORT = xxxx
+
 # Cached file directory, if not set,
-#   /home/user/.nmcdev/cache will be used.
+#   /home/USERNAME/.nmcdev/cache (linux) or C:/Users/USERNAME/.nmcdev/cache (windows) will be used.
+[CACHE]
 # CACHE_DIR = ~ 
 ```
 这里xxxx用相应的地址, 接口和用户信息代替.

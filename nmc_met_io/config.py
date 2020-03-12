@@ -61,8 +61,8 @@ def get_cache_file(sub_dir, filename, name=None, cache_clear=True):
     :param cache_clear: if True, clear old cache folder
     """
     # get cache file directory
-    if CONFIG.has_option('MICAPS', 'CACHE_DIR'):
-        cache_dir = Path(CONFIG['MICAPS']['CACHE_DIR']).expanduser() / "cache"
+    if CONFIG.has_option('CACHE', 'CACHE_DIR'):
+        cache_dir = Path(CONFIG['CACHE']['CACHE_DIR']).expanduser() / "cache"
     else:
         cache_dir = CONFIG_DIR / "cache"
     

@@ -45,7 +45,7 @@ def get_http_result(interface_id, params, data_format='json'):
 
     # params
     for key in params:
-        url += '&' + key + '=' + params[key]
+        url += '&' + key + '=' + params[key].strip()
 
     # data format
     url += '&dataFormat=' + data_format
@@ -536,7 +536,7 @@ def cimiss_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_H
         pandas data frame: observation records.
     
     Examples:
-    >>> data = cimiss_obs_in_admin_by_time('20200206000000', adminCodes="110000")
+    >>> data = cimiss_obs_in_admin_by_time('20200206000000', admin="110000")
     """
 
     # set retrieve parameters
@@ -800,10 +800,10 @@ def cimiss_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MUL
 
     # set retrieve parameters
     params = {'dataCode': data_code,
-              'minYear': minYear,
-              'maxYear': maxYear,
-              'minMD': minMD,
-              'maxMD': maxMD,
+              'minYear': str(int(minYear)),
+              'maxYear': str(int(maxYear)),
+              'minMD': str(minMD),
+              'maxMD': str(maxMD),
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements}
     if ranges is not None: params['eleValueRanges'] = ranges
@@ -863,10 +863,10 @@ def cimiss_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF_
 
     # set retrieve parameters
     params = {'dataCode': data_code,
-              'minYear': minYear,
-              'maxYear': maxYear,
-              'minMD': minMD,
-              'maxMD': maxMD,
+              'minYear': str(int(minYear)),
+              'maxYear': str(int(maxYear)),
+              'minMD': str(minMD),
+              'maxMD': str(maxMD),
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements,
               'staIds': sta_ids}
@@ -927,10 +927,10 @@ def cimiss_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000"
 
     # set retrieve parameters
     params = {'dataCode': data_code,
-              'minYear': minYear,
-              'maxYear': maxYear,
-              'minMD': minMD,
-              'maxMD': maxMD,
+              'minYear': str(int(minYear)),
+              'maxYear': str(int(maxYear)),
+              'minMD': str(minMD),
+              'maxMD': str(maxMD),
               'adminCodes': admin,
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements}
@@ -1088,8 +1088,7 @@ def cimiss_obs_grid_by_times(times_str, pbar=True, allExists=True, **kargs):
     """
 
     dataset = []
-    if pbar:
-        tqdm_times_str = tqdm(times_str, desc=kargs['data_code'] + ": ")
+    tqdm_times_str = tqdm(times_str, desc=kargs['data_code'] + ": ") if pbar else times_str
     for time_str in tqdm_times_str:
         data = cimiss_obs_grid_by_time(time_str, **kargs)
         if data:
