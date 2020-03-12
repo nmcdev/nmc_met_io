@@ -1229,8 +1229,8 @@ def get_tlogp(directory, filename=None, suffix="*.000", cache=True):
         cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
-                data = pickle.load(f)
-                return data
+                records = pickle.load(f)
+                return records
 
     # get data contents
     try:
@@ -1301,7 +1301,7 @@ def get_tlogp(directory, filename=None, suffix="*.000", cache=True):
             # cache data
             if cache:
                 with open(cache_file, 'wb') as f:
-                    pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+                    pickle.dump(records, f, protocol=pickle.HIGHEST_PROTOCOL)
 
             # return
             return records
