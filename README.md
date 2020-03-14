@@ -32,8 +32,8 @@ or download the package and install:
   python setup.py install
 ```
 
-## 设置CIMISS和MICAPS服务器的地址及用户信息
-在系统用户目录下("C:\Users\用户名\\.nmcdev\\"或"/home/用户名/.nmcdev/"), 新建文本文件config.ini, 里面内容模板为:
+## 设置CIMISS、CMADaaS或MICAPS服务器的地址及用户信息
+若要访问CIMISS、CMADaaS或MICAPS服务器, 在配置文件中设置地址和用户信息(若不需要, 则相应项无需配置). 在系统用户目录下("C:\Users\用户名"(windows)或"/home/用户名/"(Linux)), 建立文件夹".nmcdev", 并在里面创建文本文件"config.ini", 内容模板为:
 ```
 [CIMISS]
 DNS = xx.xx.xx.xx
@@ -57,7 +57,5 @@ GDS_PORT = xxxx
 # CACHE_DIR = ~ 
 ```
 这里xxxx用相应的地址, 接口和用户信息代替.
-
-
 
 ---
