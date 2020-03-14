@@ -990,7 +990,7 @@ def cimiss_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FRT_5KM",
         filename = time_str
         if limit is not None:
             filename = filename + '.' + str(limit)
-        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS_DATA")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS")
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -1168,7 +1168,7 @@ def cimiss_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_RT_GR
         filename = time_str
         if limit is not None:
             filename = filename + '.' + str(limit)
-        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS_DATA")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS")
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -1327,7 +1327,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
     if cache:
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
         filename = init_time_str + '.' + str(valid_time).zfill(3)
-        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS_DATA")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS")
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -1628,7 +1628,7 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
         filename = init_time_str + '.' + str(valid_time)
         if limit is not None:
             filename = filename + '.' + str(limit)
-        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS_DATA")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS")
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
