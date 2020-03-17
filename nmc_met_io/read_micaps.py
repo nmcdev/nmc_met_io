@@ -1479,3 +1479,80 @@ def read_micaps_14(fname):
             "notes_symbol": notes_symbol,
             "plines_symbol": plines_symbol}
 
+
+def read_micaps_120(fname, limit=None):
+    """
+    Read Micaps 120 type file (Air quantity observation)
+    
+    Args:
+        fname (str): data filename.
+        limit (list): region limit, [min_lat, min_lon, max_lat, max_lon]
+
+    Returns:
+        pandas DataFrame
+
+    Examples:
+    >>> data = read_micaps_120("./2020031500.000")
+    """
+
+    # check file exist
+    if not os.path.isfile(fname):
+        return None
+
+    # read contents
+    encodings = ['utf-8', 'gb18030', 'GBK']
+    for encoding in encodings:
+        txt = None
+        try:
+            with open(fname, 'r', encoding=encoding) as f:
+                txt = f.read().replace('\n', ' ').split()
+        except Exception:
+            pass
+    if txt is None:
+        print("Micaps 1 file error: " + fname)
+        return None
+
+    # head information
+    head_info = txt[2]
+
+    # extract the time information from head info
+    time_str = head_info.split('_')[1]
+    try:
+        time = datetime.strptime(time_str, '%Y%m%d%H')
+    except:
+        print("Can not extract time information from "+head_info)
+        return None
+
+    # set record column names
+    columns = [
+            'ID', 'lon', 'lat', 'AQI', 'AQI_grade', 'PM2p5_1h', 'PM2p5_10h', 'CO_1h',
+            'NO2_1h', 'O3_1h', 'O3_8h', 'SO2_1h']
+
+    # cut the data
+    txt = np.array(txt[3:])
+    txt.shape = [-1, 12]
+
+    # initial data
+    data = pd.DataFrame(txt, columns=columns)
+
+    # convert column type
+    for column in data.columns:
+        if column == 'ID':
+            continue
+        data[column] = pd.to_numeric(data[column])
+        data[column].mask(data[column] ==  9999.0, inplace=True)
+
+    # cut the region
+    if limit is not None:
+        data = data[(limit[0] <= data['lat']) & (data['lat'] <= limit[2]) &
+                    (limit[1] <= data['lon']) & (data['lon'] <= limit[3])]
+
+    # check records
+    if len(data) == 0:
+        return None
+
+    # add time
+    data['time'] = time
+
+    # return
+    return data
