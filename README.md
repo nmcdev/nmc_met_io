@@ -19,6 +19,11 @@ Other required packages:
 - tqdm
 - python-dateutil
 
+如果需要实现对grib格式数据的读取, 请安装:
+- eccodes, 使用`conda install -c conda-forge eccodes`命令(ECMWF的grib工具库, 支持Windows和Linux)
+- cfgrib, 使用`conda install -c conda-forge cfgrib`命令
+
+
 ## Install
 Using the fellowing command to install packages:
 ```
@@ -31,6 +36,7 @@ or download the package and install:
   cd nmc_met_io
   python setup.py install
 ```
+
 
 ## 设置CIMISS、CMADaaS或MICAPS服务器的地址及用户信息
 若要访问CIMISS、CMADaaS或MICAPS服务器, 在配置文件中设置地址和用户信息(若不需要, 则相应项无需配置). 在系统用户目录下("C:\Users\用户名"(windows)或"/home/用户名/"(Linux)), 建立文件夹".nmcdev", 并在里面创建文本文件"config.ini", 内容模板为:
