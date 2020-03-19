@@ -1524,9 +1524,8 @@ def read_micaps_120(fname, limit=None):
         return None
 
     # set record column names
-    columns = [
-            'ID', 'lon', 'lat', 'AQI', 'AQI_grade', 'PM2p5_1h', 'PM2p5_10h', 'CO_1h',
-            'NO2_1h', 'O3_1h', 'O3_8h', 'SO2_1h']
+    columns = ['ID', 'lat', 'lon', 'AQI', 'AQI_grade', 'PM2p5_1h', 'PM10_1h', 'CO_1h',
+               'NO2_1h', 'O3_1h', 'O3_8h', 'SO2_1h']
 
     # cut the data
     txt = np.array(txt[3:])
