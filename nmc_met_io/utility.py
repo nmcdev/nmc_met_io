@@ -114,4 +114,3 @@ def get_initTime(iHours, delayHour=6, currentTime=None):
     initTime = datetime(currentTime.year, currentTime.month,
                         currentTime.day, currentTime.hour)
     return initTime
-

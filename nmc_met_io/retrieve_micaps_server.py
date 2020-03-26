@@ -1340,9 +1340,9 @@ def get_tlogps(directory, filenames, allExists=True, pbar=False, **kargs):
     return pd.concat(dataset)
 
 
-def get_radar_swan(directory, filename=None, suffix="*.000", scale=[0.1, 0], 
+def get_swan_radar(directory, filename=None, suffix="*.000", scale=[0.1, 0], 
                    varattrs={'long_name': 'quantitative_precipitation_forecast', 'short_name': 'QPF', 'units': 'mm'},
-                   cache=True):
+                   cache=True, attach_forecast_period=True):
     """
     该程序用于读取micaps服务器上SWAN的D131格点数据格式.
     refer to https://www.taodocs.com/p-274692126.html
@@ -1354,10 +1354,11 @@ def get_radar_swan(directory, filename=None, suffix="*.000", scale=[0.1, 0],
     :param scale: data value will be scaled = (data + scale[1]) * scale[0], normally,
                   CREF, CAPPI: [0.5, -66]
                   radar echo height, VIL, OHP, ...: [0.1, 0]
+    :param varattrs: dictionary, variable attributes.
     :param cache: cache retrieved data to local directory, default is True.
     :return: pandas DataFrame object.
 
-    >>> data = get_radar_131("RADARMOSAIC/EXTRAPOLATION/QPF/")
+    >>> data = get_swan_radar("RADARMOSAIC/EXTRAPOLATION/QPF/")
     """
 
     # get data file name
@@ -1447,7 +1448,7 @@ def get_radar_swan(directory, filename=None, suffix="*.000", scale=[0.1, 0],
             dlat = head_info['YReso'][0].astype(np.float)
             lat = head_info['StartLat'][0] - np.arange(nlat)*dlat - dlat/2.0
             lon = head_info['StartLon'][0] + np.arange(nlon)*dlon - dlon/2.0
-            lev = head_info['ZhighGrids'][0][0:nlev]
+            level = head_info['ZhighGrids'][0][0:nlev]
 
             # retrieve data records
             data_type = ['u1', 'u1', 'u2', 'i2']
@@ -1467,12 +1468,17 @@ def get_radar_swan(directory, filename=None, suffix="*.000", scale=[0.1, 0],
             lat = lat[::-1]
 
             # set time coordinates
-            time = datetime(
+            init_time = datetime(
                 head_info['year'][0], head_info['month'][0], 
-                head_info['day'][0], head_info['hour'][0],
-                head_info['minute'][0])
-            time = np.array([time], dtype='datetime64[m]')
-            data = np.expand_dims(data, axis=0)
+                head_info['day'][0], head_info['hour'][0], head_info['minute'][0])
+            if attach_forecast_period:
+                fhour = int(filename.split('.')[1])/60.0
+            else:
+                fhour = 0
+            fhour = np.array([fhour], dtype=np.float)
+            time = init_time + timedelta(hours=fhour[0])
+            init_time = np.array([init_time], dtype='datetime64[ms]')
+            time = np.array([time], dtype='datetime64[ms]')
 
             # define coordinates
             time_coord = ('time', time)
@@ -1480,12 +1486,18 @@ def get_radar_swan(directory, filename=None, suffix="*.000", scale=[0.1, 0],
                 'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
             lat_coord = ('lat', lat, {
                 'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
-            lev_coord = ('lev', lev, {
+            level_coord = ('level', level, {
                 'long_name':'height', 'units':'m'})
 
             # create xarray
-            data = xr.Dataset({'data':(['time', 'lev', 'lat', 'lon'], data, varattrs)},
-                coords={'time':time_coord, 'lev':lev_coord, 'lat':lat_coord, 'lon':lon_coord})
+            data = np.expand_dims(data, axis=0)
+            data = xr.Dataset({'data':(['time', 'level', 'lat', 'lon'], data, varattrs)},
+                coords={'time':time_coord, 'level':level_coord, 'lat':lat_coord, 'lon':lon_coord})
+
+            # add time coordinates
+            data.coords['forecast_reference_time'] = init_time[0]
+            data.coords['forecast_period'] = ('time', fhour, {
+                'long_name':'forecast_period', 'units':'hour'})
 
             # add attributes
             data.attrs['Conventions'] = "CF-1.6"
@@ -1502,3 +1514,32 @@ def get_radar_swan(directory, filename=None, suffix="*.000", scale=[0.1, 0],
             return None
     else:
         return None
+
+
+def get_swan_radars(directory, filenames, allExists=True, pbar=False, **kargs):
+    """
+    Retrieve multiple swan 131 radar from MICAPS cassandra service.
+    
+    Args:
+        directory (string): the data directory on the service.
+        filenames (list): the list of filenames.
+        allExists (boolean): all files should exist, or return None.
+        pbar (boolean): Show progress bar, default to False.
+        **kargs: key arguments passed to get_fy_awx function.
+    """
+
+    dataset = []
+    if pbar:
+        tqdm_filenames = tqdm(filenames, desc=directory + ": ")
+    else:
+        tqdm_filenames = filenames
+    for filename in tqdm_filenames:
+        data = get_swan_radar(directory, filename=filename, **kargs)
+        if data:
+            dataset.append(data)
+        else:
+            if allExists:
+                warnings.warn("{} doese not exists.".format(directory+'/'+filename))
+                return None
+    
+    return xr.concat(dataset, dim='time')
