@@ -1338,3 +1338,167 @@ def get_tlogps(directory, filenames, allExists=True, pbar=False, **kargs):
                 return None
     
     return pd.concat(dataset)
+
+
+def get_radar_swan(directory, filename=None, suffix="*.000", scale=[0.1, 0], 
+                   varattrs={'long_name': 'quantitative_precipitation_forecast', 'short_name': 'QPF', 'units': 'mm'},
+                   cache=True):
+    """
+    该程序用于读取micaps服务器上SWAN的D131格点数据格式.
+    refer to https://www.taodocs.com/p-274692126.html
+
+    :param directory: the data directory on the service
+    :param filename: the data filename, if none, will be the latest file.
+    :param suffix: the filename filter pattern which will be used to
+                   find the specified file.
+    :param scale: data value will be scaled = (data + scale[1]) * scale[0], normally,
+                  CREF, CAPPI: [0.5, -66]
+                  radar echo height, VIL, OHP, ...: [0.1, 0]
+    :param cache: cache retrieved data to local directory, default is True.
+    :return: pandas DataFrame object.
+
+    >>> data = get_radar_131("RADARMOSAIC/EXTRAPOLATION/QPF/")
+    """
+
+    # get data file name
+    if filename is None:
+        try:
+            # connect to data service
+            service = GDSDataService()
+            status, response = service.getLatestDataName(directory, suffix)
+        except ValueError:
+            print('Can not retrieve data from ' + directory)
+            return None
+        StringResult = DataBlock_pb2.StringResult()
+        if status == 200:
+            StringResult.ParseFromString(response)
+            if StringResult is not None:
+                filename = StringResult.name
+                if filename == '':
+                    return None
+            else:
+                return None
+
+    # retrieve data from cached file
+    if cache:
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        if cache_file.is_file():
+            with open(cache_file, 'rb') as f:
+                records = pickle.load(f)
+                return records
+
+    # get data contents
+    try:
+        service = GDSDataService()
+        status, response = service.getData(directory, filename)
+    except ValueError:
+        print('Can not retrieve data' + filename + ' from ' + directory)
+        return None
+    ByteArrayResult = DataBlock_pb2.ByteArrayResult()
+    if status == 200:
+        ByteArrayResult.ParseFromString(response)
+        if ByteArrayResult is not None:
+            byteArray = ByteArrayResult.byteArray
+            if byteArray == b'':
+                print('There is no data ' + filename + ' in ' + directory)
+                return None
+
+            # define head structure
+            head_dtype = [
+                ('ZonName', 'S12'),
+                ('DataName', 'S38'),
+                ('Flag', 'S8'),
+                ('Version', 'S8'),
+                ('year', 'i2'),
+                ('month', 'i2'),     
+                ('day', 'i2'),     
+                ('hour', 'i2'),    
+                ('minute', 'i2'),
+                ('interval', 'i2'),
+                ('XNumGrids', 'i2'),
+                ('YNumGrids', 'i2'),
+                ('ZNumGrids', 'i2'),
+                ('RadarCount', 'i4'),
+                ('StartLon', 'f4'),
+                ('StartLat', 'f4'),
+                ('CenterLon', 'f4'),
+                ('CenterLat', 'f4'),
+                ('XReso', 'f4'),
+                ('YReso', 'f4'),
+                ('ZhighGrids', 'f4', 40),
+                ('RadarStationName', 'S20', 16),
+                ('RadarLongitude', 'f4', 20),
+                ('RadarLatitude', 'f4', 20),
+                ('RadarAltitude', 'f4', 20),
+                ('MosaicFlag', 'S1', 20),
+                ('m_iDataType', 'i2'),
+                ('m_iLevelDimension', 'i2'),
+                ('Reserved', 'S168')]
+
+            # read head information
+            head_info = np.frombuffer(byteArray[0:1024], dtype=head_dtype)
+            ind = 1024
+
+            # get coordinates
+            nlon = head_info['XNumGrids'][0].astype(np.int64)
+            nlat = head_info['YNumGrids'][0].astype(np.int64)
+            nlev = head_info['ZNumGrids'][0].astype(np.int64)
+            dlon = head_info['XReso'][0].astype(np.float)
+            dlat = head_info['YReso'][0].astype(np.float)
+            lat = head_info['StartLat'][0] - np.arange(nlat)*dlat - dlat/2.0
+            lon = head_info['StartLon'][0] + np.arange(nlon)*dlon - dlon/2.0
+            lev = head_info['ZhighGrids'][0][0:nlev]
+
+            # retrieve data records
+            data_type = ['u1', 'u1', 'u2', 'i2']
+            data_type = data_type[head_info['m_iDataType'][0]]
+            data_len = (nlon * nlat * nlev)
+            data = np.frombuffer(
+                byteArray[ind:(ind + data_len*int(data_type[1]))], 
+                dtype=data_type, count=data_len)
+
+            # convert data type
+            data.shape = (nlev, nlat, nlon)
+            data = data.astype(np.float32)
+            data = (data + scale[1]) * scale[0]
+
+             # reverse latitude axis
+            data = np.flip(data, 1)
+            lat = lat[::-1]
+
+            # set time coordinates
+            time = datetime(
+                head_info['year'][0], head_info['month'][0], 
+                head_info['day'][0], head_info['hour'][0],
+                head_info['minute'][0])
+            time = np.array([time], dtype='datetime64[m]')
+            data = np.expand_dims(data, axis=0)
+
+            # define coordinates
+            time_coord = ('time', time)
+            lon_coord = ('lon', lon, {
+                'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+            lat_coord = ('lat', lat, {
+                'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+            lev_coord = ('lev', lev, {
+                'long_name':'height', 'units':'m'})
+
+            # create xarray
+            data = xr.Dataset({'data':(['time', 'lev', 'lat', 'lon'], data, varattrs)},
+                coords={'time':time_coord, 'lev':lev_coord, 'lat':lat_coord, 'lon':lon_coord})
+
+            # add attributes
+            data.attrs['Conventions'] = "CF-1.6"
+            data.attrs['Origin'] = 'MICAPS Cassandra Server'
+
+            # cache data
+            if cache:
+                with open(cache_file, 'wb') as f:
+                    pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+            # return
+            return data
+        else:
+            return None
+    else:
+        return None
