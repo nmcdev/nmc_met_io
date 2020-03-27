@@ -450,7 +450,6 @@ class RadarBase(abc.ABC):
     # Same methods for all radar classes
     def set_code(self, code: str):
         self.code = code
-        self._update_radar_info()
 
     def get_nscans(self) -> int:
         return len(self.el)
@@ -535,7 +534,7 @@ class StandardData(RadarBase):
             ("res1", "16c")])
         SDD_site = np.dtype([
             ("site_code", "8c"),
-            ("site_name", "32c"),
+            ("site_name", "S32"),
             ("Latitude", "f4"),
             ("Longitude", "f4"),
             ("antenna_height", "i4"),
@@ -551,7 +550,7 @@ class StandardData(RadarBase):
             ("other_loss", "i2"),
             ("res2", "46c")])
         SDD_task = np.dtype([
-            ("task_name", "32c"),
+            ("task_name", "S32"),
             ("task_dsc", "128c"),
             ("polar_type", "i4"),
             ("scan_type", "i4"),
@@ -656,21 +655,13 @@ class StandardData(RadarBase):
             raise RadarDecodeError("Invalid standard data")
         site_config = np.frombuffer(self.f.read(128), SDD_site)
         self.code = merge_bytes(site_config["site_code"][0])[:5].decode()
-        self.name = merge_bytes(site_config["site_name"][0]).decode()
+        self.name = site_config["site_name"][0].decode('ascii', errors='ignore').split('\x00')[0]
         self.geo = geo = dict()
         geo["lat"] = site_config["Latitude"]
         geo["lon"] = site_config["Longitude"]
         geo["height"] = site_config["ground_height"]
         task = np.frombuffer(self.f.read(256), SDD_task)
-        task_name = merge_bytes(task["task_name"][0])
-        try:
-            self.task_name = task_name.decode()
-        except UnicodeDecodeError:
-            # Sometimes the bytes are contaminated with meaningless bytes
-            # set flag to `ignore` to avoid raising error
-            task_string = task_name.decode("utf-8", "ignore")
-            vcp_pattern = re.compile("VCP\d*D?")
-            self.task_name = re.findall(vcp_pattern, task_string)[0]
+        self.task_name = task["task_name"][0].decode('ascii', errors='ignore').split('\x00')[0]
         self.scantime = datetime.datetime(1970, 1, 1) + datetime.timedelta(
             seconds=int(task["scan_start_time"])
         )
@@ -877,4 +868,10 @@ class StandardData(RadarBase):
         for i in self.available_tilt(dtype):
             yield self.get_data(i, drange, dtype)
 
-
+    def __repr__(self):
+        return (
+            'Radar station: {}/{};\nScan time: {};\n'
+            'Longitude/Latitude: ({:.3f}, {:.3f});\nHeight: {}m;\n'
+            'Task name: {}').format(
+                self.name, self.code, self.scantime, self.stationlon, 
+                self.stationlat, self.radarheight, self.task_name)

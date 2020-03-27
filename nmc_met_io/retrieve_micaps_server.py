@@ -1084,10 +1084,10 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON", cache=True):
             ind = 256
 
             # get data information
-            varname = head_info['name'][0].decode("utf-8", 'ignore').rstrip('\x00')
+            varname = head_info['name'][0].decode("utf-8", 'ignore').rsplit('\x00')[0]
             longname = {'CREF': 'Composite Reflectivity', 'QREF': 'Basic Reflectivity',
                         'VIL': 'Vertically Integrated Liquid', 'OHP': 'One Hour Precipitation'}
-            units = head_info['organization'][0].decode("utf-8", 'ignore').rstrip('\x00')
+            units = head_info['organization'][0].decode("utf-8", 'ignore').rsplit('\x00')[0]
             amp = head_info['amp'][0]
 
             # define data variable
