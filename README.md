@@ -19,10 +19,12 @@ Other required packages:
 - tqdm
 - python-dateutil
 
-如果需要实现对grib格式数据的读取, 请安装:
+若需要实现对grib格式数据的读取, 请安装:
 - eccodes, 使用`conda install -c conda-forge eccodes`命令(ECMWF的grib工具库, 支持Windows和Linux)
 - cfgrib, 使用`conda install -c conda-forge cfgrib`命令
 
+若需要使用将标准雷达格式转化为pyart格式程序`standard_data_to_pyart`, 请安装:
+- arm_pyart, conda install -c conda-forge arm_pyart
 
 ## Install
 Using the fellowing command to install packages:
