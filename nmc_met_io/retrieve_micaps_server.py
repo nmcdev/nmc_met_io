@@ -14,7 +14,10 @@ http://10.32.8.164:8080/DataService?requestType=getLatestDataName&directory=ECMW
 import warnings
 import re
 import http.client
+import urllib.parse
 import pickle
+import bz2
+from io import BytesIO
 from datetime import datetime, timedelta
 import numpy as np
 import xarray as xr
@@ -22,6 +25,7 @@ import pandas as pd
 from tqdm import tqdm
 from nmc_met_io import DataBlock_pb2
 import nmc_met_io.config as CONFIG
+from nmc_met_io.read_radar import StandardData
 
 
 def get_http_result(host, port, url):
@@ -71,7 +75,7 @@ class GDSDataService:
         url += "&directory=" + directory
         url += "&fileName=" + fileName
         url += "&filter=" + filter
-        return url
+        return urllib.parse.quote(url, safe=':/?=&')
 
 
 def get_file_list(path, latest=None):
@@ -1385,8 +1389,8 @@ def get_swan_radar(directory, filename=None, suffix="*.000", scale=[0.1, 0],
         cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
-                records = pickle.load(f)
-                return records
+                data = pickle.load(f)
+                return data
 
     # get data contents
     try:
@@ -1543,3 +1547,85 @@ def get_swan_radars(directory, filenames, allExists=True, pbar=False, **kargs):
                 return None
     
     return xr.concat(dataset, dim='time')
+
+
+def get_radar_standard(directory, filename=None, suffix="*.BZ2", cache=True):
+    """
+    该程序用于读取Micaps服务器上的单站雷达基数据, 该数据为
+    "天气雷达基数据标准格式(V1.0版)", 返回数据类型为PyCINRAD的标准雷达数据类.
+    refer to: https://github.com/CyanideCN/PyCINRAD
+    
+    :param directory: the data directory on the service
+    :param filename: the data filename, if none, will be the latest file.
+    :param suffix: the filename filter pattern which will be used to
+                   find the specified file.
+    :param cache: cache retrieved data to local directory, default is True.
+    :return: PyCINRAD StandardData object.
+
+    :Examples:
+    >>> import pyart
+    >>> from nmc_met_io.retrieve_micaps_server import get_radar_standard
+    >>> from nmc_met_io.export_radar import standard_data_to_pyart
+    >>> data = get_radar_standard('SINGLERADAR/ARCHIVES/PRE_QC/武汉/')
+    >>> radar = standard_data_to_pyart(data)
+    >>> 
+    """
+
+    # get data file name
+    if filename is None:
+        try:
+            # connect to data service
+            service = GDSDataService()
+            status, response = service.getLatestDataName(directory, suffix)
+        except ValueError:
+            print('Can not retrieve data from ' + directory)
+            return None
+        StringResult = DataBlock_pb2.StringResult()
+        if status == 200:
+            StringResult.ParseFromString(response)
+            if StringResult is not None:
+                filename = StringResult.name
+                if filename == '':
+                    return None
+            else:
+                return None
+
+    # retrieve data from cached file
+    byteArray = None
+    if cache:
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        if cache_file.is_file():
+            with open(cache_file, 'rb') as f:
+                byteArray = pickle.load(f) 
+
+    if byteArray is None:
+        # get data contents
+        try:
+            service = GDSDataService()
+            status, response = service.getData(directory, filename)
+        except ValueError:
+            print('Can not retrieve data' + filename + ' from ' + directory)
+            return None
+        ByteArrayResult = DataBlock_pb2.ByteArrayResult()
+        if status == 200:
+            ByteArrayResult.ParseFromString(response)
+            if ByteArrayResult is not None:
+                byteArray = ByteArrayResult.byteArray
+                if byteArray == b'':
+                    print('There is no data ' + filename + ' in ' + directory)
+                    return None
+        else:
+            return None
+
+    # read radar data
+    file = BytesIO(bz2.decompress(byteArray))
+    data = StandardData(file)
+    file.close()
+
+    # cache data
+    if cache:
+        with open(cache_file, 'wb') as f:
+            pickle.dump(byteArray, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # return
+    return data
