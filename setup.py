@@ -38,6 +38,7 @@ setup(
     ],
 
     python_requires='>3.5',
+    zip_safe = False,
 
     packages=find_packages(exclude=['docs', 'tests', 'build', 'dist']),
     include_package_data=True,
