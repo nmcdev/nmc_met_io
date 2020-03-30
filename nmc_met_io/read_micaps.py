@@ -92,7 +92,7 @@ def read_micaps_1(fname, limit=None):
     for column in data.columns:
         if column == 'ID':
             continue
-        data[column] = pd.to_numeric(data[column])
+        data[column] = pd.to_numeric(data[column], errors="coerce")
         data[column].mask(data[column] ==  9999.0, inplace=True)
 
     # cut the region
@@ -179,7 +179,7 @@ def read_micaps_2(fname, limit=None):
     for column in data.columns:
         if column == 'ID':
             continue
-        data[column] = pd.to_numeric(data[column])
+        data[column] = pd.to_numeric(data[column], errors="coerce")
         data[column].mask(data[column] ==  9999.0, inplace=True)
 
     # cut the region
@@ -299,7 +299,7 @@ def read_micaps_3(fname, limit=None):
     for column in data.columns:
         if column == 'ID':
             continue
-        data[column] = pd.to_numeric(data[column])
+        data[column] = pd.to_numeric(data[column], errors="coerce")
         data[column].mask(data[column] ==  9999.0, inplace=True)
 
     # cut the region
@@ -690,7 +690,7 @@ def read_micaps_8(fname, limit=None):
     for column in data.columns:
         if column == 'ID':
             continue
-        data[column] = pd.to_numeric(data[column])
+        data[column] = pd.to_numeric(data[column], errors="coerce")
         data[column].mask(data[column] ==  9999.0, inplace=True)
 
     # cut the region
@@ -1538,7 +1538,7 @@ def read_micaps_120(fname, limit=None):
     for column in data.columns:
         if column == 'ID':
             continue
-        data[column] = pd.to_numeric(data[column])
+        data[column] = pd.to_numeric(data[column], errors="coerce")
         data[column].mask(data[column] ==  9999.0, inplace=True)
 
     # cut the region
