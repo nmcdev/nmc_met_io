@@ -114,7 +114,7 @@ def cmadaas_get_obs_latest_time(data_code="SURF_CHN_MUL_HOR", latestTime=12):
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -164,7 +164,7 @@ def cmadaas_get_obs_files(times, data_code="SURF_CMPA_RT_NC", out_dir=None, pbar
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -229,7 +229,7 @@ def cmadaas_obs_by_time(times, data_code="SURF_CHN_MUL_HOR_N",
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -297,7 +297,7 @@ def cmadaas_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR_N",
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -359,7 +359,7 @@ def cmadaas_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR_N",
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -422,7 +422,7 @@ def cmadaas_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR_N",
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -486,7 +486,7 @@ def cmadaas_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR_N",
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -556,7 +556,7 @@ def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -618,7 +618,7 @@ def cmadaas_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -686,7 +686,7 @@ def cmadaas_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SU
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -748,7 +748,7 @@ def cmadaas_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HO
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -817,7 +817,7 @@ def cmadaas_obs_in_basin_by_time_range(time_range, basin="CJLY", data_code="SURF
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -878,7 +878,7 @@ def cmadaas_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MU
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -942,7 +942,7 @@ def cmadaas_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -1006,7 +1006,7 @@ def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -1080,7 +1080,7 @@ def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -1225,7 +1225,7 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_HRCLDAS_ANA_R
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -1346,7 +1346,7 @@ def cmadass_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", lates
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -1357,8 +1357,8 @@ def cmadass_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", lates
     return time[0]
 
 
-def cmadaas_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level,
-                      varname='data', units=None, scale_off=None, cache=True,  level_type=100,
+def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, level_type,
+                      varname='data', units=None, scale_off=None, cache=True, 
                       levattrs={'long_name':'height_above_ground', 'units':'m', '_CoordinateAxisType':'Height'}):
     """
     Retrieve model grid data from CMADaaS service.
@@ -1368,7 +1368,7 @@ def cmadaas_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_leve
                       "NAFP_ECMF_C1D_GLB_FOR"(default): 欧洲中心数值预报产品-高分辨率C1D-全球
                       "NAFP_ECMF_FTM_HIGH_ANEA_FOR": 欧洲中心数值预报产品-高分辨率C1D-亚洲地区
                       ......
-    :param init_time_str: model run time, like "2016081712"
+    :param init_time: model run time, like "2016081712", or datetime object.
     :param valid_time: forecast hour, like 0
     :param fcst_ele: forecast element, like 2m temperature "TEF2"
     :param fcst_level: vertical level, like 0
@@ -1387,6 +1387,12 @@ def cmadaas_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_leve
     >>> data = cmadaas_model_grid("NAFP_ECMF_FTM_HIGH_ANEA_FOR", "2020021512", 24, 'TEM', 850, units="C", scale_off=[1.0, -273.15], 
                                  levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'})
     """
+
+    # check initial time
+    if isinstance(init_time, datetime):
+        init_time_str = init_time.strftime("%Y%m%d%H")
+    else:
+        init_time_str = init_time
 
     # retrieve data from cached file
     if cache:
@@ -1411,7 +1417,7 @@ def cmadaas_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_leve
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -1478,7 +1484,7 @@ def cmadaas_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_leve
     return data
 
 
-def cmadaas_model_grids(data_code, init_time_str, valid_times, fcst_ele, fcst_level, allExists=True, pbar=False, **kargs):
+def cmadaas_model_grids(data_code, init_time, valid_times, fcst_ele, fcst_level, allExists=True, pbar=False, **kargs):
     """
     Retrieve multiple valid time grids at the same initial time from CMADaaS service.
     
@@ -1487,7 +1493,7 @@ def cmadaas_model_grids(data_code, init_time_str, valid_times, fcst_ele, fcst_le
                       "NAFP_FOR_FTM_HIGH_EC_ASI": 欧洲中心数值预报产品-高分辨率C1D-亚洲地区
                       "NAFP_FOR_FTM_HIGH_EC_ANEA": 欧洲中心数值预报产品-高分辨率C1D-东北亚地区
                       ......
-    :param init_time_str: model run time, like "2016081712"
+    :param init_time: model run time, like "2016081712", or datetime object.
     :param valid_times: forecast hours, like [0, 6, 12, 15, 18, ...]
     :param fcst_ele: forecast element, like 2m temperature "TEF2"
     :param fcst_level: vertical level, like 0
@@ -1504,18 +1510,22 @@ def cmadaas_model_grids(data_code, init_time_str, valid_times, fcst_ele, fcst_le
     dataset = []
     tqdm_valid_times = tqdm(valid_times, desc=data_code + ": ") if pbar else valid_times
     for valid_time in tqdm_valid_times:
-        data = cmadaas_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level, **kargs)
+        data = cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, **kargs)
         if data:
             dataset.append(data)
         else:
             if allExists:
+                if isinstance(init_time, datetime):
+                    init_time_str = init_time.strftime("%Y%m%d%H")
+                else:
+                    init_time_str = init_time
                 warnings.warn("{} doese not exists.".format(data_code+'/'+init_time_str+'.'+str(valid_time).zfill(3)))
                 return None
     
     return xr.concat(dataset, dim='time')
 
 
-def cmadaas_model_points(data_code, init_time_str, valid_times, fcst_ele, fcst_level, points, **kargs):
+def cmadaas_model_points(data_code, init_time, valid_times, fcst_ele, fcst_level, points, **kargs):
     """
     Retrieve model point time series at the same initial time from CMADaaS service.
     
@@ -1524,7 +1534,7 @@ def cmadaas_model_points(data_code, init_time_str, valid_times, fcst_ele, fcst_l
                       "NAFP_FOR_FTM_HIGH_EC_ASI": 欧洲中心数值预报产品-高分辨率C1D-亚洲地区
                       "NAFP_FOR_FTM_HIGH_EC_ANEA": 欧洲中心数值预报产品-高分辨率C1D-东北亚地区
                       ......
-    :param init_time_str: model run time, like "2016081712"
+    :param init_time: model run time, like "2016081712", or datetime object
     :param valid_times: forecast hours, like [0, 6, 12, 15, 18, ...]
     :param fcst_ele: forecast element, like 2m temperature "TEF2", temperature "TEM"
     :param fcst_level: vertical level, like 0
@@ -1538,14 +1548,14 @@ def cmadaas_model_points(data_code, init_time_str, valid_times, fcst_ele, fcst_l
                                    levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'})
     """
 
-    data = cmadaas_model_grids(data_code, init_time_str, valid_times, fcst_ele, **kargs)
+    data = cmadaas_model_grids(data_code, init_time, valid_times, fcst_ele, **kargs)
     if data:
         return data.interp(lon=('points', points['lon']), lat=('points', points['lat']))
     else:
         return None
 
 
-def cmadaas_model_3D_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_levels, allExists=True, pbar=False, **kargs):
+def cmadaas_model_3D_grid(data_code, init_time, valid_time, fcst_ele, fcst_levels, allExists=True, pbar=False, **kargs):
     """
     Retrieve multiple level grids at the same initial time from CMADaaS service.
     
@@ -1554,7 +1564,7 @@ def cmadaas_model_3D_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_l
                       "NAFP_FOR_FTM_HIGH_EC_ASI": 欧洲中心数值预报产品-高分辨率C1D-亚洲地区
                       "NAFP_FOR_FTM_HIGH_EC_ANEA": 欧洲中心数值预报产品-高分辨率C1D-东北亚地区
                       ......
-    :param init_time_str: model run time, like "2016081712"
+    :param init_time: model run time, like "2016081712"
     :param valid_time: forecast hour, like 0
     :param fcst_ele: forecast element, like 2m temperature "TEF2", temperature "TEM"
     :param fcst_levels: vertical levels, like [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 100]
@@ -1571,18 +1581,22 @@ def cmadaas_model_3D_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_l
     dataset = []
     tqdm_fcst_levels = tqdm(fcst_levels, desc=data_code + ": ") if pbar else fcst_levels
     for fcst_level in tqdm_fcst_levels:
-        data = cmadaas_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level, **kargs)
+        data = cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, **kargs)
         if data:
             dataset.append(data)
         else:
             if allExists:
+                if isinstance(init_time, datetime):
+                    init_time_str = init_time.strftime("%Y%m%d%H")
+                else:
+                    init_time_str = init_time
                 warnings.warn("{} doese not exists.".format(data_code+'/'+init_time_str+'.'+str(valid_time).zfill(3)))
                 return None
     
     return xr.concat(dataset, dim='level')
 
 
-def cmadaas_model_3D_grids(data_code, init_time_str, valid_times, fcst_ele, fcst_levels, allExists=True, pbar=False, **kargs):
+def cmadaas_model_3D_grids(data_code, init_time, valid_times, fcst_ele, fcst_levels, allExists=True, pbar=False, **kargs):
     """
     Retrieve multiple time and level grids at the same initial time from CMADaaS service.
     
@@ -1591,7 +1605,7 @@ def cmadaas_model_3D_grids(data_code, init_time_str, valid_times, fcst_ele, fcst
                       "NAFP_FOR_FTM_HIGH_EC_ASI": 欧洲中心数值预报产品-高分辨率C1D-亚洲地区
                       "NAFP_FOR_FTM_HIGH_EC_ANEA": 欧洲中心数值预报产品-高分辨率C1D-东北亚地区
                       ......
-    :param init_time_str: model run time, like "2016081712"
+    :param init_time: model run time, like "2016081712", or datetime object
     :param valid_times: forecast hour, like  [0, 6, 12, 15, 18, ...]
     :param fcst_ele: forecast element, like 2m temperature "TEF2", temperature "TEM"
     :param fcst_levels: vertical levels, like [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 100]
@@ -1611,11 +1625,15 @@ def cmadaas_model_3D_grids(data_code, init_time_str, valid_times, fcst_ele, fcst
     for valid_time in tqdm_valid_times:
         dataset_temp = []
         for fcst_level in fcst_levels:
-            data = cmadaas_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level, **kargs)
+            data = cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, **kargs)
             if data:
                 dataset_temp.append(data)
             else:
                 if allExists:
+                    if isinstance(init_time, datetime):
+                        init_time_str = init_time.strftime("%Y%m%d%H")
+                    else:
+                        init_time_str = init_time
                     warnings.warn("{} doese not exists.".format(data_code+'/'+init_time_str+'.'+str(valid_time).zfill(3)))
                     return None
         dataset.append(xr.concat(dataset_temp, dim='level'))
@@ -1623,7 +1641,7 @@ def cmadaas_model_3D_grids(data_code, init_time_str, valid_times, fcst_ele, fcst
     return xr.concat(dataset, dim='time')
 
 
-def cmadaas_model_profiles(data_code, init_time_str, valid_times, fcst_ele, fcst_levels, points, **kargs):
+def cmadaas_model_profiles(data_code, init_time, valid_times, fcst_ele, fcst_levels, points, **kargs):
     """
     Retrieve time series of vertical profile from 3D [time, level, lat, lon] grids
     at the same initial time from CMADaaS service.
@@ -1633,7 +1651,7 @@ def cmadaas_model_profiles(data_code, init_time_str, valid_times, fcst_ele, fcst
                       "NAFP_FOR_FTM_HIGH_EC_ASI": 欧洲中心数值预报产品-高分辨率C1D-亚洲地区
                       "NAFP_FOR_FTM_HIGH_EC_ANEA": 欧洲中心数值预报产品-高分辨率C1D-东北亚地区
                       ......
-    :param init_time_str: model run time, like "2016081712"
+    :param init_time: model run time, like "2016081712", or datetime object
     :param valid_times: forecast hour, like  [0, 6, 12, 15, 18, ...]
     :param fcst_ele: forecast element, like 2m temperature "TEF2", temperature "TEM"
     :param fcst_levels: vertical levels, like [1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200, 100]
@@ -1648,21 +1666,21 @@ def cmadaas_model_profiles(data_code, init_time_str, valid_times, fcst_ele, fcst
                                      levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'})
     """
 
-    data = cmadaas_model_3D_grids(data_code, init_time_str, valid_times, fcst_ele, fcst_levels, **kargs)
+    data = cmadaas_model_3D_grids(data_code, init_time, valid_times, fcst_ele, fcst_levels, **kargs)
     if data:
         return data.interp(lon=('points', points['lon']), lat=('points', points['lat']))
     else:
         return None
 
 
-def cmadaas_model_by_time(init_time_str, valid_time=0, limit=None,
+def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
                          data_code='NAFP_FOR_FTM_HIGH_EC_GLB',
                          levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'},
                          fcst_level=0, fcst_ele="TEF2", varname='data', units=None, scale_off=None, cache=True):
     """
     Retrieve grid data from CMADaaS service.
 
-    :param init_time_str: model run time, like "2016081712"
+    :param init_time: model run time, like "2016081712", or datetime object.
     :param valid_time: forecast hour, default is 0
     :param limit: [min_lat, min_lon, max_lat, max_lon]
     :param varname: set variable name, default is 'data'
@@ -1678,6 +1696,12 @@ def cmadaas_model_by_time(init_time_str, valid_time=0, limit=None,
     >>> data = cmadaas_model_by_time("2020021512", data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", 
                                     fcst_level=850, fcst_ele='TEM', units="C", scale_off=[1.0, -273.15])
     """
+
+    # check initial time
+    if isinstance(init_time, datetime):
+        init_time_str = init_time.strftime("%Y%m%d%H")
+    else:
+        init_time_str = init_time
 
     # retrieve data from cached file
     if cache:
@@ -1715,7 +1739,7 @@ def cmadaas_model_by_time(init_time_str, valid_time=0, limit=None,
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -1782,11 +1806,11 @@ def cmadaas_model_by_time(init_time_str, valid_time=0, limit=None,
     return data
 
 
-def cmadaas_model_by_times(init_time_str, valid_times=np.arange(0, 75, 6), pbar=True, allExists=True, **kargs):
+def cmadaas_model_by_times(init_time, valid_times=np.arange(0, 75, 6), pbar=True, allExists=True, **kargs):
     """
     Retrieve multiple model grids from CMADaaS service.
 
-    :param init_time_str: model run time, like "2016081712"
+    :param init_time: model run time, like "2016081712", or datetime object.
     :param limit: [min_lat, min_lon, max_lat, max_lon]
     :param valid_times: forecast hours, default is [0, 6, 12, ..., 72]
     :param allExists (boolean): all files should exist, or return None.
@@ -1798,6 +1822,12 @@ def cmadaas_model_by_times(init_time_str, valid_times=np.arange(0, 75, 6), pbar=
     >>> data = cmadaas_model_by_times("2020021512", data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", time_range=[0, 72], 
                                      fcst_level=850, fcst_ele='TEM', units="C", scale_off=[1.0, -273.15])
     """
+
+    # check time
+    if isinstance(init_time, datetime):
+        init_time_str = init_time.strftime("%Y%m%d%H")
+    else:
+        init_time_str = init_time
 
     dataset = []
     if pbar:
@@ -1849,7 +1879,7 @@ def cmadaas_model_by_piont(init_time_str,
     contents = _get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
     if contents['returnCode'] != '0':
         return None
 
@@ -1863,7 +1893,7 @@ def cmadaas_model_by_piont(init_time_str,
     return data
 
 
-def cmadaas_model_by_piont_levels(init_time_str,
+def cmadaas_model_by_piont_levels(init_time,
                                  data_code='NAFP_FOR_FTM_HIGH_EC_ANEA',
                                  fcst_levels=[1000, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300, 250, 200],
                                  time_range=[0, 72], 
@@ -1871,7 +1901,7 @@ def cmadaas_model_by_piont_levels(init_time_str,
     """
     Retrieve grid point data from CMADaaS service.
 
-    :param init_time_str: model run time, like "2020020600"
+    :param init_time: model run time, like "2020020600", or datetime object
     :param data_code: MUSIC data code, default is "NAFP_FOR_FTM_HIGH_EC_ANEA"
     :param fcst_levels: vertical levels, list like [1000, 950, 925, ...]
     :param time_range: [minimum, maximum] forecast hour, default is [0, 72]
@@ -1879,6 +1909,11 @@ def cmadaas_model_by_piont_levels(init_time_str,
     :param fcst_ele: forecast element, default is temperature "TEM"
     :return: pandas dataframe
     """
+
+    if isinstance(init_time, datetime):
+        init_time_str = init_time.strftime("%Y%m%d%H")
+    else:
+        init_time_str = init_time
 
     # loop every level
     data = None
