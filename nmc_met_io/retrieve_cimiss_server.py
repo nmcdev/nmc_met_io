@@ -114,8 +114,9 @@ def cimiss_get_obs_latest_time(data_code="SURF_CHN_MUL_HOR", latestTime=6):
     data = pd.DataFrame(contents['DS'])
     time = pd.to_datetime(data['Datetime'], format="%Y%m%d%H%M%S")
 
-    return time['Datetime'][0]
+    return time[0]
 
+time = cimiss_get_obs_latest_time(data_code="SURF_CHN_MUL_HOR")
 
 def cimiss_obs_by_time(times, data_code="SURF_CHN_MUL_HOR_N",
                        sta_levels=None, ranges=None, order=None, 
