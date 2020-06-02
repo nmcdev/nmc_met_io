@@ -1162,9 +1162,6 @@ def cmadaas_obs_grid_by_times(times_str, pbar=True, allExists=True, **kargs):
     
     return xr.concat(dataset, dim='time')
 
-    # return data
-    return data
-
 
 def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_HRCLDAS_ANA_RT_CHN_NC',
                             levattrs={'long_name':'Height above Ground', 'units':'m'}, level_type=100,
@@ -1314,9 +1311,6 @@ def cmadaas_analysis_by_times(times_str, pbar=True, allExists=True, **kargs):
                 return None
     
     return xr.concat(dataset, dim='time')
-
-    # return data
-    return data
 
 
 def cmadass_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", latestTime=24):
@@ -1674,9 +1668,9 @@ def cmadaas_model_profiles(data_code, init_time, valid_times, fcst_ele, fcst_lev
 
 
 def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
-                         data_code='NAFP_FOR_FTM_HIGH_EC_GLB',
-                         levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'},
-                         fcst_level=0, fcst_ele="TEF2", varname='data', units=None, scale_off=None, cache=True):
+                          data_code='NAFP_FOR_FTM_HIGH_EC_GLB',
+                          levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'},
+                          fcst_level=0, fcst_ele="TEF2", varname='data', units=None, scale_off=None, cache=True):
     """
     Retrieve grid data from CMADaaS service.
 
@@ -1842,9 +1836,6 @@ def cmadaas_model_by_times(init_time, valid_times=np.arange(0, 75, 6), pbar=True
                 return None
     
     return xr.concat(dataset, dim='time')
-
-    # return data
-    return data
 
 
 def cmadaas_model_by_piont(init_time_str,

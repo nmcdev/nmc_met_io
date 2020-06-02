@@ -1101,9 +1101,6 @@ def cimiss_obs_grid_by_times(times_str, pbar=True, allExists=True, **kargs):
     
     return xr.concat(dataset, dim='time')
 
-    # return data
-    return data
-
 
 def cimiss_obs_file_by_time_range(time_range,
                                   data_code="SURF_CMPA_RT_NC"):
@@ -1287,9 +1284,6 @@ def cimiss_analysis_by_times(times_str, pbar=True, allExists=True, **kargs):
                 return None
     
     return xr.concat(dataset, dim='time')
-
-    # return data
-    return data
 
 
 def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level,
@@ -1756,9 +1750,6 @@ def cimiss_model_by_times(init_time_str, valid_times=np.arange(0, 75, 6), pbar=T
                 return None
     
     return xr.concat(dataset, dim='time')
-
-    # return data
-    return data
 
 
 def cimiss_model_by_piont(init_time_str,
