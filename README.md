@@ -63,7 +63,10 @@ GDS_PORT = xxxx
 #   /home/USERNAME/.nmcdev/cache (linux) or C:/Users/USERNAME/.nmcdev/cache (windows) will be used.
 [CACHE]
 # CACHE_DIR = ~ 
+
+[MAPBOX]
+token = pk.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
-这里xxxx用相应的地址, 接口和用户信息代替.
+这里xxxx用相应的地址, 接口和用户信息代替. 如果要用到MAPBOX地图, 可以申请[access token](https://docs.mapbox.com/help/glossary/access-token).
 
 ---
