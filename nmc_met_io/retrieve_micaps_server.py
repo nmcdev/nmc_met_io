@@ -909,6 +909,7 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True):
                     ind += 256
                 
                 # calibration table
+                calibration_table = None
                 if head2_info['dataLengthOfCalibration'] != 0:
                     calibration_table = np.frombuffer(byteArray[ind:(ind + 2048)], dtype='i2')
                     calibration_table = calibration_table * 0.01
@@ -944,7 +945,8 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True):
                 data_len = (head1_info['dataRecordNumber'][0].astype(np.int) *
                             head1_info['recordLength'][0])
                 data = np.frombuffer(byteArray[ind:(ind + data_len)], dtype='u1', count=data_len)
-                data = calibration_table[data]
+                if calibration_table is not None:
+                    data = calibration_table[data]
                 data.shape = (head1_info['dataRecordNumber'][0], head1_info['recordLength'][0])
 
                     # construct longitude and latitude coordinates
