@@ -85,7 +85,7 @@ def get_caiy_weather(lon=116.4667, lat=39.8, begin_time=None):
     record.rename(columns={"value":"pm25"}, inplace=True)
     data = pd.merge(data, record, on='datetime')
 
-    data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_convert('Asia/Taipei')
+    data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_convert('Asia/Shanghai')
 
     # extract daily information
     record = pd.DataFrame(nested_to_record(info['result']['daily']['astro']))
@@ -166,7 +166,7 @@ def get_caiy_weather(lon=116.4667, lat=39.8, begin_time=None):
     record.rename(columns={"index":"coldRisk.index", "desc":"coldRisk.desc"}, inplace=True)
     data_daily = pd.merge(data_daily, record, on='date')
 
-    data_daily['date'] = pd.to_datetime(data_daily['date']).dt.tz_convert('Asia/Taipei')
+    data_daily['date'] = pd.to_datetime(data_daily['date']).dt.tz_convert('Asia/Shanghai')
 
     return {"hourly":data, "daily":data_daily, "info":info}
  
