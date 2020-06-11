@@ -142,6 +142,8 @@ def get_latest_initTime(directory, suffix="*.006"):
             filename = StringResult.name
             if filename == '':
                 return None
+            else:
+                return filename.split('.')[0]
         else:
             return None
 
