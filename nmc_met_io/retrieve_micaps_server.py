@@ -406,6 +406,9 @@ def get_model_grid(directory, filename=None, suffix="*.024",
             data.attrs['Conventions'] = "CF-1.6"
             data.attrs['Origin'] = 'MICAPS Cassandra Server'
 
+            # sort latitude coordinates
+            data = data.loc[{'lat':sorted(data.coords['lat'].values)}]
+
             # cache data
             if cache:
                 with open(cache_file, 'wb') as f:
