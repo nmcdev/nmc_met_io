@@ -44,14 +44,8 @@ setup(
     include_package_data=True,
     exclude_package_data={'': ['.gitignore']},
 
-    install_requires=['numpy>=1.12.1',
-                      'scipy>=0.19.0',
-                      'xarray>=0.9.6',
-                      'pandas>=0.20.0',
-                      'protobuf>=3.5.0',
-                      'urllib3>=1.20',
-                      'tqdm>=4.40.0',
-                      'python-dateutil']
+    install_requires=['numpy', 'scipy', 'xarray', 'pandas',
+                      'protobuf', 'urllib3', 'tqdm', 'python-dateutil']
 )
 
 # development mode (DOS command):
