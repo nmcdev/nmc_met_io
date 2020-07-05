@@ -11,9 +11,12 @@ import os
 import calendar
 import urllib.request
 import numpy as np
+import pandas as pd
+from tqdm import tqdm
 from nmc_met_io.retrieve_cimiss_server import cimiss_obs_by_time_range
 from nmc_met_io.retrieve_cimiss_server import cimiss_obs_in_rect_by_time_range
 from nmc_met_io.retrieve_cimiss_server import cimiss_obs_file_by_time_range
+from nmc_met_io.retrieve_cimiss_server import cimiss_obs_by_time_range_and_id
 
 
 def get_day_hist_obs(years=np.arange(2000, 2011, 1),
@@ -84,6 +87,46 @@ def get_day_hist_obs(years=np.arange(2000, 2011, 1),
             data.to_pickle(out_files[-1])
 
     return out_files
+
+
+def get_day_hist_obs_id(years=np.arange(2000, 2011, 1), 
+                        data_code='SURF_CHN_MUL_DAY', 
+                        elements=None, sta_ids="54511"):
+    """
+    Retrieve hitory observations for sta_ids.
+
+    Args:
+        years (np.array, optional): years for historical data. Defaults to np.arange(2000, 2011, 1).
+        data_code (str, optional): dataset code. Defaults to 'SURF_CHN_MUL_DAY'.
+        elements ([type], optional): elements for retrieve, 'ele1, ele2, ...'. Defaults to None.
+        sta_ids (str, optional): station ids. Defaults to "54511".
+
+    Returns:
+        dataframe: station obervation records.
+    """
+    # check elements
+    if elements is None:
+        elements = 'Station_Id_d,Datetime,Lat,Lon,Alti,TEM_Max,TEM_Min,PRE_Time_0808'
+
+    # loop every yeas
+    data_list = []
+    tqdm_years = tqdm(years, desc="Years: ")
+    for year in tqdm_years:
+        start_time = str(year) + '0101000000'
+        end_time = str(year) + '1231000000'
+        time_range = "[" + start_time + "," + end_time + "]"
+        df = cimiss_obs_by_time_range_and_id(
+            time_range, data_code=data_code, elements=elements,
+            sta_ids=sta_ids, trans_type=True)
+        if df is not None:
+            df = df.drop_duplicates()
+            data_list.append(df)
+    
+    # concentrate dataframes
+    if len(data_list) == 0:
+        return None
+    else:
+        return pd.concat(data_list, axis=0, ignore_index=True)
 
 
 def get_mon_hist_obs(years=np.arange(2000, 2011, 1),

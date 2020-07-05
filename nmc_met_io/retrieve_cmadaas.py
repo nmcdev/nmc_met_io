@@ -81,7 +81,7 @@ def cmadaas_obs_convert_type(obs_data):
             obs_data[column] = pd.to_datetime(obs_data[column], format="%Y-%m-%d %H:%M:%S")
             continue
         obs_data[column] = pd.to_numeric(obs_data[column])
-        obs_data[column].mask(obs_data[column] ==  999999.0, inplace=True)
+        obs_data[column].mask(obs_data[column] >=  999990.0, inplace=True)
 
     return obs_data
 
@@ -372,10 +372,10 @@ def cmadaas_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR_N",
 
 
 def cmadaas_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR_N",
-                                    sta_levels=None, ranges=None, order=None, 
-                                    count=None, trans_type=True,
-                                    elements="Station_Id_C,Datetime,TEM",
-                                    sta_ids="54511"):
+                                     sta_levels=None, ranges=None, order=None, 
+                                     count=None, trans_type=True,
+                                     elements="Station_Id_C,Datetime,TEM",
+                                     sta_ids="54511"):
     """
     Retrieve station records from CMADaaS by time range and station ID
     

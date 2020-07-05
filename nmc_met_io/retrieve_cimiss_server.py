@@ -78,6 +78,7 @@ def cimiss_obs_convert_type(obs_data):
             obs_data[column] = pd.to_datetime(obs_data[column], format="%Y%m%d%H%M%S")
             continue
         obs_data[column] = pd.to_numeric(obs_data[column])
+        obs_data[column].mask(obs_data[column] >=  999990.0, inplace=True)
 
     return obs_data
 
