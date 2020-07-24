@@ -205,6 +205,9 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     
     # get data contents
     try:
+        file_list = get_file_list(directory)
+        if filename not in file_list:
+            return None
         service = GDSDataService()
         status, response = service.getData(directory, filename)
     except ValueError:
