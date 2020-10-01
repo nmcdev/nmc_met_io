@@ -129,6 +129,9 @@ def cmadaas_get_obs_files(times, data_code="SURF_CMPA_RT_NC", out_dir=None, pbar
     """
     Download surface observation file.
     
+    注意cmadass设置了ip访问次数, 如果下载的文件数量过多, 则会返回"-5004 Reach the hor access line."
+    表示单位小时内检索过于频繁，请降低检索频次. 另外, 也要注意下载的文件大小, 如果文件只有几K，表示下载不成功, 删除重新下载.
+    
     Args:
         times (str): time for retrieve, 'YYYYMMDDHHMISS,YYYYMMDDHHMISS,...'; or
                      time range, '[YYYYMMDDHHMISS,YYYYMMDDHHMISS]'
