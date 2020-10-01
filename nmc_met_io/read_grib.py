@@ -35,6 +35,10 @@ def read_ecmwf_ens_efi(filename, short_name='tpi', init_hour=0,
     Read ECMWF ensemble extreme forecast index grib file.
     https://confluence.ecmwf.int/display/FUG/EFI+Charts
     
+    Explore the Grib file with:
+      grib_ls -w dataType=tpi,stepRange='12-36',number=90 2020092812.EFI.240
+      grib_ls -w dataType=sot,stepRange='12-36',number=90 2020092812.EFI.240
+    
     Args:
         filename (str): Grib file path name.
 

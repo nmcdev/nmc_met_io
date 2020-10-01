@@ -131,7 +131,7 @@ def cmadaas_get_obs_files(times, data_code="SURF_CMPA_RT_NC", out_dir=None, pbar
     
     Args:
         times (str): time for retrieve, 'YYYYMMDDHHMISS,YYYYMMDDHHMISS,...'; or
-                        time range, '[YYYYMMDDHHMISS,YYYYMMDDHHMISS]'
+                     time range, '[YYYYMMDDHHMISS,YYYYMMDDHHMISS]'
         data_code (str, optional): dataset code. Defaults to "SURF_CMPA_RT_NC".
         out_dir (str, optional): download files to out_dir. if out_dir is None,
                                  the cached directory will be used. Defaults to None.
@@ -1019,7 +1019,7 @@ def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000
 
 
 def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM",
-                            fcst_ele="PRE", zoom=None, units=None, scale_off=None, cache=True):
+                             fcst_ele="PRE", zoom=None, units=None, scale_off=None, cache=True):
     """
     Retrieve surface analysis grid products, like CMPAS-V2.1融合降水分析实时数据产品（NC）.
     For SURF_CMPA_RT_NC, this function will retrieve the 0.01 resolution data and take long time.
@@ -1301,6 +1301,8 @@ def cmadaas_analysis_by_times(times_str, pbar=True, allExists=True, **kargs):
     dataset = []
     if pbar:
         tqdm_times_str = tqdm(times_str, desc=kargs['data_code'] + ": ")
+    else:
+        tqdm_times_str = times_str
     for time_str in tqdm_times_str:
         data = cmadaas_analysis_by_time(time_str, **kargs)
         if data:

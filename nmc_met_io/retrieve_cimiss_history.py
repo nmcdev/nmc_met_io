@@ -9,6 +9,7 @@ Retrieve historical data from CIMISS service.
 
 import os
 import calendar
+import time
 import urllib.request
 import numpy as np
 import pandas as pd
@@ -182,18 +183,20 @@ def get_mon_hist_obs(years=np.arange(2000, 2011, 1),
     return out_files
 
 
-def get_cmpas_hist_files(time_range, outdir='.'):
+def get_cmpas_hist_files(time_range, outdir='.', resolution=None):
     """
     Download CMAPS QPE gridded data files.
+    注: CIMISS对于下载访问次数进行了访问限制, 最好使用cmadaas_get_obs_files.
     
     Arguments:
         time_range {string} -- time range for retrieve,
                               "[YYYYMMDDHHMISS,YYYYMMDDHHMISS]"
         outdir {string} -- output directory.
+        resolution {string} -- data resolution, 0P01 or 0P05
 
     :Exampels:
     >>> time_range = "[20180101000000,20180331230000]"
-    >>> get_cmpas_hist_files(time_range, outdir='G:/CMAPS')
+    >>> get_cmpas_hist_files(time_range, outdir='G:/CMAPS', resolution='0P05')
     """
 
     # check output directory
@@ -204,6 +207,16 @@ def get_cmpas_hist_files(time_range, outdir='.'):
         time_range, data_code="SURF_CMPA_NRT_NC")
     filenames = files['DS']
     for file in filenames:
+        if resolution is not None:
+            if not resolution in file['FILE_NAME']:
+                continue
         outfile = os.path.join(outdir, file['FILE_NAME'])
         if not os.path.isfile(outfile):
-            urllib.request.urlretrieve(file['FILE_URL'], outfile)
+            # 服务器对短时间内访问次数进行了限制,
+            # 相应策略是出现下载错误时, 等待10秒钟后重新下载
+            try:
+                time.sleep(2)
+                urllib.request.urlretrieve(file['FILE_URL'], outfile)
+            except:
+                time.sleep(60)
+                urllib.request.urlretrieve(file['FILE_URL'], outfile)
