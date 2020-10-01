@@ -51,7 +51,7 @@ setup(
     platforms = ["all"],
 
     packages=find_packages(exclude=[
-      'documents', 'examples', 'tests', 'build', 'dist']),
+      'documents', 'docs', 'examples', 'notebooks', 'tests', 'build', 'dist']),
     include_package_data=True,
     exclude_package_data={'': ['.gitignore']},
 
