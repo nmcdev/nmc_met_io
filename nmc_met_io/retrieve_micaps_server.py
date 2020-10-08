@@ -307,19 +307,18 @@ def get_model_grid(directory, filename=None, suffix="*.024",
             init_time = np.array([init_time], dtype='datetime64[ms]')
             time = np.array([time], dtype='datetime64[ms]')
 
-            # construct ensemble number
-            if nmem != 0:
-                number = np.arange(nmem)
-
             # define coordinates
             time_coord = ('time', time)
             lon_coord = ('lon', lon, {
-                'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+                'long_name':'longitude', 'units':'degrees_east',
+                '_CoordinateAxisType':'Lon', "axis": "X"})
             lat_coord = ('lat', lat, {
-                'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+                'long_name':'latitude', 'units':'degrees_north',
+                '_CoordinateAxisType':'Lat', 'axis': "Y"})
             if level[0] != 0:
                 level_coord = ('level', level, levattrs)
             if nmem != 0:
+                number = np.arange(nmem)
                 number_coord = ('number', number, {'_CoordinateAxisType':'Ensemble'})
 
             # create to xarray
@@ -957,7 +956,7 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True):
                     data = calibration_table[data]
                 data.shape = (head1_info['dataRecordNumber'][0], head1_info['recordLength'][0])
 
-                    # construct longitude and latitude coordinates
+                # construct longitude and latitude coordinates
                 lat = (
                     head2_info['latitudeOfNorth'][0]/100. - 
                     np.arange(head2_info['heightOfImage'][0])*head2_info['verticalResolution'][0]/100.)
@@ -974,13 +973,16 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True):
                 # define coordinates
                 time_coord = ('time', time)
                 lon_coord = ('lon', lon, {
-                    'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+                    'long_name':'longitude', 'units':'degrees_east',
+                    '_CoordinateAxisType':'Lon', 'axis': "X"})
                 lat_coord = ('lat', lat, {
-                    'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
-                channel_coord = ('channel', head2_info['channel'][0], {'long_name':'channel', 'units':''})
+                    'long_name':'latitude', 'units':'degrees_north',
+                    '_CoordinateAxisType':'Lat', 'axis': "Y"})
+                channel_coord = ('channel', head2_info['channel'][0],
+                                 {'long_name':'channel', 'units':''})
 
                 # create xarray
-                data = data[np.newaxis, ...]
+                data = data[np.newaxis, np.newaxis, ...]
                 varattrs = {
                     'productCategory': head1_info['productCategory'][0],   # 产品类型, 1:静止, 2:极轨, 3:格点, 4:离散, 5:图形和分析
                     'formatString': head1_info['formatString'][0],         # 产品格式名称
@@ -989,8 +991,9 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True):
                     'flagOfProjection': head2_info['flagOfProjection'][0], # 投影方式, 0:未投影, 1:兰勃托, 2:麦卡托, 3:极射, 4:等经纬, 5:等面积
                     'units': units}
                 data = xr.Dataset({
-                    'image':(['time', 'lat', 'lon'], data, varattrs)},
-                    coords={ 'time':time_coord, 'lat':lat_coord, 'lon':lon_coord})
+                    'image':(['time', 'channel', 'lat', 'lon'], data, varattrs)},
+                    coords={ 'time':time_coord, 'channel':channel_coord,
+                    'lat':lat_coord, 'lon':lon_coord})
 
                 # add attributes
                 data.attrs['Conventions'] = "CF-1.6"
@@ -1190,9 +1193,11 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON", cache=True):
             # define coordinates
             time_coord = ('time', time)
             lon_coord = ('lon', lon, {
-                'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+                'long_name':'longitude', 'units':'degrees_east',
+                '_CoordinateAxisType':'Lon', "axis": "X"})
             lat_coord = ('lat', lat, {
-                'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+                'long_name':'latitude', 'units':'degrees_north',
+                '_CoordinateAxisType':'Lat', "axis": "Y"})
 
             # create xarray
             varattrs = {'long_name': longname.get(varname, 'radar mosaic'), 
@@ -1538,9 +1543,11 @@ def get_swan_radar(directory, filename=None, suffix="*.000", scale=[0.1, 0],
             # define coordinates
             time_coord = ('time', time)
             lon_coord = ('lon', lon, {
-                'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+                'long_name':'longitude', 'units':'degrees_east',
+                '_CoordinateAxisType':'Lon', "axis": "X"})
             lat_coord = ('lat', lat, {
-                'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+                'long_name':'latitude', 'units':'degrees_north',
+                '_CoordinateAxisType':'Lat', "axis": "Y"})
             level_coord = ('level', level, {
                 'long_name':'height', 'units':'m'})
 

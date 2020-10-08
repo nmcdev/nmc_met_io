@@ -410,9 +410,11 @@ def read_micaps_4(fname, limit=None, varname='data', varattrs={'units':''}, scal
     # define coordinates
     time_coord = ('time', time)
     lon_coord = ('lon', lon, {
-        'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+        'long_name':'longitude', 'units':'degrees_east',
+        '_CoordinateAxisType':'Lon', 'axis':'X'})
     lat_coord = ('lat', lat, {
-        'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+        'long_name':'latitude', 'units':'degrees_north',
+        '_CoordinateAxisType':'Lat', 'axis':'Y'})
     if level[0] != 0:
         level_coord = ('level', level, levattrs)
 
@@ -798,9 +800,11 @@ def read_micaps_11(fname, limit=None, scale_off=None, no_level=False,
     # define coordinates
     time_coord = ('time', time)
     lon_coord = ('lon', lon, {
-        'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+        'long_name':'longitude', 'units':'degrees_east',
+        '_CoordinateAxisType':'Lon', 'axis':'X'})
     lat_coord = ('lat', lat, {
-        'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+        'long_name':'latitude', 'units':'degrees_north',
+        '_CoordinateAxisType':'Lat', 'axis':'Y'})
     if level[0] != 0:
         level_coord = ('level', level, levattrs)
 

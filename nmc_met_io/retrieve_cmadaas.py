@@ -177,7 +177,7 @@ def cmadaas_get_obs_files(times, data_code="SURF_CMPA_RT_NC", out_dir=None, pbar
     for file in files:
         out_file = out_dir / file['FILE_NAME']
         if not out_file.is_file():
-          urllib.request.urlretrieve(file['FILE_URL'], out_file)
+            urllib.request.urlretrieve(file['FILE_URL'], out_file)
         out_files.append(out_file)
 
     return out_files
@@ -1107,9 +1107,11 @@ def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM
     # define coordinates and variables
     time_coord = ('time', time)
     lon_coord = ('lon', lon, {
-        'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+        'long_name':'longitude', 'units':'degrees_east',
+        '_CoordinateAxisType':'Lon', 'axis': "X"})
     lat_coord = ('lat', lat, {
-        'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+        'long_name':'latitude', 'units':'degrees_north',
+        '_CoordinateAxisType':'Lat', 'axis': "Y"})
     varname = fcst_ele
     varattrs = {'long_name': name, 'units': units}
 
@@ -1249,9 +1251,11 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_HRCLDAS_ANA_R
     # define coordinates and variables
     time_coord = ('time', time)
     lon_coord = ('lon', lon, {
-        'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+        'long_name':'longitude', 'units':'degrees_east',
+        '_CoordinateAxisType':'Lon', "axis": 'X'})
     lat_coord = ('lat', lat, {
-        'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+        'long_name':'latitude', 'units':'degrees_north',
+        '_CoordinateAxisType':'Lat', 'axis': 'Y'})
     if fcst_level != 0:
         level_coord = ('level', np.array([fcst_level]), levattrs)
     varname = fcst_ele
@@ -1765,7 +1769,8 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
     # define coordinates and variables
     time_coord = ('time', time)
     lon_coord = ('lon', lon, {
-        'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+        'long_name':'longitude', 'units':'degrees_east',
+        '_CoordinateAxisType':'Lon', 'axis':'X'})
     lat_coord = ('lat', lat, {
         'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
     if fcst_level != 0:

@@ -1043,9 +1043,11 @@ def cimiss_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FRT_5KM",
     # define coordinates and variables
     time_coord = ('time', time)
     lon_coord = ('lon', lon, {
-        'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+        'long_name':'longitude', 'units':'degrees_east',
+        '_CoordinateAxisType':'Lon', 'axis':'X'})
     lat_coord = ('lat', lat, {
-        'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+        'long_name':'latitude', 'units':'degrees_north',
+        '_CoordinateAxisType':'Lat', 'axis':'Y'})
     varname = fcst_ele
     varattrs = {'long_name': name, 'units': units}
 
@@ -1219,9 +1221,11 @@ def cimiss_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_RT_GR
     # define coordinates and variables
     time_coord = ('time', time)
     lon_coord = ('lon', lon, {
-        'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+        'long_name':'longitude', 'units':'degrees_east',
+        '_CoordinateAxisType':'Lon', 'axis':'X'})
     lat_coord = ('lat', lat, {
-        'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+        'long_name':'latitude', 'units':'degrees_north',
+        '_CoordinateAxisType':'Lat', 'axis':'Y'})
     if fcst_level != 0:
         level_coord = ('level', np.array([fcst_level]), levattrs)
     varname = fcst_ele
@@ -1367,9 +1371,11 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
     # define coordinates and variables
     time_coord = ('time', time)
     lon_coord = ('lon', lon, {
-        'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+        'long_name':'longitude', 'units':'degrees_east',
+        '_CoordinateAxisType':'Lon', 'axis':'X'})
     lat_coord = ('lat', lat, {
-        'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+        'long_name':'latitude', 'units':'degrees_north',
+        '_CoordinateAxisType':'Lat', 'axis':'Y'})
     if fcst_level != 0:
         level_coord = ('level', np.array([fcst_level]), levattrs)
     varattrs = {'short_name': fcst_ele, 'long_name': name, 'units': units}
@@ -1680,9 +1686,11 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
     # define coordinates and variables
     time_coord = ('time', time)
     lon_coord = ('lon', lon, {
-        'long_name':'longitude', 'units':'degrees_east', '_CoordinateAxisType':'Lon'})
+        'long_name':'longitude', 'units':'degrees_east',
+        '_CoordinateAxisType':'Lon', 'axis':'X'})
     lat_coord = ('lat', lat, {
-        'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
+        'long_name':'latitude', 'units':'degrees_north',
+        '_CoordinateAxisType':'Lat', 'axis':'Y'})
     if fcst_level != 0:
         level_coord = ('level', np.array([fcst_level]), levattrs)
     varattrs = {'long_name': name, 'units': units}
