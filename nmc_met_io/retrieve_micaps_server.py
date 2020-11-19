@@ -1058,6 +1058,10 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON", cache=True):
 
     :Example:
     >>> data = get_radar_mosaic("RADARMOSAIC/CREF/")
+    >>> dir_dir = "RADARMOSAIC/CREF/"
+    >>> filename = "ACHN.CREF000.20201021.000000.LATLON"
+    >>> CREF = get_radar_mosaic(dir_dir, filename=filename, cache=False)
+    >>> print(CREF['time'].values)
     """
 
     # get data file name
@@ -1185,9 +1189,10 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON", cache=True):
             lat = lat[::-1]
 
             # set time coordinates
+            # 直接使用时间有问题, 需要天数减去1, 秒数加上28800(8小时)
             time = datetime(1970, 1, 1) + timedelta(
-                days=head_info['dates'][0].astype(np.float64),
-                seconds=head_info['seconds'][0].astype(np.float64))
+                days=head_info['dates'][0].astype(np.float64)-1,
+                seconds=head_info['seconds'][0].astype(np.float64)+28800)
             time = np.array([time], dtype='datetime64[m]')
             data = np.expand_dims(data, axis=0)
 
