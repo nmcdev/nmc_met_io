@@ -1142,7 +1142,7 @@ def cimiss_obs_file_by_time_range(time_range,
 
 def cimiss_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_RT_GRB',
                             levattrs={'long_name':'Height above Ground', 'units':'m'},
-                            fcst_level=2, fcst_ele="TEF2", zoom=None, units=None, scale_off=None, cache=True):
+                            fcst_level=None, fcst_ele="TEF2", zoom=None, units=None, scale_off=None, cache=True):
     """
     Retrieve CLDAS analysis data from CIMISS service.
 
@@ -1178,7 +1178,6 @@ def cimiss_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_RT_GR
     if limit is None:
         params = {'dataCode': data_code,
                   'time': time_str,
-                  'fcstLevel': '{:d}'.format(fcst_level),
                   'fcstEle': fcst_ele}
         if zoom is not None: params['zoomOut'] = str(zoom)
         interface_id = 'getNafpAnaEleGridByTimeAndLevel'
@@ -1189,9 +1188,12 @@ def cimiss_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_RT_GR
                   "minLon": '{:.10f}'.format(limit[1]),
                   "maxLat": '{:.10f}'.format(limit[2]),
                   "maxLon": '{:.10f}'.format(limit[3]),
-                  'fcstLevel': '{:d}'.format(fcst_level),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpAnaEleGridInRectByTimeAndLevel'
+
+    # add forecast level parameters
+    if fcst_level is not None:
+        params['fcstLevel'] = '{:d}'.format(fcst_level)
 
     # retrieve data contents
     contents = get_http_result(interface_id, params)

@@ -11,6 +11,7 @@ Checking url, like:
 http://10.32.8.164:8080/DataService?requestType=getLatestDataName&directory=ECMWF_HR/TMP/850&fileName=&filter=*.024
 """
 
+from pickle import FALSE
 import warnings
 import re
 import http.client
@@ -978,7 +979,7 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True):
                 lat_coord = ('lat', lat, {
                     'long_name':'latitude', 'units':'degrees_north',
                     '_CoordinateAxisType':'Lat', 'axis': "Y"})
-                channel_coord = ('channel', head2_info['channel'][0],
+                channel_coord = ('channel', [head2_info['channel'][0]],
                                  {'long_name':'channel', 'units':''})
 
                 # create xarray
