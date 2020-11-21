@@ -958,12 +958,18 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True):
                 data.shape = (head1_info['dataRecordNumber'][0], head1_info['recordLength'][0])
 
                 # construct longitude and latitude coordinates
-                lat = (
-                    head2_info['latitudeOfNorth'][0]/100. - 
-                    np.arange(head2_info['heightOfImage'][0])*head2_info['verticalResolution'][0]/100.)
-                lon = (
-                    head2_info['longitudeOfWest'][0]/100. + 
-                    np.arange(head2_info['widthOfImage'][0])*head2_info['horizontalResolution'][0]/100.)
+                #lat = (
+                #    head2_info['latitudeOfNorth'][0]/100. - 
+                #    np.arange(head2_info['heightOfImage'][0])*head2_info['verticalResolution'][0]/100.)
+                #lon = (
+                #    head2_info['longitudeOfWest'][0]/100. + 
+                #    np.arange(head2_info['widthOfImage'][0])*head2_info['horizontalResolution'][0]/100.)
+                lat = np.linspace(
+                    head2_info['latitudeOfSouth'][0]/100., head2_info['latitudeOfNorth'][0]/100.,
+                    num=head2_info['heightOfImage'][0])
+                lon = np.linspace(
+                    head2_info['longitudeOfWest'][0]/100., head2_info['longitudeOfEast'][0]/100.,
+                    num=head2_info['widthOfImage'][0])
                 
                 # construct time
                 time = datetime(
@@ -1014,6 +1020,11 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True):
             return None
     else:
         return None
+
+dir = "SATELLITE/FY4A/L1/CHINA/C007/"
+file = "C007_20201121163000_FY4A.AWX"
+data = get_fy_awx(dir, filename=file)
+
 
 
 def get_fy_awxs(directory, filenames, allExists=True, pbar=False, **kargs):
