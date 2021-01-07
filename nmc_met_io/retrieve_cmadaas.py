@@ -1486,6 +1486,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     # return data
     return data
 
+data = cmadaas_model_grid("NAFP_FOR_FTM_HIGH_EC_GLB", "2021010512", 24, 'TEM', 850, 1, units="C", scale_off=[1.0, -273.15], levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'})
 
 def cmadaas_model_grids(data_code, init_time, valid_times, fcst_ele, fcst_level, allExists=True, pbar=False, **kargs):
     """
