@@ -1320,7 +1320,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
     :return: xarray dataset.
 
     Examples:
-    >>> data = cimiss_model_grid("NAFP_FOR_FTM_HIGH_EC_ANEA", "2020021512", 24, 'TEM', 850, units="C", scale_off=[1.0, -273.15], 
+    >>> data = cimiss_model_grid("NAFP_FOR_FTM_HIGH_EC_ANEA", "2020021512", 24, 'TEM', 850, 1, units="C", scale_off=[1.0, -273.15], 
                                  levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'})
     """
 
