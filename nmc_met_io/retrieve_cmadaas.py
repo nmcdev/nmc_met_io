@@ -14,6 +14,8 @@ import os
 import warnings
 import json
 import pickle
+import hashlib
+import uuid
 from datetime import datetime, timedelta
 import urllib3
 import urllib.request
@@ -25,39 +27,79 @@ import nmc_met_io.config as CONFIG
 from nmc_met_io.config import _get_config_from_rcfile
 
 
-def _get_rest_result(interface_id, params, data_format='json'):
+def get_rest_result(interface_id, params, url=False,
+                     dns=None, port=None, data_format='json'):
     """
     Get the http result from CAMDaaS REST api service.
+    2021/01/13, 采用hashlib.md5对输入参数进行加密, 则在url中不会出现pwd关键字, 数据传输更加安全.
 
     :param interface_id: MUSIC interface id.
     :param params: dictionary for MUSIC parameters.
-    :param data_format: MUSIC server data format.
+                   可以直接指定'serviceNodeId', 'userId'和'pwd'三个参数, 若没有, 则从 .nmcdev 配置文件中读取.
+    :param url: if url = True, return url string.
+    :param dns: CMADaaS数据库DNS地址, 若不指定, 则从 .nmcdev 配置文件中读取.
+    :param port, CMADaaS数据库DNS的端口, 若不指定, 则从 .nmcdev 配置文件中读取.
+    :param data_format: MUSIC server data output format.
     :return:
+
+    :example:
+        params = {
+            'serviceNodeId':'NMIC_MUSIC_CMADAAS',
+            'userId':'******',
+            'pwd':'******',
+            'dataCode':'SURF_CHN_MUL_HOR_N',
+            'elements':'Datetime,Station_Id_d,Lat,Lon,PRE_24h',
+            'times':'20200910000000',
+            'dataFormat':'json',
+            'limitCnt':'10'}
+        url = get_rest_result('getSurfEleByTime', params)
     """
 
-    # set  MUSIC server dns and user information
-    dns = CONFIG.CONFIG['CMADaaS']['DNS']
-    port = CONFIG.CONFIG['CMADaaS']['PORT']
-    user_id = CONFIG.CONFIG['CMADaaS']['USER_ID']
-    pwd = CONFIG.CONFIG['CMADaaS']['PASSWORD']
-    serviceNodeId = CONFIG.CONFIG['CMADaaS']['serviceNodeId']
+    # set  MUSIC server dns port
+    if dns is None:
+        dns = CONFIG.CONFIG['CMADaaS']['DNS']
+    if port is None:
+        port = CONFIG.CONFIG['CMADaaS']['PORT']
+
+    # construct complete parameters
+    sign_params = params.copy()
+
+    # user information
+    if 'serviceNodeId' not in sign_params:
+        sign_params['serviceNodeId'] = CONFIG.CONFIG['CMADaaS']['serviceNodeId']
+    if 'userId' not in sign_params:
+         sign_params['userId'] = CONFIG.CONFIG['CMADaaS']['USER_ID']
+    if 'pwd' not in sign_params:
+        sign_params['pwd'] = CONFIG.CONFIG['CMADaaS']['PASSWORD']
+
+    # data interface Id and out data format
+    sign_params['interfaceId'] = interface_id.strip()
+    if 'dataFormat' not in sign_params:
+        sign_params['dataFormat'] = data_format.strip()
+    
+    # add time stamp and nonce code
+    sign_params['timestamp'] = str(int(datetime.now().timestamp()*1000))
+    sign_params['nonce'] = str(uuid.uuid1())
+
+    # construct sign string
+    sign_str = ""
+    keys = sorted(sign_params)
+    for key in keys:
+        sign_str = sign_str + key + "=" + str(sign_params.get(key)).strip() + "&"
+    sign_str = sign_str[:-1]
+    sign_str = sign_str + '&sign=' + hashlib.md5(sign_str.encode(encoding='UTF-8')).hexdigest().upper()
+    sign_str = sign_str.replace('&pwd='+sign_params['pwd'].strip(), '')
 
     # construct url
-    url = 'http://' + dns + ':' + port + '/music-ws/api?serviceNodeId=' + serviceNodeId + \
-          '&userId=' + user_id + '&pwd=' + pwd + '&interfaceId=' + interface_id
-
-    # params
-    for key in params:
-        url += '&' + key + '=' + params[key].strip()
-
-    # data format
-    url += '&dataFormat=' + data_format
+    url_str = 'http://' + dns + ':' + port + '/music-ws/api?' + sign_str
+    if url:
+        return url_str
 
     # request http contents
     http = urllib3.PoolManager()
-    req = http.request('GET', url)
+    req = http.request('GET', url_str)
     if req.status != 200:
-        print('Can not access the url: ' + url)
+        print('Can not access the url: ' + url_str)
         return None
 
     return req.data
@@ -111,7 +153,7 @@ def cmadaas_get_obs_latest_time(data_code="SURF_CHN_MUL_HOR", latestTime=12):
     interface_id = "getSurfLatestTime"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -164,7 +206,7 @@ def cmadaas_get_obs_files(times, data_code="SURF_CMPA_RT_NC", out_dir=None, pbar
         interface_id = "getSurfFileByTime"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -229,7 +271,7 @@ def cmadaas_obs_by_time(times, data_code="SURF_CHN_MUL_HOR_N",
     interface_id = "getSurfEleByTime"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -297,7 +339,7 @@ def cmadaas_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR_N",
     interface_id = "getSurfEleByTimeRange"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -359,7 +401,7 @@ def cmadaas_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR_N",
     interface_id = "getSurfEleByTimeAndStaID"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -422,7 +464,7 @@ def cmadaas_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR_N",
     interface_id = "getSurfEleByTimeRangeAndStaID"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -486,7 +528,7 @@ def cmadaas_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR_N",
     interface_id = "getSurfEleInRectByTime"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -556,7 +598,7 @@ def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL
     interface_id = "getSurfEleInRectByTimeRange"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -618,7 +660,7 @@ def cmadaas_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_
     interface_id = "getSurfEleInRegionByTime"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -686,7 +728,7 @@ def cmadaas_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SU
     interface_id = "getSurfEleInRegionByTimeRange"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -748,7 +790,7 @@ def cmadaas_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HO
     interface_id = "getSurfEleInBasinByTime"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -817,7 +859,7 @@ def cmadaas_obs_in_basin_by_time_range(time_range, basin="CJLY", data_code="SURF
     interface_id = "getSurfEleInBasinByTimeRange"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -878,7 +920,7 @@ def cmadaas_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MU
     interface_id = "getSurfEleByInHistoryBySamePeriod"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -942,7 +984,7 @@ def cmadaas_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF
     interface_id = "getSurfEleInHistoryBySamePeriodAndStaID"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -1006,7 +1048,7 @@ def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000
     interface_id = "getSurfEleInHistoryBySamePeriodAndRegion"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -1080,7 +1122,7 @@ def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM
         interface_id = "getSurfEleGridInRectByTime"
     
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -1224,7 +1266,7 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_HRCLDAS_ANA_R
         interface_id = 'getNafpAnaEleGridInRectByTimeAndLevel'
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -1346,7 +1388,7 @@ def cmadass_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", lates
     interface_id = "getNafpLatestTime"
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -1417,7 +1459,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -1739,7 +1781,7 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
         interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
@@ -1877,7 +1919,7 @@ def cmadaas_model_by_piont(init_time_str,
 
 
     # retrieve data contents
-    contents = _get_rest_result(interface_id, params)
+    contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
     contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
