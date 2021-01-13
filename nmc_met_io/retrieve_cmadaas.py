@@ -19,6 +19,7 @@ import uuid
 from datetime import datetime, timedelta
 import urllib3
 import urllib.request
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -81,7 +82,7 @@ def get_rest_result(interface_id, params, url=False,
     sign_params['timestamp'] = str(int(datetime.now().timestamp()*1000))
     sign_params['nonce'] = str(uuid.uuid1())
 
-    # construct sign string
+    # construct sign string with hashlib md5 code
     sign_str = ""
     keys = sorted(sign_params)
     for key in keys:
@@ -217,7 +218,7 @@ def cmadaas_get_obs_files(times, data_code="SURF_CMPA_RT_NC", out_dir=None, pbar
     out_files = []
     files = tqdm(contents['DS']) if pbar else contents['DS']
     for file in files:
-        out_file = out_dir / file['FILE_NAME']
+        out_file = Path(out_dir) / file['FILE_NAME']
         if not out_file.is_file():
             urllib.request.urlretrieve(file['FILE_URL'], out_file)
         out_files.append(out_file)
@@ -1403,8 +1404,8 @@ def cmadass_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", lates
 
 
 def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, level_type,
-                      varname='data', units=None, scale_off=None, cache=True, 
-                      levattrs={'long_name':'height_above_ground', 'units':'m', '_CoordinateAxisType':'Height'}):
+                       varname='data', units=None, scale_off=None, cache=True, 
+                       levattrs={'long_name':'height_above_ground', 'units':'m', '_CoordinateAxisType':'Height'}):
     """
     Retrieve model grid data from CMADaaS service.
     refer to: http://10.20.76.55/cimissapiweb/apidataclassdefine_list.action
@@ -1980,3 +1981,82 @@ def cmadaas_model_by_piont_levels(init_time,
     data = data.loc[{'time':sorted(data.coords['time'].values)}]
 
     return data
+
+
+def cmadaas_get_model_file(time, data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", fcst_ele=None,
+                           level_type='100', out_dir=None, pbar=False, just_url=False):
+    """
+    Download numeric weather predication model file.
+    
+    注意cmadass设置了ip访问次数, 如果下载的文件数量过多, 则会返回"-5004 Reach the hor access line."
+    表示单位小时内检索过于频繁，请降低检索频次. 另外, 也要注意下载的文件大小, 如果文件只有几K，表示下载不成功, 删除重新下载.
+    
+    Args:
+        times (str): model initial time for retrieve, 
+                     single time 'YYYYMMDDHHMISS'; or
+                     time range, '[YYYYMMDDHHMISS,YYYYMMDDHHMISS]'
+        data_code (str, optional): dataset code. Defaults to "SURF_CMPA_RT_NC".
+        fcst_ele (str, optional): focast element. Defaults to None.
+        out_dir (str, optional): download files to out_dir. if out_dir is None,
+                                 the cached directory will be used. Defaults to None.
+        pbar (bool, optional): Show progress bar, default to True.
+        just_url (bool, optional): if just_url = True, return url string array, no files are downloaded.
+
+    Returns:
+        the list of download files path.
+
+    Examples:
+    >>> out_files = cmadaas_get_model_file('20210113000000', just_url=True)
+    >>> out_files = cmadaas_get_model_file('20210113000000', fcst_ele='TEM', out_dir=".")
+    >>> out_files = cmadaas_get_model_file('[20210111000000,20210130000000]', fcst_ele='TEM', out_dir=".")
+    """
+
+    if out_dir is None:
+        out_dir = CONFIG.get_cache_file(data_code, "", name="CMADaaS")
+    
+    time = time.strip()
+    if fcst_ele is None:
+        params = {'dataCode': data_code}
+        if time[0] == '[':
+            # set retrieve parameters
+            params['timeRange'] = time 
+            interface_id = "getNafpFileByTimeRange"
+        else:
+            # set retrieve parameters
+            params['time'] = time
+            interface_id = "getNafpFileByTime"
+    else:
+        params = {'dataCode': data_code,
+                  'fcstEle': fcst_ele.strip(),
+                  'levelType': str(level_type).strip()} 
+        if time[0] == '[':
+            # set retrieve parameters
+            params['timeRange'] = time
+            interface_id = "getNafpFileByElementAndTimeRange"
+        else:
+            # set retrieve parameters
+            params['time'] = time
+            interface_id = "getNafpFileByElementAndTime"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    if contents is None:
+        return None
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    if contents['returnCode'] != '0':
+        return None
+
+    # just return the url
+    if just_url:
+        return contents['DS']
+
+    # loop every file and download
+    out_files = []
+    files = tqdm(contents['DS']) if pbar else contents['DS']
+    for file in files:
+        out_file = Path(out_dir) / file['FILE_NAME']
+        if not out_file.is_file():
+            urllib.request.urlretrieve(file['FILE_URL'], out_file)
+        out_files.append(out_file)
+
+    return out_files
