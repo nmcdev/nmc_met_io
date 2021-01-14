@@ -866,6 +866,7 @@ def read_micaps_14(fname):
 
     # read contents
     encodings = ['utf-8', 'gb18030', 'GBK']
+    txt = None
     for encoding in encodings:
         txt = None
         try:
@@ -878,7 +879,7 @@ def read_micaps_14(fname):
         return None
 
     # head information
-    head_info = txt[2]
+    _ = txt[2]
 
     # date and time
     year = int(txt[3]) if len(txt[3]) == 4 else int(txt[3]) + 2000
@@ -891,6 +892,7 @@ def read_micaps_14(fname):
     # ======================================================
     # read lines
     # ======================================================
+    lines = None
     if 'LINES:' in txt:
         # get the start position
         idx = txt.index('LINES:')
@@ -909,7 +911,7 @@ def read_micaps_14(fname):
             line_label = []
             line_label_xyz = []
 
-            for i in range(number):
+            for _ in range(number):
                 # line width
                 width = float(txt[idx])
                 line_width.append(width)
@@ -950,15 +952,12 @@ def read_micaps_14(fname):
                 lines = {
                     "line_width": line_width, "line_xyz_num": line_xyz_num,
                     "line_xyz": line_xyz, "line_label_num": line_label_num,
-                    "line_label": line_label, "line_label_xyz": line_label_xyz}
-        else:
-            lines = {}
-    else:
-        lines = {}
+                    "line_label": line_label, "line_label_xyz": line_label_xyz}        
 
     # ======================================================
     # read line symbols
     # ======================================================
+    lines_symbol = None
     if 'LINES_SYMBOL:' in txt:
         # get the start position
         idx = txt.index('LINES_SYMBOL:')
@@ -975,7 +974,7 @@ def read_micaps_14(fname):
             linesym_xyz_num = []
             linesym_xyz = []
 
-            for i in range(number):
+            for _ in range(number):
                 # line symbol code
                 code = int(txt[idx])
                 linesym_code.append(code)
@@ -1008,15 +1007,12 @@ def read_micaps_14(fname):
             lines_symbol = {"linesym_code": linesym_code,
                             "linesym_width": linesym_width,
                             "linesym_xyz_num": linesym_xyz_num,
-                            "linesym_xyz": linesym_xyz}
-        else:
-            lines_symbol = {}
-    else:
-        lines_symbol = {}
+                            "linesym_xyz": linesym_xyz}        
 
     # ======================================================
     # read symbol
     # ======================================================
+    symbols = None
     if "SYMBOLS:" in txt:
         # start position of symbols
         idx = txt.index("SYMBOLS:")
@@ -1032,7 +1028,7 @@ def read_micaps_14(fname):
             symbol_xyz = []
             symbol_value = []
 
-            for i in range(number):
+            for _ in range(number):
                 # symbol code
                 code = int(txt[idx])
                 symbol_code.append(code)
@@ -1050,15 +1046,12 @@ def read_micaps_14(fname):
 
             symbols = {"symbol_code": symbol_code,
                        "symbol_xyz": symbol_xyz,
-                       "symbol_value": symbol_value}
-        else:
-            symbols = {}
-    else:
-        symbols = {}
+                       "symbol_value": symbol_value}        
 
     # ======================================================
     # read closed contours
     # ======================================================
+    closed_contours = None
     if "CLOSED_CONTOURS:" in txt:
         # get the start position
         idx = txt.index('CLOSED_CONTOURS:')
@@ -1077,7 +1070,7 @@ def read_micaps_14(fname):
             cn_label = []
             cn_label_xyz = []
 
-            for i in range(number):
+            for _ in range(number):
                 # line width
                 width = float(txt[idx])
                 cn_width.append(width)
@@ -1117,15 +1110,12 @@ def read_micaps_14(fname):
             closed_contours = {
                 "cn_width": cn_width, "cn_xyz_num": cn_xyz_num,
                 "cn_xyz": cn_xyz, "cn_label": cn_label,
-                "cn_label_num": cn_label_num, "cn_label_xyz": cn_label_xyz}
-        else:
-            closed_contours = {}
-    else:
-        closed_contours = {}
+                "cn_label_num": cn_label_num, "cn_label_xyz": cn_label_xyz}       
 
     # ======================================================
     # read station situation
     # ======================================================
+    stations = None
     if "STATION_SITUATION" in txt:
         # get the start position
         idx = txt.index('STATION_SITUATION')
@@ -1136,15 +1126,12 @@ def read_micaps_14(fname):
             end_idx += 1
         if end_idx > idx + 1:
             stations = np.array(txt[(idx+1):(end_idx)])
-            stations.shape = [len(stations)//2, 2]
-        else:
-            stations = None
-    else:
-        stations = None
+            stations.shape = [len(stations)//2, 2]       
 
     # ======================================================
     # read weather regions
     # ======================================================
+    weather_region = None
     if "WEATHER_REGION:" in txt:
         # get the start position
         idx = txt.index('WEATHER_REGION:')
@@ -1160,7 +1147,7 @@ def read_micaps_14(fname):
             weather_region_xyz_num = []
             weather_region_xyz = []
 
-            for i in range(number):
+            for _ in range(number):
                 # region code
                 code = int(txt[idx])
                 weather_region_code.append(code)
@@ -1181,15 +1168,12 @@ def read_micaps_14(fname):
             weather_region = {
                 "weather_region_code": weather_region_code,
                 "weather_region_xyz_num": weather_region_xyz_num,
-                "weather_region_xyz": weather_region_xyz}
-        else:
-            weather_region = {}
-    else:
-        weather_region = {}
+                "weather_region_xyz": weather_region_xyz}       
 
     # ======================================================
     # read fill area
     # ======================================================
+    fill_area = None
     if "FILLAREA:" in txt:
         # get the start position
         idx = txt.index('FILLAREA:')
@@ -1212,7 +1196,7 @@ def read_micaps_14(fname):
             fillarea_graphics_type = []
             fillarea_frame = []
 
-            for i in range(number):
+            for _ in range(number):
                 # code
                 code = int(txt[idx])
                 fillarea_code.append(code)
@@ -1274,14 +1258,11 @@ def read_micaps_14(fname):
                 "fillarea_gradient_angle": fillarea_gradient_angle,
                 "fillarea_graphics_type": fillarea_graphics_type,
                 "fillarea_frame": fillarea_frame}
-        else:
-            fill_area = {}
-    else:
-        fill_area = {}
 
     # ======================================================
     # read notes symbol
     # ======================================================
+    notes_symbol = None
     if "NOTES_SYMBOL:" in txt:
         # get the start position
         idx = txt.index('NOTES_SYMBOL:')
@@ -1304,7 +1285,7 @@ def read_micaps_14(fname):
             nsymbol_fontType = []
             nsymbol_color = []
 
-            for i in range(number):
+            for _ in range(number):
                 # code
                 code = int(txt[idx])
                 nsymbol_code.append(code)
@@ -1366,14 +1347,11 @@ def read_micaps_14(fname):
                 "nsymbol_fontSize": nsymbol_fontSize,
                 "nsymbol_fontType": nsymbol_fontType,
                 "nsymbol_color": nsymbol_color}
-        else:
-            notes_symbol = {}
-    else:
-        notes_symbol = {}
 
     # ======================================================
     # read lines symbols with property
     # ======================================================
+    plines_symbol = None
     if "WITHPROP_LINESYMBOLS:" in txt:
         # get the start position
         idx = txt.index('WITHPROP_LINESYMBOLS:')
@@ -1396,7 +1374,7 @@ def read_micaps_14(fname):
             plinesym_label_num = []
             plinesym_label_xyz = []
 
-            for i in range(number):
+            for _ in range(number):
                 # line symbol code
                 code = int(txt[idx])
                 plinesym_code.append(code)
@@ -1464,10 +1442,6 @@ def read_micaps_14(fname):
                 "plinesym_label": plinesym_label,
                 "plinesym_label_num": plinesym_label_num,
                 "plinesym_label_xyz": plinesym_label_xyz}
-        else:
-            plines_symbol = {}
-    else:
-        plines_symbol = {}
 
     # return data contents
     return {"file_type": 14,
