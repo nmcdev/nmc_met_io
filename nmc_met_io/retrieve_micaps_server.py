@@ -155,7 +155,7 @@ def get_latest_initTime(directory, suffix="*.006"):
 def get_model_grid(directory, filename=None, suffix="*.024",
                    varname='data', varattrs={'units':''}, scale_off=None,
                    levattrs={'long_name':'pressure_level', 'units':'hPa',
-                             '_CoordinateAxisType':'Pressure'}, cache=True):
+                             '_CoordinateAxisType':'Pressure'}, cache=True, cache_clear=True):
     """
     Retrieve numeric model grid forecast from MICAPS cassandra service.
     Support ensemble member forecast.
@@ -198,7 +198,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
 
     # retrieve data from cached file
     if cache:
-        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -593,7 +593,7 @@ def get_model_profiles(directory, filenames, levels, points, **kargs):
         return None
 
 
-def get_station_data(directory, filename=None, suffix="*.000", dropna=True, cache=True):
+def get_station_data(directory, filename=None, suffix="*.000", dropna=True, cache=True, cache_clear=True):
     """
     Retrieve station data from MICAPS cassandra service.
 
@@ -631,7 +631,7 @@ def get_station_data(directory, filename=None, suffix="*.000", dropna=True, cach
 
     # retrieve data from cached file
     if cache:
-        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -795,7 +795,7 @@ def get_station_dataset(directory, filenames, allExists=True, pbar=False, **karg
     return pd.concat(dataset)
 
 
-def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True):
+def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True, cache_clear=True):
     """
     Retrieve FY satellite cloud awx format file.
     The awx file format is refered to “气象卫星分发产品及其格式规范AWX2.1”
@@ -835,7 +835,7 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True):
 
     # retrieve data from cached file
     if cache:
-        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -1052,7 +1052,7 @@ def get_fy_awxs(directory, filenames, allExists=True, pbar=False, **kargs):
     return xr.concat(dataset, dim='time')
 
 
-def get_radar_mosaic(directory, filename=None, suffix="*.LATLON", cache=True):
+def get_radar_mosaic(directory, filename=None, suffix="*.LATLON", cache=True, cache_clear=True):
     """
     该程序主要用于读取和处理中国气象局CRaMS系统的雷达回波全国拼图数据.
 
@@ -1092,7 +1092,7 @@ def get_radar_mosaic(directory, filename=None, suffix="*.LATLON", cache=True):
 
     # retrieve data from cached file
     if cache:
-        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -1264,7 +1264,7 @@ def get_radar_mosaics(directory, filenames, allExists=True, pbar=False, **kargs)
     return xr.concat(dataset, dim='time')
 
 
-def get_tlogp(directory, filename=None, suffix="*.000", cache=True):
+def get_tlogp(directory, filename=None, suffix="*.000", cache=True, cache_clear=True):
     """
     该程序用于读取micaps服务器上TLOGP数据信息, 文件格式与MICAPS第5类格式相同.
 
@@ -1299,7 +1299,7 @@ def get_tlogp(directory, filename=None, suffix="*.000", cache=True):
 
     # retrieve data from cached file
     if cache:
-        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 records = pickle.load(f)
@@ -1415,7 +1415,7 @@ def get_tlogps(directory, filenames, allExists=True, pbar=False, **kargs):
 
 def get_swan_radar(directory, filename=None, suffix="*.000", scale=[0.1, 0], 
                    varattrs={'long_name': 'quantitative_precipitation_forecast', 'short_name': 'QPF', 'units': 'mm'},
-                   cache=True, attach_forecast_period=True):
+                   cache=True, cache_clear=True, attach_forecast_period=True):
     """
     该程序用于读取micaps服务器上SWAN的D131格点数据格式.
     refer to https://www.taodocs.com/p-274692126.html
@@ -1455,7 +1455,7 @@ def get_swan_radar(directory, filename=None, suffix="*.000", scale=[0.1, 0],
 
     # retrieve data from cached file
     if cache:
-        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -1620,7 +1620,7 @@ def get_swan_radars(directory, filenames, allExists=True, pbar=False, **kargs):
     return xr.concat(dataset, dim='time')
 
 
-def get_radar_standard(directory, filename=None, suffix="*.BZ2", cache=True):
+def get_radar_standard(directory, filename=None, suffix="*.BZ2", cache=True, cache_clear=True):
     """
     该程序用于读取Micaps服务器上的单站雷达基数据, 该数据为
     "天气雷达基数据标准格式(V1.0版)", 返回数据类型为PyCINRAD的标准雷达数据类.
@@ -1664,7 +1664,7 @@ def get_radar_standard(directory, filename=None, suffix="*.BZ2", cache=True):
     # retrieve data from cached file
     byteArray = None
     if cache:
-        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 byteArray = pickle.load(f) 

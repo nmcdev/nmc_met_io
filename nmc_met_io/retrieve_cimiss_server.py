@@ -958,7 +958,8 @@ def cimiss_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000"
 
 
 def cimiss_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FRT_5KM",
-                            fcst_ele="PRE", zoom=None, units=None, scale_off=None, cache=True):
+                            fcst_ele="PRE", zoom=None, units=None, scale_off=None,
+                            cache=True, cache_clear=True):
     """
     Retrieve surface analysis grid products, like CMPAS-V2.1融合降水分析实时数据产品（NC）.
     For SURF_CMPA_RT_NC, this function will retrieve the 0.01 resolution data and take long time.
@@ -991,7 +992,7 @@ def cimiss_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FRT_5KM",
         filename = time_str
         if limit is not None:
             filename = filename + '.' + str(limit)
-        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -1142,7 +1143,8 @@ def cimiss_obs_file_by_time_range(time_range,
 
 def cimiss_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_RT_GRB',
                             levattrs={'long_name':'Height above Ground', 'units':'m'},
-                            fcst_level=None, fcst_ele="TEF2", zoom=None, units=None, scale_off=None, cache=True):
+                            fcst_level=None, fcst_ele="TEF2", zoom=None, units=None, scale_off=None,
+                            cache=True, cache_clear=True):
     """
     Retrieve CLDAS analysis data from CIMISS service.
 
@@ -1168,7 +1170,7 @@ def cimiss_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_RT_GR
         filename = time_str
         if limit is not None:
             filename = filename + '.' + str(limit)
-        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -1292,8 +1294,8 @@ def cimiss_analysis_by_times(times_str, pbar=True, allExists=True, **kargs):
     return xr.concat(dataset, dim='time')
 
 
-def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level,
-                      varname='data', units=None, scale_off=None, cache=True,
+def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level, limit=None,
+                      varname='data', units=None, scale_off=None, cache=True, cache_clear=True,
                       levattrs={'long_name':'height_above_ground', 'units':'m', '_CoordinateAxisType':'Height'}):
     """
     Retrieve model grid data from CIMISS service.
@@ -1308,6 +1310,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
     :param valid_time: forecast hour, like 0
     :param fcst_ele: forecast element, like 2m temperature "TEF2"
     :param fcst_level: vertical level, like 0
+    :param limit: [min_lat, min_lon, max_lat, max_lon]
     :param varname: set variable name, default is 'data'
     :param units: forecast element's units, defaults to retrieved units.
     :param scale_off: [scale, offset], return values = values*scale + offset.
@@ -1328,19 +1331,33 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
     if cache:
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
         filename = init_time_str + '.' + str(valid_time).zfill(3)
-        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS")
+        if limit is not None:
+            filename = init_time_str + '_' +str(limit) +'.' + str(valid_time).zfill(3)
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
                 return data
 
     # set retrieve parameters
-    params = {'dataCode': data_code,
-              'time': init_time_str + '0000',
-              'fcstLevel': '{:d}'.format(fcst_level),
-              'validTime': '{:d}'.format(valid_time),
-              'fcstEle': fcst_ele}
-    interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
+    if limit is None:
+        params = {'dataCode': data_code,
+                  'time': init_time_str + '0000',
+                  'fcstLevel': '{:d}'.format(fcst_level),
+                  'validTime': '{:d}'.format(valid_time),
+                  'fcstEle': fcst_ele}
+        interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
+    else:
+        params = {'dataCode': data_code,
+                  'time': init_time_str + '0000',
+                  'minLat': '{:.10f}'.format(limit[0]),
+                  "minLon": '{:.10f}'.format(limit[1]),
+                  "maxLat": '{:.10f}'.format(limit[2]),
+                  "maxLon": '{:.10f}'.format(limit[3]),
+                  'fcstLevel': '{:d}'.format(fcst_level),
+                  'validTime': '{:d}'.format(valid_time),
+                  'fcstEle': fcst_ele}
+        interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
 
     # retrieve data contents
     contents = get_http_result(interface_id, params)
@@ -1604,7 +1621,8 @@ def cimiss_model_profiles(data_code, init_time_str, valid_times, fcst_ele, fcst_
 def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
                          data_code='NAFP_FOR_FTM_HIGH_EC_GLB',
                          levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'},
-                         fcst_level=0, fcst_ele="TEF2", varname='data', units=None, scale_off=None, cache=True):
+                         fcst_level=0, fcst_ele="TEF2", varname='data', units=None, scale_off=None,
+                         cache=True, cache_clear=True):
     """
     Retrieve grid data from CIMISS service.
 
@@ -1628,10 +1646,10 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
     # retrieve data from cached file
     if cache:
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
-        filename = init_time_str + '.' + str(valid_time)
+        filename = init_time_str + '.' + str(valid_time).zfill(3)
         if limit is not None:
-            filename = filename + '.' + str(limit)
-        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS")
+            filename = init_time_str + '_' +str(limit) +'.' + str(valid_time).zfill(3)
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)

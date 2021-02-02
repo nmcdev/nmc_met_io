@@ -69,17 +69,19 @@ def get_cache_file(sub_dir, filename, name=None, cache_clear=True):
     # Add cache name, if neccessary
     if name is not None:
         cache_dir = cache_dir / name
-    
-    # Use the week number of year as subdir
-    cache_subdir1 = cache_dir / datetime.date.today().strftime("%Y%U")
-    cache_subdir2 = cache_subdir1 / sub_dir
-    cache_subdir2.mkdir(parents=True, exist_ok=True)
 
     # clear old cache folders
     if cache_clear:
+        # Use the week number of year as subdir
+        cache_subdir1 = cache_dir / datetime.date.today().strftime("%Y%U")
+        cache_subdir2 = cache_subdir1 / sub_dir
+        cache_subdir2.mkdir(parents=True, exist_ok=True)
+
         for f in cache_dir.iterdir():
             if f != cache_subdir1:
                 shutil.rmtree(f)
+    else:
+        cache_subdir2 = cache_dir / sub_dir
 
     # return cache file pathname
     cache_file = cache_subdir2 / filename

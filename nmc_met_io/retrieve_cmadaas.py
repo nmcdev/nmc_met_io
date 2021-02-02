@@ -1064,7 +1064,8 @@ def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000
 
 
 def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM",
-                             fcst_ele="PRE", zoom=None, units=None, scale_off=None, cache=True):
+                             fcst_ele="PRE", zoom=None, units=None, scale_off=None,
+                             cache=True, cache_clear=True):
     """
     Retrieve surface analysis grid products, like CMPAS-V2.1融合降水分析实时数据产品（NC）.
     For SURF_CMPA_RT_NC, this function will retrieve the 0.01 resolution data and take long time.
@@ -1097,7 +1098,7 @@ def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM
         filename = time_str
         if limit is not None:
             filename = filename + '.' + str(limit)
-        cache_file = CONFIG.get_cache_file(directory, filename, name="CMADaaS")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CMADaaS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -1212,7 +1213,8 @@ def cmadaas_obs_grid_by_times(times_str, pbar=True, allExists=True, **kargs):
 
 def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_ASI_NC',
                              levattrs={'long_name':'Height above Ground', 'units':'m'}, level_type='-',
-                             fcst_level=0, fcst_ele="TMP", zoom=None, units=None, scale_off=None, cache=True):
+                             fcst_level=0, fcst_ele="TMP", zoom=None, units=None, scale_off=None,
+                             cache=True, cache_clear=True):
     """
     Retrieve CLDAS analysis data from CMADaaS service.
 
@@ -1241,7 +1243,7 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_
         filename = time_str
         if limit is not None:
             filename = filename + '.' + str(limit)
-        cache_file = CONFIG.get_cache_file(directory, filename, name="CMADaaS")
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CMADaaS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -1405,8 +1407,8 @@ def cmadass_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", lates
     return time[0]
 
 
-def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, level_type,
-                       varname='data', units=None, scale_off=None, cache=True, 
+def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, level_type, limit=None,
+                       varname='data', units=None, scale_off=None, cache=True, cache_clear=True,
                        levattrs={'long_name':'height_above_ground', 'units':'m', '_CoordinateAxisType':'Height'}):
     """
     Retrieve model grid data from CMADaaS service.
@@ -1421,6 +1423,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     :param fcst_ele: forecast element, like 2m temperature "TEM"
     :param fcst_level: vertical level, like 0
     :param level_type: vertical level type, like 0
+    :param limit: [min_lat, min_lon, max_lat, max_lon], 
     :param varname: set variable name, default is 'data'
     :param units: forecast element's units, defaults to retrieved units.
     :param scale_off: [scale, offset], return values = values*scale + offset.
@@ -1433,8 +1436,8 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     :return: xarray dataset.
 
     Examples:
-    >>> data = cmadaas_model_grid("NAFP_FOR_FTM_HIGH_EC_ANEA", "2021010512", 24, 'TEM', 850, 100, units="C", scale_off=[1.0, -273.15],
-                                  levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'}, cache=False)
+    >>> data = cmadaas_model_grid("NAFP_FOR_FTM_HIGH_EC_ANEA", "2021010512", 24, 'TEM', 850, 100, units="C", scale_off=[1.0, -273.15], limit=[10.,100,30,120.],
+                                  levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'}, cache=True)
     """
 
     # check initial time
@@ -1447,20 +1450,35 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     if cache:
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
         filename = init_time_str + '.' + str(valid_time).zfill(3)
-        cache_file = CONFIG.get_cache_file(directory, filename, name="CMADaaS")
+        if limit is not None:
+            filename = init_time_str + '_' +str(limit) +'.' + str(valid_time).zfill(3)
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CMADaaS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
                 return data
 
     # set retrieve parameters
-    params = {'dataCode': data_code,
-              'time': init_time_str + '0000',
-              'levelType': '{:d}'.format(level_type),
-              'fcstLevel': '{:d}'.format(fcst_level),
-              'validTime': '{:d}'.format(valid_time),
-              'fcstEle': fcst_ele}
-    interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
+    if limit is None:
+        params = {'dataCode': data_code,
+                  'time': init_time_str + '0000',
+                  'fcstLevel': '{:d}'.format(fcst_level),
+                  'levelType': '{:d}'.format(level_type),
+                  'validTime': '{:d}'.format(valid_time),
+                  'fcstEle': fcst_ele}
+        interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
+    else:
+        params = {'dataCode': data_code,
+                  'time': init_time_str + '0000',
+                  'minLat': '{:.10f}'.format(limit[0]),
+                  "minLon": '{:.10f}'.format(limit[1]),
+                  "maxLat": '{:.10f}'.format(limit[2]),
+                  "maxLon": '{:.10f}'.format(limit[3]),
+                  'fcstLevel': '{:d}'.format(fcst_level),
+                  'levelType': '{:d}'.format(level_type),
+                  'validTime': '{:d}'.format(valid_time),
+                  'fcstEle': fcst_ele}
+        interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
@@ -1732,7 +1750,7 @@ def cmadaas_model_profiles(data_code, init_time, valid_times, fcst_ele, fcst_lev
 def cmadaas_model_by_time(init_time, valid_time=0, limit=None, 
                           data_code='NAFP_FOR_FTM_HIGH_EC_GLB', fcst_level=0, level_type=1, 
                           levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'},
-                          fcst_ele="TEM", varname='data', units=None, scale_off=None, cache=True):
+                          fcst_ele="TEM", varname='data', units=None, scale_off=None, cache=True, cache_clear=True):
     """
     Retrieve grid data from CMADaaS service.
     与cmadass_model_grid功能相似, 只是接口方式不同.
@@ -1765,10 +1783,10 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
     # retrieve data from cached file
     if cache:
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
-        filename = init_time_str + '.' + str(valid_time)
+        filename = init_time_str + '.' + str(valid_time).zfill(3)
         if limit is not None:
-            filename = filename + '.' + str(limit)
-        cache_file = CONFIG.get_cache_file(directory, filename, name="CMADaaS")
+            filename = init_time_str + '_' +str(limit) +'.' + str(valid_time).zfill(3)
+        cache_file = CONFIG.get_cache_file(directory, filename, name="CMADaaS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
