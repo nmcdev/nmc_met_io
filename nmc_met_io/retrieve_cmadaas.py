@@ -104,17 +104,6 @@ def get_rest_result(interface_id, params, url_only=False,
 
     return req.data
 
-params = {
-            'serviceNodeId':'NMIC_MUSIC_CMADAAS',
-            'userId':'******',
-            'pwd':'******',
-            'dataCode':'SURF_CHN_MUL_HOR_N',
-            'elements':'Datetime,Station_Id_d,Lat,Lon,PRE_24h',
-            'times':'20200910000000',
-            'dataFormat':'json',
-            'limitCnt':'10'}
-url = get_rest_result('getSurfEleByTime', params)
-
 
 def cmadaas_obs_convert_type(obs_data):
     """

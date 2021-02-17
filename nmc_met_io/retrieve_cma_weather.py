@@ -8,17 +8,28 @@ Retrieve current weather from CMA restful API.
 """
 
 from datetime import datetime
+import urllib3
 import hashlib
 
 
 def get_current_weather(lon, lat, apikey, pwd, elements=None, url_only=False):
     """
     通过基于位置的天气实况服务接口（简称“位置服务接口”）调用实况天气.
+    位置服务接口支持两种应用场景：“点”的应用场景和“线”的应用场景。
+    根据点或线的经纬度信息，获取气温、相对湿度、风速、风向、天气现象、能见度
+    总云量、海表温度以及降水等气象要素数据。
+
+    在中国气象数据网（http://data.cma.cn）上申请API账户，审核通过后
+    获得API账户, 加上用户注册密码即可获得数据.
 
     Args:
-        points ([type]): [description]
-        apikey ([type], optional): [description]. Defaults to None.
-        elements (str, optional): [description]. Defaults to None.
+        lon (float or list): longitudes
+        lat (float or list): latitudes
+        apikey (str): apikey.
+        pwd (str): user password.
+        elements (str, optional): weather elements. Defaults to None.
+        url_only: only retur url string.
+    
     """
 
     # construct parameters
@@ -59,3 +70,12 @@ def get_current_weather(lon, lat, apikey, pwd, elements=None, url_only=False):
     url_str = 'https://music.data.cma.cn/lbs/api?' + sign_str
     if url_only:
         return url_str
+
+    # request http contents
+    http = urllib3.PoolManager()
+    req = http.request('GET', url_str)
+    if req.status != 0:
+        print('Can not access the url: ' + url_str)
+        return None
+
+    return req.data
