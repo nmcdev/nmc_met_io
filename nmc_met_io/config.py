@@ -61,6 +61,8 @@ def get_cache_file(sub_dir, filename, name=None, cache_clear=True):
     :param cache_clear: if True, clear old cache folder
     """
     # get cache file directory
+    # 检查配置文件中是否配置了CACHE参数, 获得缓存目录;
+    # 如果没有, 默认为配置文件所在的目录.
     if CONFIG.has_option('CACHE', 'CACHE_DIR'):
         cache_dir = Path(CONFIG['CACHE']['CACHE_DIR']).expanduser() / "cache"
     else:
@@ -71,6 +73,7 @@ def get_cache_file(sub_dir, filename, name=None, cache_clear=True):
         cache_dir = cache_dir / name
 
     # clear old cache folders
+    # 如果设置了清除缓存, 则会将缓存文件逐周存放, 并删除过去的周文件夹. 
     if cache_clear:
         # Use the week number of year as subdir
         cache_subdir1 = cache_dir / datetime.date.today().strftime("%Y%U")

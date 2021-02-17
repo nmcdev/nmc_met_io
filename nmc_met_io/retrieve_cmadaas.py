@@ -27,7 +27,7 @@ from tqdm import tqdm
 import nmc_met_io.config as CONFIG
 
 
-def get_rest_result(interface_id, params, url=False,
+def get_rest_result(interface_id, params, url_only=False,
                     dns=None, port=None, data_format='json'):
     """
     Get the http result from CAMDaaS REST api service.
@@ -36,7 +36,7 @@ def get_rest_result(interface_id, params, url=False,
     :param interface_id: MUSIC interface id.
     :param params: dictionary for MUSIC parameters.
                    可以直接指定'serviceNodeId', 'userId'和'pwd'三个参数, 若没有, 则从 .nmcdev 配置文件中读取.
-    :param url: if url = True, return url string.
+    :param url_only: if url_only = True, return url string.
     :param dns: CMADaaS数据库DNS地址, 若不指定, 则从 .nmcdev 配置文件中读取.
     :param port, CMADaaS数据库DNS的端口, 若不指定, 则从 .nmcdev 配置文件中读取.
     :param data_format: MUSIC server data output format.
@@ -45,19 +45,19 @@ def get_rest_result(interface_id, params, url=False,
     :example:
         params = {
             'serviceNodeId':'NMIC_MUSIC_CMADAAS',
-            'userId':'******',
-            'pwd':'******',
+            'userId':'test',
+            'pwd':'123456',
             'dataCode':'SURF_CHN_MUL_HOR_N',
             'elements':'Datetime,Station_Id_d,Lat,Lon,PRE_24h',
             'times':'20200910000000',
             'dataFormat':'json',
             'limitCnt':'10'}
-        url = get_rest_result('getSurfEleByTime', params)
+        data = get_rest_result('getSurfEleByTime', params)
     """
 
-    # set  MUSIC server dns port
+    # set MUSIC server dns port
     if dns is None:
-        dns = CONFIG.CONFIG['CMADaaS']['DNS']
+        dns  = CONFIG.CONFIG['CMADaaS']['DNS']
     if port is None:
         port = CONFIG.CONFIG['CMADaaS']['PORT']
 
@@ -92,7 +92,7 @@ def get_rest_result(interface_id, params, url=False,
 
     # construct url
     url_str = 'http://' + dns + ':' + port + '/music-ws/api?' + sign_str
-    if url:
+    if url_only:
         return url_str
 
     # request http contents
@@ -103,6 +103,17 @@ def get_rest_result(interface_id, params, url=False,
         return None
 
     return req.data
+
+params = {
+            'serviceNodeId':'NMIC_MUSIC_CMADAAS',
+            'userId':'******',
+            'pwd':'******',
+            'dataCode':'SURF_CHN_MUL_HOR_N',
+            'elements':'Datetime,Station_Id_d,Lat,Lon,PRE_24h',
+            'times':'20200910000000',
+            'dataFormat':'json',
+            'limitCnt':'10'}
+url = get_rest_result('getSurfEleByTime', params)
 
 
 def cmadaas_obs_convert_type(obs_data):
