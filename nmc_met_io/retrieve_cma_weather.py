@@ -10,6 +10,8 @@ Retrieve current weather from CMA restful API.
 from datetime import datetime
 import urllib3
 import hashlib
+import json
+import pandas as pd
 
 
 def get_current_weather(lon, lat, apikey, pwd, elements=None, url_only=False):
@@ -38,6 +40,8 @@ def get_current_weather(lon, lat, apikey, pwd, elements=None, url_only=False):
     # weather elements
     if elements is None:
         params['elements'] = 'TEM,RHU,WINS,WIND,WEA,VIS,TCDC,SST,PRE_1H,PRE_3H,PRE_6H,PRE_12H,PRE_24H'
+    else:
+        params['elements'] = elements
 
     # interface id
     params['interfaceId'] = 'getWeatherLBS'
@@ -59,8 +63,7 @@ def get_current_weather(lon, lat, apikey, pwd, elements=None, url_only=False):
 
     # construct sign string with hashlib md5 code
     sign_str = ""
-    keys = sorted(params)
-    for key in keys:
+    for key in ['elements','interfaceId','lat','lon','timestamp','apikey','pwd']:
         sign_str = sign_str + key + "=" + str(params.get(key)).strip() + "&"
     sign_str = sign_str[:-1]
     sign_str = sign_str + '&sign=' + hashlib.md5(sign_str.encode(encoding='UTF-8')).hexdigest().upper()
@@ -74,8 +77,12 @@ def get_current_weather(lon, lat, apikey, pwd, elements=None, url_only=False):
     # request http contents
     http = urllib3.PoolManager()
     req = http.request('GET', url_str)
-    if req.status != 0:
+    if req.status != 200:
         print('Can not access the url: ' + url_str)
         return None
 
-    return req.data
+    # convert to data frame
+    contents = json.loads(req.data.decode('utf-8').replace('\x00', ''))
+    data = pd.DataFrame(contents['DS'])
+    return data
+
