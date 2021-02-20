@@ -20,6 +20,7 @@ def get_current_weather(lon, lat, apikey, pwd, elements=None, url_only=False):
     位置服务接口支持两种应用场景：“点”的应用场景和“线”的应用场景。
     根据点或线的经纬度信息，获取气温、相对湿度、风速、风向、天气现象、能见度
     总云量、海表温度以及降水等气象要素数据。
+    2021/02/20, revist by Guo Yunqian.
 
     在中国气象数据网（http://data.cma.cn）上申请API账户，审核通过后
     获得API账户, 加上用户注册密码即可获得数据.
