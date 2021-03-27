@@ -1264,7 +1264,9 @@ def get_radar_mosaics(directory, filenames, allExists=True, pbar=False, **kargs)
     return xr.concat(dataset, dim='time')
 
 
-def get_tlogp(directory, filename=None, suffix="*.000", cache=True, cache_clear=True):
+def get_tlogp(directory, filename=None, suffix="*.000",
+              remove_duplicate=False, remove_na=False,
+              cache=False, cache_clear=True):
     """
     该程序用于读取micaps服务器上TLOGP数据信息, 文件格式与MICAPS第5类格式相同.
 
@@ -1272,6 +1274,8 @@ def get_tlogp(directory, filename=None, suffix="*.000", cache=True, cache_clear=
     :param filename: the data filename, if none, will be the latest file.
     :param suffix: the filename filter pattern which will be used to
                    find the specified file.
+    :param remove_duplicate: boolean, the duplicate records will be removed.
+    :param remove_na: boolean, the na records will be removed.
     :param cache: cache retrieved data to local directory, default is True.
     :return: pandas DataFrame object.
 
@@ -1362,14 +1366,24 @@ def get_tlogp(directory, filename=None, suffix="*.000", cache=True, cache_clear=
                         'time': time,
                         'p': float(txt[index]), 'h': float(txt[index+1]),
                         't': float(txt[index+2]), 'td': float(txt[index+3]),
-                        'wind_angle': float(txt[index+4]),
-                        'wind_speed': float(txt[index+5])}
+                        'wd': float(txt[index+4]),
+                        'ws': float(txt[index+5])}
                     records.append(record)
                     index += 6
 
             # transform to pandas data frame
             records = pd.DataFrame(records)
             records.set_index('ID')
+
+            # dealing missing values
+            records = records.replace(9999.0, np.nan)
+            if remove_duplicate:
+                records = records.drop_duplicates()
+            if remove_na:
+                records = records.dropna(subset=['p', 'h', 't', 'td'])
+
+            # the sounding height value convert to meters by multiple 10
+            records['h'] = records['h'] * 10.0
 
             # cache data
             if cache:
