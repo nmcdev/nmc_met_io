@@ -20,12 +20,9 @@ from nmc_met_io.retrieve_cimiss_server import cimiss_obs_file_by_time_range
 from nmc_met_io.retrieve_cimiss_server import cimiss_obs_by_time_range_and_id
 
 
-def get_day_hist_obs(years=np.arange(2000, 2011, 1),
-                     month_range=(1, 12),
-                     elements=None,
-                     sta_levels=None,
-                     outfname='day_rain_obs',
-                     outdir='.'):
+def get_hist_obs(years=np.arange(2000, 2011, 1), month_range=(1, 12),
+                 data_code="SURF_CHN_MUL_DAY", elements=None, sta_levels=None,
+                 outfname='day_rain_obs', outdir='.'):
     """
     Download historical daily observations and write to data files,
     each month a file.
@@ -72,13 +69,13 @@ def get_day_hist_obs(years=np.arange(2000, 2011, 1),
 
             month = '%02d' % im
             start_time = str(iy) + month + '01' + '000000'
-            end_time = str(iy) + month + last_day[i] + '000000'
+            end_time = str(iy) + month + last_day[i] + '230000'
             time_range = "[" + start_time + "," + end_time + "]"
 
             # retrieve observations from CIMISS server
             data = cimiss_obs_by_time_range(
                 time_range, sta_levels=sta_levels,
-                data_code="SURF_CHN_MUL_DAY", elements=elements)
+                data_code=data_code, elements=elements)
             if data is None:
                 continue
 
@@ -90,7 +87,7 @@ def get_day_hist_obs(years=np.arange(2000, 2011, 1),
     return out_files
 
 
-def get_day_hist_obs_id(years=np.arange(2000, 2011, 1), 
+def get_hist_obs_id(years=np.arange(2000, 2011, 1), 
                         data_code='SURF_CHN_MUL_DAY', 
                         elements=None, sta_ids="54511"):
     """
@@ -114,7 +111,7 @@ def get_day_hist_obs_id(years=np.arange(2000, 2011, 1),
     tqdm_years = tqdm(years, desc="Years: ")
     for year in tqdm_years:
         start_time = str(year) + '0101000000'
-        end_time = str(year) + '1231000000'
+        end_time = str(year) + '1231230000'
         time_range = "[" + start_time + "," + end_time + "]"
         df = cimiss_obs_by_time_range_and_id(
             time_range, data_code=data_code, elements=elements,
