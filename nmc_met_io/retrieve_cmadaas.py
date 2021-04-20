@@ -1422,7 +1422,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     :param valid_time: forecast hour, like 0 or 6
     :param fcst_ele: forecast element, like 2m temperature "TEM"
     :param fcst_level: vertical level, like 0
-    :param level_type: vertical level type, like 0
+    :param level_type: forecast level type, 表示Grib数据中的层次类型, 可在云平台上查询.
     :param limit: [min_lat, min_lon, max_lat, max_lon], 
     :param varname: set variable name, default is 'data'
     :param units: forecast element's units, defaults to retrieved units.
@@ -1463,7 +1463,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
         params = {'dataCode': data_code,
                   'time': init_time_str + '0000',
                   'fcstLevel': '{:d}'.format(fcst_level),
-                  'levelType': '{:d}'.format(level_type),
+                  'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
                   'validTime': '{:d}'.format(valid_time),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
@@ -1475,7 +1475,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
                   "maxLat": '{:.10f}'.format(limit[2]),
                   "maxLon": '{:.10f}'.format(limit[3]),
                   'fcstLevel': '{:d}'.format(fcst_level),
-                  'levelType': '{:d}'.format(level_type),
+                  'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
                   'validTime': '{:d}'.format(valid_time),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
@@ -1797,7 +1797,7 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
         params = {'dataCode': data_code,
                   'time': init_time_str + '0000',
                   'fcstLevel': '{:d}'.format(fcst_level),
-                  'levelType': '{:d}'.format(level_type),
+                  'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
                   'validTime': '{:d}'.format(valid_time),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
@@ -1809,7 +1809,7 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
                   "maxLat": '{:.10f}'.format(limit[2]),
                   "maxLon": '{:.10f}'.format(limit[3]),
                   'fcstLevel': '{:d}'.format(fcst_level),
-                  'levelType': '{:d}'.format(level_type),
+                  'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
                   'validTime': '{:d}'.format(valid_time),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
@@ -1932,6 +1932,7 @@ def cmadaas_model_by_pionts(init_time_str, data_code='NAFP_FOR_FTM_HIGH_EC_ANEA'
     :param init_time_str: model run time, like "2020020600"
     :param data_code: MUSIC data code, default is "NAFP_FOR_FTM_HIGH_EC_ANEA"
     :param fcst_level: vertical level, default is 850.
+    :param level_type: forecast level type, default=100, 表示Grib数据中的层次类型, 可在云平台上查询.
     :param time_range: [minimum, maximum] forecast hour, default is [0, 72]
     :param points: point location "latitude/longitude", also support
                    multiple points like "39.90/116.40,32.90/112.40"
@@ -1943,7 +1944,7 @@ def cmadaas_model_by_pionts(init_time_str, data_code='NAFP_FOR_FTM_HIGH_EC_ANEA'
     params = {'dataCode': data_code,
               'time': init_time_str + '0000',
               'fcstLevel': '{:d}'.format(fcst_level),
-              'levelType': '{:d}'.format(level_type),
+              'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
               'minVT': '{:d}'.format(time_range[0]),
               'maxVT': '{:d}'.format(time_range[1]),
               'latLons': points,
@@ -2088,3 +2089,4 @@ def cmadaas_get_model_file(time, data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", fcst_ele
         out_files.append(out_file)
 
     return out_files
+
