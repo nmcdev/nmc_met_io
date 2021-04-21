@@ -137,7 +137,7 @@ def get_latest_initTime(directory, suffix="*.006"):
         print('Can not retrieve data from ' + directory)
         return None
     StringResult = DataBlock_pb2.StringResult()
-    if status == 200:
+    if status == 200:     # Standard response for successful HTTP requests
         StringResult.ParseFromString(response)
         if StringResult is not None:
             filename = StringResult.name
@@ -147,9 +147,8 @@ def get_latest_initTime(directory, suffix="*.006"):
                 return filename.split('.')[0]
         else:
             return None
-
-    # extract initial time
-    return filename.split(".")[0]
+    else:
+        return None
 
 
 def get_model_grid(directory, filename=None, suffix="*.024",
