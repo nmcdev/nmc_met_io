@@ -1423,7 +1423,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     :param fcst_ele: forecast element, like 2m temperature "TEM"
     :param fcst_level: vertical level, like 0
     :param level_type: forecast level type, 表示Grib数据中的层次类型, 可在云平台上查询.
-    :param limit: [min_lat, min_lon, max_lat, max_lon], 
+    :param limit: [min_lat, min_lon, max_lat, max_lon]
     :param varname: set variable name, default is 'data'
     :param units: forecast element's units, defaults to retrieved units.
     :param scale_off: [scale, offset], return values = values*scale + offset.

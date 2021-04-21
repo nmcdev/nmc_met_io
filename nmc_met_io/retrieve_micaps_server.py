@@ -272,9 +272,9 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                 if data_type == 4:
                     data = np.full((nmem, nlat, nlon), np.nan)
                 else:
-                    data = np.full((2, nmem, nlat, nlon), np.nan)
+                    data = np.full((nmem, 2, nlat, nlon), np.nan)
                 ind = 0
-                for imem in range(nmem):
+                for _ in range(nmem):
                     head_info_mem = np.frombuffer(
                         byteArray[ind:(ind+278)], dtype=head_dtype)
                     ind += 278
@@ -285,7 +285,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                     if data_type == 4:
                         data[number, :, :] = np.squeeze(data_mem['data'])
                     else:
-                        data[:, number, :, :] = np.squeeze(data_mem['data'])
+                        data[number, :, :, :] = np.squeeze(data_mem['data'])
 
             # scale and offset the data, if necessary.
             if scale_off is not None:
@@ -340,18 +340,18 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                                 'lat':lat_coord, 'lon':lon_coord})
                 else:
                     if level[0] == 0:
-                        data = data[np.newaxis, ...]
+                        data = data[:, np.newaxis, ...]
                         data = xr.Dataset({
-                            varname:(['time', 'number', 'lat', 'lon'], data, varattrs)},
+                            varname:(['number', 'time', 'lat', 'lon'], data, varattrs)},
                             coords={
-                                'time':time_coord, 'number':number_coord, 
+                                'number':number_coord, 'time':time_coord,
                                 'lat':lat_coord, 'lon':lon_coord})
                     else:
-                        data = data[np.newaxis, :, np.newaxis, ...]
+                        data = data[:, np.newaxis, np.newaxis, ...]
                         data = xr.Dataset({
-                            varname:(['time', 'number', 'level', 'lat', 'lon'], data, varattrs)},
+                            varname:(['number', 'time', 'level', 'lat', 'lon'], data, varattrs)},
                             coords={
-                                'time':time_coord, 'number':number_coord, 'level':level_coord, 
+                                'number':number_coord, 'time':time_coord, 'level':level_coord, 
                                 'lat':lat_coord, 'lon':lon_coord})
             elif data_type == 11:
                 speedattrs = {'long_name':'wind speed', 'units':'m/s'}
@@ -386,25 +386,25 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                     angle = 270. - angle
                     angle[angle<0] = angle[angle<0] + 360.
                     if level[0] == 0:
-                        speed = speed[np.newaxis, ...]
-                        angle = angle[np.newaxis, ...]
+                        speed = speed[:, np.newaxis, ...]
+                        angle = angle[:, np.newaxis, ...]
                         data = xr.Dataset({
                             'speed': (
-                                ['time', 'number', 'lat', 'lon'], speed, speedattrs),
+                                ['number', 'time', 'lat', 'lon'], speed, speedattrs),
                             'angle': (
-                                ['time', 'number', 'lat', 'lon'], angle, angleattrs)},
+                                ['number', 'time', 'lat', 'lon'], angle, angleattrs)},
                             coords={
                                 'lon': lon_coord, 'lat': lat_coord,
                                 'number': number_coord, 'time': time_coord})
                     else:
-                        speed = speed[np.newaxis, :, np.newaxis, ...]
-                        angle = angle[np.newaxis, :, np.newaxis, ...]
+                        speed = speed[:, np.newaxis, np.newaxis, ...]
+                        angle = angle[:, np.newaxis, np.newaxis, ...]
                         data = xr.Dataset({
                             'speed': (
-                                ['time', 'number', 'level', 'lat', 'lon'],
+                                ['number', 'time', 'level', 'lat', 'lon'],
                                 speed, speedattrs),
                             'angle': (
-                                ['time', 'number', 'level', 'lat', 'lon'],
+                                ['number', 'time', 'level', 'lat', 'lon'],
                                 angle, angleattrs)},
                             coords={
                                 'lon': lon_coord, 'lat': lat_coord, 'level': level_coord,
