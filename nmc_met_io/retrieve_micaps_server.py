@@ -11,7 +11,6 @@ Checking url, like:
 http://10.32.8.164:8080/DataService?requestType=getLatestDataName&directory=ECMWF_HR/TMP/850&fileName=&filter=*.024
 """
 
-from pickle import FALSE
 import warnings
 import re
 import http.client
