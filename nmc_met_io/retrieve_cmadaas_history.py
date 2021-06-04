@@ -25,6 +25,9 @@ def get_hist_obs_id(years=np.arange(2000, 2011, 1),
     从大数据云平台上获取指定站点的地面观测数据. 由于大数据云平台对一次性检索有数量限制,
     因此先逐年下载, 然后再联接成一张观测记录表.
 
+    注:
+    * 对于日值数据“SURF_CHN_MUL_DAY”, PRE_Time_0808表示当天08至次日08, PRE_Time_2020表示昨日20至当日20时.
+
     Args:
         years (np.array, optional): years for historical data. Defaults to np.arange(2000, 2011, 1).
         data_code (str, optional): dataset code. Defaults to 'SURF_CHN_MUL_DAY'.
