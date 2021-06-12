@@ -156,7 +156,7 @@ def cmadaas_get_obs_latest_time(data_code="SURF_CHN_MUL_HOR", latestTime=12):
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -209,7 +209,7 @@ def cmadaas_get_obs_files(times, data_code="SURF_CMPA_RT_NC", out_dir=None, pbar
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -274,7 +274,7 @@ def cmadaas_obs_by_time(times, data_code="SURF_CHN_MUL_HOR_N",
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -342,7 +342,7 @@ def cmadaas_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR_N",
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -404,7 +404,7 @@ def cmadaas_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR_N",
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -467,7 +467,7 @@ def cmadaas_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR_N",
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -531,7 +531,7 @@ def cmadaas_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR_N",
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -601,7 +601,7 @@ def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -663,7 +663,7 @@ def cmadaas_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -731,7 +731,7 @@ def cmadaas_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SU
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -793,7 +793,7 @@ def cmadaas_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HO
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -862,7 +862,7 @@ def cmadaas_obs_in_basin_by_time_range(time_range, basin="CJLY", data_code="SURF
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -923,7 +923,7 @@ def cmadaas_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MU
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -987,7 +987,7 @@ def cmadaas_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1051,7 +1051,7 @@ def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1126,7 +1126,7 @@ def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1211,6 +1211,307 @@ def cmadaas_obs_grid_by_times(times_str, pbar=True, allExists=True, **kargs):
     return xr.concat(dataset, dim='time')
 
 
+def cmadaas_obs_by_days_of_year(data_code="SURF_CHN_DAY_MMUT_19812010", 
+                                days_of_year=None, elements="Station_Name,Station_Id_C,Day_Seq,TEM_Avg",
+                                ranges=None, count=None, trans_type=True, sta_ids="54511"):
+    """
+    按日序检索地面累年日值数据要素, 为累年日值专用.
+
+    Args:
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_DAY_MMUT_19812010".
+        mons_of_year (str, optional): months of year. Defaults to "1,2,3,4,5,6,7,8,9,10,11,12".
+        elements (str, optional): . Defaults to "Station_Name,Station_Id_C,Day_Seq,TEM_Avg".
+        ranges (str, optional): elements value ranges, seperated by ';'
+                                range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
+                                       [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b. 
+                                list: a,b,c;
+                                e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.
+                                Defaults to None.
+        count (str, optional): the number of maximum returned records. Defaults to None.
+        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric.
+                                     Defaults to True.
+        sta_ids (str, optional): station ids, 'xxxxx,xxxxx,...'. If None, return all stations. Defaults to None.
+
+    Returns:
+       pandas data frame: observation records.
+    
+    Examples:
+    >>> data = cmadaas_obs_by_days_of_year(sta_ids="54511")
+    """
+
+    # check days_of_year
+    if days_of_year is None:
+        days_of_year = ",".join((np.arange(365)+1).astype("str"))
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'elements': elements,
+              'daysOfYear': days_of_year}
+    if ranges is not None: params['eleValueRanges'] = ranges
+    if count is not None: params['limitCnt'] = str(count)
+
+    # interface id
+    if sta_ids is None:
+        interface_id = "getSurfMDayEleByDaysOfYear"
+    else:
+        params['staIds'] = sta_ids
+        interface_id = "getSurfMDayEleByDaysOfYearAndStaID"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    if contents is None:
+        return None
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
+    if contents['returnCode'] != '0':
+        return None
+
+    # construct pandas DataFrame
+    data = pd.DataFrame(contents['DS'])
+    if trans_type: data = cmadaas_obs_convert_type(data)
+
+    # return
+    return data
+
+
+def cmadaas_obs_by_pens_of_year(data_code="SURF_CHN_PEN_MMUT_19812010", 
+                                pens_of_year=None, elements="Station_Name,Station_Id_C,Pen_Seq,TEM_Avg",
+                                ranges=None, count=None, trans_type=True, sta_ids="54511"):
+    """
+    按候序检索地面累年候值数据要素, 为累年候值专用.
+
+    Args:
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_PEN_MMUT_19812010".
+        mons_of_year (str, optional): months of year. Defaults to "1,2,3,4,5,6,7,8,9,10,11,12".
+        elements (str, optional): . Defaults to "Station_Name,Station_Id_C,Pen_Seq,TEM_Avg".
+        ranges (str, optional): elements value ranges, seperated by ';'
+                                range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
+                                       [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b. 
+                                list: a,b,c;
+                                e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.
+                                Defaults to None.
+        count (str, optional): the number of maximum returned records. Defaults to None.
+        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric.
+                                     Defaults to True.
+        sta_ids (str, optional): station ids, 'xxxxx,xxxxx,...'. If None, return all stations. Defaults to None.
+
+    Returns:
+       pandas data frame: observation records.
+    
+    Examples:
+    >>> data = cmadaas_obs_by_pens_of_year(sta_ids="54511")
+    """
+
+    # check days_of_year
+    if pens_of_year is None:
+        pens_of_year = ",".join((np.arange(72)+1).astype("str"))
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'elements': elements,
+              'pensOfYear': pens_of_year}
+    if ranges is not None: params['eleValueRanges'] = ranges
+    if count is not None: params['limitCnt'] = str(count)
+
+    # interface id
+    if sta_ids is None:
+        interface_id = "getSurfMPenEleByPensOfYear"
+    else:
+        params['staIds'] = sta_ids
+        interface_id = "getSurfMPenEleByPensOfYearAndStaID"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    if contents is None:
+        return None
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
+    if contents['returnCode'] != '0':
+        return None
+
+    # construct pandas DataFrame
+    data = pd.DataFrame(contents['DS'])
+    if trans_type: data = cmadaas_obs_convert_type(data)
+
+    # return
+    return data
+
+
+def cmadaas_obs_by_tens_of_year(data_code="SURF_CHN_TEN_MMUT_19812010", 
+                                tens_of_year=None, elements="Station_Name,Station_Id_C,Ten_Seq,TEM_Avg",
+                                ranges=None, count=None, trans_type=True, sta_ids="54511"):
+    """
+    按旬序检索地面累年旬值数据要素, 为累年旬值专用.
+
+    Args:
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_TEN_MMUT_19812010".
+        mons_of_year (str, optional): months of year. Defaults to "1,2,3,4,5,6,7,8,9,10,11,12".
+        elements (str, optional): . Defaults to "Station_Name,Station_Id_C,Ten_Seq,TEM_Avg".
+        ranges (str, optional): elements value ranges, seperated by ';'
+                                range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
+                                       [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b. 
+                                list: a,b,c;
+                                e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.
+                                Defaults to None.
+        count (str, optional): the number of maximum returned records. Defaults to None.
+        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric.
+                                     Defaults to True.
+        sta_ids (str, optional): station ids, 'xxxxx,xxxxx,...'. If None, return all stations. Defaults to None.
+
+    Returns:
+       pandas data frame: observation records.
+    
+    Examples:
+    >>> data = cmadaas_obs_by_tens_of_year(sta_ids="54511")
+    """
+
+    # check days_of_year
+    if tens_of_year is None:
+        tens_of_year = ",".join((np.arange(36)+1).astype("str"))
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'elements': elements,
+              'tensOfYear': tens_of_year}
+    if ranges is not None: params['eleValueRanges'] = ranges
+    if count is not None: params['limitCnt'] = str(count)
+
+    # interface id
+    if sta_ids is None:
+        interface_id = "getSurfMTenEleByTensOfYear"
+    else:
+        params['staIds'] = sta_ids
+        interface_id = "getSurfMTenEleByTensOfYearAndStaID"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    if contents is None:
+        return None
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
+    if contents['returnCode'] != '0':
+        return None
+
+    # construct pandas DataFrame
+    data = pd.DataFrame(contents['DS'])
+    if trans_type: data = cmadaas_obs_convert_type(data)
+
+    # return
+    return data
+
+
+def cmadaas_obs_by_months_of_year(data_code="SURF_CHN_MON_MMUT_19812010", 
+                                  mons_of_year="1,2,3,4,5,6,7,8,9,10,11,12",
+                                  elements="Station_Name,Station_Id_C,Mon_Seq,RHU_Avg",
+                                  ranges=None, count=None, trans_type=True, sta_ids=None):
+    """
+    按月序检索地面累年月值数据要素, 为累年月值专用.
+
+    Args:
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MON_MMUT_19812010".
+        mons_of_year (str, optional): months of year. Defaults to "1,2,3,4,5,6,7,8,9,10,11,12".
+        elements (str, optional): . Defaults to "Station_Name,Station_Id_C,Mon_Seq,RHU_Avg".
+        ranges (str, optional): elements value ranges, seperated by ';'
+                                range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
+                                       [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b. 
+                                list: a,b,c;
+                                e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.
+                                Defaults to None.
+        count (str, optional): the number of maximum returned records. Defaults to None.
+        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric.
+                                     Defaults to True.
+        sta_ids (str, optional): station ids, 'xxxxx,xxxxx,...'. If None, return all stations. Defaults to None.
+
+    Returns:
+       pandas data frame: observation records.
+    
+    Examples:
+    >>> data = cmadaas_obs_by_months_of_year()
+    """
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'elements': elements,
+              'monsOfYear': mons_of_year}
+    if ranges is not None: params['eleValueRanges'] = ranges
+    if count is not None: params['limitCnt'] = str(count)
+
+    # interface id
+    if sta_ids is None:
+        interface_id = "getSurfMMonEleByMonthsOfYear"
+    else:
+        params['staIds'] = sta_ids
+        interface_id = "getSurfMMonEleByMonthsOfYearAndStaID"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    if contents is None:
+        return None
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
+    if contents['returnCode'] != '0':
+        return None
+
+    # construct pandas DataFrame
+    data = pd.DataFrame(contents['DS'])
+    if trans_type: data = cmadaas_obs_convert_type(data)
+
+    # return
+    return data
+
+
+def cmadaas_obs_by_years(data_code="SURF_CHN_YER_MMUT_19812010",
+                         elements="Station_Name,Station_Id_C,RHU_Avg",
+                         ranges=None, count=None, trans_type=True, sta_ids=None):
+    """
+    检索地面累年年值数据要素, 为累年年值专用.
+
+    Args:
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_YER_MMUT_19812010".
+        elements (str, optional): . Defaults to "Station_Name,Station_Id_C,RHU_Avg".
+        ranges (str, optional): elements value ranges, seperated by ';'
+                                range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
+                                       [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b. 
+                                list: a,b,c;
+                                e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.
+                                Defaults to None.
+        count (str, optional): the number of maximum returned records. Defaults to None.
+        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric.
+                                     Defaults to True.
+        sta_ids (str, optional): station ids, 'xxxxx,xxxxx,...'. If None, return all stations. Defaults to None.
+
+    Returns:
+       pandas data frame: observation records.
+    
+    Examples:
+    >>> data = cmadaas_obs_by_years()
+    """
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'elements': elements}
+    if ranges is not None: params['eleValueRanges'] = ranges
+    if count is not None: params['limitCnt'] = str(count)
+
+    # interface id
+    if sta_ids is None:
+        interface_id = "getSurfMYerEle"
+    else:
+        params['staIds'] = sta_ids
+        interface_id = "getSurfMYerEleByStaID"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    if contents is None:
+        return None
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
+    if contents['returnCode'] != '0':
+        return None
+
+    # construct pandas DataFrame
+    data = pd.DataFrame(contents['DS'])
+    if trans_type: data = cmadaas_obs_convert_type(data)
+
+    # return
+    return data
+
+
 def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_ASI_NC',
                              levattrs={'long_name':'Height above Ground', 'units':'m'}, level_type='-',
                              fcst_level=0, fcst_ele="TMP", zoom=None, units=None, scale_off=None,
@@ -1274,7 +1575,7 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1369,7 +1670,7 @@ def cmadaas_analysis_by_times(times_str, pbar=True, allExists=True, **kargs):
     return xr.concat(dataset, dim='time')
 
 
-def cmadass_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", latestTime=24):
+def cmadaas_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", latestTime=24):
     """
     Get the latest run time of the model.
     
@@ -1381,7 +1682,7 @@ def cmadass_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", lates
         datetime object, the latest time
 
     Examples:
-    >>> print(cmadass_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", latestTime=24))
+    >>> print(cmadaas_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", latestTime=24))
         2020-03-11 12:00:00
     """
 
@@ -1396,7 +1697,7 @@ def cmadass_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", lates
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1484,7 +1785,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1818,7 +2119,7 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1956,7 +2257,7 @@ def cmadaas_model_by_pionts(init_time_str, data_code='NAFP_FOR_FTM_HIGH_EC_ANEA'
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -2071,7 +2372,7 @@ def cmadaas_get_model_file(time, data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", fcst_ele
     contents = get_rest_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
     if contents['returnCode'] != '0':
         return None
 

@@ -83,7 +83,7 @@ def get_current_weather(lon, lat, apikey, pwd, elements=None, url_only=False):
         return None
 
     # convert to data frame
-    contents = json.loads(req.data.decode('utf-8').replace('\x00', ''))
+    contents = json.loads(req.data.decode('utf-8').replace('\x00', ''), strict=False)
     data = pd.DataFrame(contents['DS'])
     return data
 

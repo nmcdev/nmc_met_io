@@ -34,7 +34,7 @@ def get_caiy_weather(lon=116.4667, lat=39.8, begin_time=None):
 
     # retrieve the weather forecast information
     info = requests.get(url)
-    info = json.loads(info.text)
+    info = json.loads(info.text, strict=False)
     if info['status'] == 'failed':
         print("Can not retrieve the weather information, please check input parameters.")
         return None

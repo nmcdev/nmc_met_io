@@ -107,7 +107,7 @@ def cimiss_get_obs_latest_time(data_code="SURF_CHN_MUL_HOR", latestTime=6):
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -168,7 +168,7 @@ def cimiss_obs_by_time(times, data_code="SURF_CHN_MUL_HOR_N",
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -236,7 +236,7 @@ def cimiss_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR_N",
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -298,7 +298,7 @@ def cimiss_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR_N",
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -361,7 +361,7 @@ def cimiss_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR_N",
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -425,7 +425,7 @@ def cimiss_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR_N",
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -495,7 +495,7 @@ def cimiss_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL_
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -557,7 +557,7 @@ def cimiss_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_H
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -625,7 +625,7 @@ def cimiss_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SUR
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -687,7 +687,7 @@ def cimiss_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HOR
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -756,7 +756,7 @@ def cimiss_obs_in_basin_by_time_range(time_range, basin="CJLY", data_code="SURF_
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -817,7 +817,7 @@ def cimiss_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MUL
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -881,7 +881,7 @@ def cimiss_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF_
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -945,7 +945,7 @@ def cimiss_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000"
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1020,7 +1020,7 @@ def cimiss_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FRT_5KM",
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1133,7 +1133,7 @@ def cimiss_obs_file_by_time_range(time_range,
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1201,7 +1201,7 @@ def cimiss_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_RT_GR
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1363,7 +1363,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1679,7 +1679,7 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
@@ -1812,7 +1812,7 @@ def cimiss_model_by_piont(init_time_str,
     contents = get_http_result(interface_id, params)
     if contents is None:
         return None
-    contents = json.loads(contents.decode('utf-8'))
+    contents = json.loads(contents.decode('utf-8'), strict=False)
     if contents['returnCode'] != '0':
         return None
 
