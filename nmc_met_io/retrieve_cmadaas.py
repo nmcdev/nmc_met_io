@@ -295,7 +295,7 @@ def cmadaas_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR_N",
     
     Args:
         time_range (str): time range for retrieve,  "[YYYYMMDDHHMISS, YYYYMMDDHHMISS]",
-                          like"[201509010000,20150903060000]"
+                          like"[20160901000000,20161001000000]"
         data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
         sta_levels (str, optional): station levels, seperated by ',',
              like "011,012,013" for standard, base and general stations. Defaults to None.
@@ -324,6 +324,9 @@ def cmadaas_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR_N",
                                         data_code=data_code, elements=elements)
     >>> print "retrieve successfully" if data is not None else "failed"
         retrieve successfully
+    >>> obs_data = cmadaas_obs_by_time_range(
+            "[20160901000000,20161001000000]", data_code="SURF_CHN_MUL_DAY_N",
+            elements="Station_Id_C,Station_Name,Lat,Lon,Alti,Datetime,PRE_Time_0808")
     """
     # set retrieve parameters
     params = {'dataCode': data_code,
