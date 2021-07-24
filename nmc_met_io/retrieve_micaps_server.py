@@ -791,7 +791,7 @@ def get_station_dataset(directory, filenames, allExists=True, pbar=False, **karg
         tqdm_filenames = tqdm(filenames, desc=directory + ": ")
     else:
         tqdm_filenames = filenames
-    for filename in filenames:
+    for filename in tqdm_filenames:
         data = get_station_data(directory, filename=filename, **kargs)
         if data:
             dataset.append(data)
