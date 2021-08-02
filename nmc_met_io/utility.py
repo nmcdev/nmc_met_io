@@ -127,7 +127,16 @@ def get_sub_stations(data, limit=[70, 140, 8, 60],
         dimname (list, optional): dimension column name. Defaults to ['lon', 'lat']
     """
 
-    subdata = data[(limit[2] <= data['lat']) & (data['lat'] <= limit[3]) &
-                   (limit[0] <= data['lon']) & (data['lon'] <= limit[1])]
+    if 'lon' in data:
+        subdata = data[(limit[2] <= data['lat']) & (data['lat'] <= limit[3]) &
+                       (limit[0] <= data['lon']) & (data['lon'] <= limit[1])]
+    elif 'Lon' in data:
+        subdata = data[(limit[2] <= data['Lat']) & (data['Lat'] <= limit[3]) &
+                       (limit[0] <= data['Lon']) & (data['Lon'] <= limit[1])]
+    elif 'x' in data:
+        subdata = data[(limit[2] <= data['y']) & (data['y'] <= limit[3]) &
+                       (limit[0] <= data['x']) & (data['x'] <= limit[1])]
+    else:
+        raise ValueError("'lon' or 'Lat' coordinates is not in data.")
     return subdata
 

@@ -7,14 +7,13 @@
 Retrieve historical data from CMADaSS service.
 """
 
-import os
-import calendar
-import time
-import urllib.request
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from nmc_met_io.retrieve_cmadaas import cmadaas_obs_by_time_range_and_id
+from nmc_met_io.retrieve_cmadaas import (cmadaas_obs_by_time_range_and_id,
+                                         cmadaas_obs_by_time_range,
+                                         cmadaas_obs_in_rect_by_time_range)
+from nmc_met_io.utility import get_sub_stations
 
 
 def get_hist_obs_id(years=np.arange(2000, 2011, 1), 
@@ -60,3 +59,33 @@ def get_hist_obs_id(years=np.arange(2000, 2011, 1),
         return None
     else:
         return pd.concat(data_list, axis=0, ignore_index=True)
+    
+
+def get_accumulated_rainfall(time_range, data_code="SURF_CHN_MUL_HOR", 
+                             accumulated=True, limit=None):
+    """
+    从大数据云平台上“中国地面逐小时资料”下载站点的逐小时降水观测, 并累加为一段时间的累积降水.
+    例如, 需要24h的累积降水, 用站点观测的PRE_24h有误差, 需要直接用PRE_1h来进行累积.
+
+    Args:
+        time_range (str): 观测的时间区间，格式为 "[20210719010000,20210720000000]"
+        data_code (str, optional): 资料代码, 默认为所有自动站观测, 如果只用国家站，设为"SURF_CHN_MUL_HOR_N".
+        accumulated (bool, optional): 是否计算每个站的累积降水. Defaults to True.
+        limit (tuple, optional): 指定返回数据的范围, [min_lat, min_lon, max_lat, max_lon]
+    """
+    
+    # 读入数据
+    elements = "Station_Name,Province,Station_Id_C,Lon,Lat,PRE_1h"
+    if limit is None:
+        df = cmadaas_obs_by_time_range(time_range, data_code=data_code, elements=elements)
+    else:
+        df = cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code=data_code, elements=elements)
+        
+    # 计算24h累积降水量
+    if accumulated:
+        df = df.groupby(by=['Station_Id_C','Lon','Lat','Station_Name','Province']).sum()
+        df.reset_index(inplace=True)
+        df.rename(columns={"PRE_1h":"PRE"}, inplace=True)
+        
+    # 返回计算值
+    return df
