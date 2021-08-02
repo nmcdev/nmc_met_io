@@ -600,7 +600,8 @@ def get_model_profiles(directory, filenames, levels, points, **kargs):
         return None
 
 
-def get_station_data(directory, filename=None, suffix="*.000", dropna=True, cache=True, cache_clear=True):
+def get_station_data(directory, filename=None, suffix="*.000",
+                     dropna=True, cache=True, cache_clear=True):
     """
     Retrieve station data from MICAPS cassandra service.
 
@@ -609,6 +610,7 @@ def get_station_data(directory, filename=None, suffix="*.000", dropna=True, cach
     :param suffix: the filename filter pattern which will
                    be used to find the specified file.
     :param dropna: the column which values is all na will be dropped.
+    :param limit: subset station data in the limit [lon0, lon1, lat0, lat1]
     :param cache: cache retrieved data to local directory, default is True.
     :return: pandas DataFrame.
 
@@ -638,7 +640,8 @@ def get_station_data(directory, filename=None, suffix="*.000", dropna=True, cach
 
     # retrieve data from cached file
     if cache:
-        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA", cache_clear=cache_clear)
+        cache_file = CONFIG.get_cache_file(
+            directory, filename, name="MICAPS_DATA", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)

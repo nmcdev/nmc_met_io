@@ -114,3 +114,20 @@ def get_initTime(iHours, delayHour=6, currentTime=None):
     initTime = datetime(currentTime.year, currentTime.month,
                         currentTime.day, currentTime.hour)
     return initTime
+
+
+def get_sub_stations(data, limit=[70, 140, 8, 60],
+                     dimname=['lon', 'lat']):
+    """
+    Extract sub station observations.
+
+    Args:
+        data (pandas dataframe): observation records, 
+        limit (list, optional): subregion lon and lat limit. Defaults to [70, 140, 8, 60].
+        dimname (list, optional): dimension column name. Defaults to ['lon', 'lat']
+    """
+
+    subdata = data[(limit[2] <= data['lat']) & (data['lat'] <= limit[3]) &
+                   (limit[0] <= data['lon']) & (data['lon'] <= limit[1])]
+    return subdata
+

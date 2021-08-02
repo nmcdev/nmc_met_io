@@ -6,6 +6,8 @@
 import os
 import sys
 import pickle
+import bz2
+from pathlib import Path
 import xarray as xr
 
 try:
@@ -127,3 +129,80 @@ def read_ecmwf_ens_efi(filename, short_name='tpi', init_hour=0,
         with open(cache_file, 'wb') as f:
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
     return data
+
+
+def read_ecmwf_C1D(filename, shortName='2t', typeOfLevel='surface'):
+    """
+    利用cfgrib读取ECMWF数值模式的C1D数据.
+    
+    grib_ls -w typeOfLevel=surface filename    # 地面变量
+    edition      centre       typeOfLevel  level        dataDate     stepRange    dataType     shortName     
+    1            ecmf         surface      0            20210710     3            fc           100u         
+    1            ecmf         surface      0            20210710     3            fc           cp           
+    1            ecmf         surface      0            20210710     3            fc           tcc          
+    1            ecmf         surface      0            20210710     3            fc           tp           
+    1            ecmf         surface      0            20210710     3            fc           10u          
+    1            ecmf         surface      0            20210710     3            fc           10v          
+    1            ecmf         surface      0            20210710     3            fc           sst          
+    1            ecmf         surface      0            20210710     3            fc           sp           
+    1            ecmf         surface      0            20210710     3            fc           cape         
+    1            ecmf         surface      0            20210710     3            fc           lsp          
+    1            ecmf         surface      0            20210710     3            fc           sd           
+    1            ecmf         surface      0            20210710     3            fc           lcc          
+    1            ecmf         surface      0            20210710     3            fc           sf           
+    1            ecmf         surface      0            20210710     3            fc           skt          
+    1            ecmf         surface      0            20210710     3            fc           100v         
+    1            ecmf         surface      0            20210710     3            fc           msl          
+    1            ecmf         surface      0            20210710     3            fc           2d           
+    1            ecmf         surface      0            20210710     3            fc           2t           
+    1            ecmf         surface      0            20210710     3            fc           vis          
+    1            ecmf         surface      0            20210710     0-3          fc           10fg3        
+    1            ecmf         surface      0            20210710     3            fc           tcwv         
+    1            ecmf         surface      0            20210710     3            fc           deg0l        
+    1            ecmf         surface      0            20210710     3            fc           rsn          
+    2            ecmf         surface      0            20210710     3            fc           ptype        
+    1            ecmf         surface      0            20210710     0-3          fc           mx2t3        
+    1            ecmf         surface      0            20210710     0-3          fc           mn2t3        
+    1            ecmf         surface      0            20210710     3            fc           fal          
+    1            ecmf         surface      0            20210710     3            fc           tcw          
+    1            ecmf         surface      0            20210710     3            fc           fzra         
+    1            ecmf         surface      0            20210710     3            fc           capes  
+    
+    grib_ls -w typeOfLevel=isobaricInhPa,level=500 W_NAFP_C_ECMF_20210710054805_P_C1D07100000071003001    # 高空变量
+    edition      centre       typeOfLevel  level        dataDate     stepRange    dataType     shortName    packingType  gridType     
+    1            ecmf         isobaricInhPa  500          20210710     3            fc           r            grid_simple  regular_ll  
+    1            ecmf         isobaricInhPa  500          20210710     3            fc           t            grid_simple  regular_ll  
+    1            ecmf         isobaricInhPa  500          20210710     3            fc           gh           grid_simple  regular_ll  
+    1            ecmf         isobaricInhPa  500          20210710     3            fc           v            grid_simple  regular_ll  
+    1            ecmf         isobaricInhPa  500          20210710     3            fc           u            grid_simple  regular_ll  
+    1            ecmf         isobaricInhPa  500          20210710     3            fc           w            grid_simple  regular_ll  
+    1            ecmf         isobaricInhPa  500          20210710     3            fc           q            grid_simple  regular_ll  
+    1            ecmf         isobaricInhPa  500          20210710     3            fc           pv           grid_simple  regular_ll  
+    1            ecmf         isobaricInhPa  500          20210710     3            fc           d            grid_simple  regular_ll  
+
+    Args:
+        filename (str): grib文件路径名称
+        shortName (str, optional): 变量名称, 可以用grib_ls或grib_dump命令查询. Defaults to '2t'.
+        typeOfLevel (str, optional): 层次类型, 分为"surface"和"isobaricInhPa"两种. Defaults to 'surface'.
+        
+    Return:
+        Xarray dataset.
+    """
+    
+    # 检查文件是否是bz2的压缩格式, 解压缩为bz2格式
+    if Path(filename).suffix == '.bz2':
+        outfile = filename[:-4]
+        if not os.path.exists(outfile):    # 如果解压缩文件不存在, 则解压文件
+            with open(filename, 'rb') as source, open(outfile, 'wb') as dest:
+                print("解压缩bz2文件为{}".format(outfile))
+                dest.write(bz2.decompress(source.read()))
+    else:
+        outfile = filename
+    
+    # 读取变量数据
+    ds = xr.open_dataset(
+        outfile, engine='cfgrib', 
+        backend_kwargs={'filter_by_keys': {'typeOfLevel': typeOfLevel, 'shortName':shortName},
+                        'read_keys': ['stepRange', 'dataDate']})
+    return ds
+    
