@@ -6,7 +6,6 @@
 
 import warnings
 import re
-import pathlib
 from datetime import datetime, timedelta
 import numpy as np
 

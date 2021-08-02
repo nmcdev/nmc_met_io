@@ -13,7 +13,7 @@ from tqdm import tqdm
 from nmc_met_io.retrieve_cmadaas import (cmadaas_obs_by_time_range_and_id,
                                          cmadaas_obs_by_time_range,
                                          cmadaas_obs_in_rect_by_time_range)
-from nmc_met_io.utility import get_sub_stations
+from nmc_met_io.util import get_sub_stations
 
 
 def get_hist_obs_id(years=np.arange(2000, 2011, 1), 
