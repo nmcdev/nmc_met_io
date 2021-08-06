@@ -547,7 +547,7 @@ def cmadaas_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR_N",
 
 
 def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL_HOR_N",
-                                      sta_levels=None, ranges=None, order=None, 
+                                      ranges=None, order=None, 
                                       count=None, trans_type=True,
                                       elements="Station_Id_C,Datetime,Lat,Lon,TEM"):
     """
@@ -557,8 +557,6 @@ def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL
         time_range (str): time for retrieve, "[YYYYMMDDHHMISS,YYYYMMDDHHMISS]"
         limit (list):  map limits, [min_lat, min_lon, max_lat, max_lon]
         data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
-        sta_levels (str, optional): station levels, seperated by ',',
-             like "011,012,013" for standard, base and general stations. Defaults to None.
         ranges (str, optional): elements value ranges, seperated by ';'
             range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
                    [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
@@ -593,7 +591,7 @@ def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL
               'maxLat': '{:.10f}'.format(limit[2]),
               'maxLon': '{:.10f}'.format(limit[3]),
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
+    #if sta_levels is not None: params['staLevels'] = sta_levels    # getSurfEleInRectByTimeRange not support this parameter.
     if ranges is not None: params['eleValueRanges'] = ranges
     if count is not None: params['limitCnt'] = str(count)
 
