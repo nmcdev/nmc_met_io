@@ -1070,6 +1070,7 @@ def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM
     """
     Retrieve surface analysis grid products, like CMPAS-V2.1融合降水分析实时数据产品（NC）.
     For SURF_CMPA_RT_NC, this function will retrieve the 0.01 resolution data and take long time.
+    该函数主要用于降水实况分析数据检索, 若需要温度、风的实况分析, 使用cmadaas_analysis_by_time.
 
     :param time_str: analysis time string, like "20171008000000", format: YYYYMMDDHHMISS
     :param limit: [min_lat, min_lon, max_lat, max_lon]
@@ -1081,7 +1082,7 @@ def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM
         "SURF_CMPA_FAST_5KM_DAY": CMPAS-V2.1融合降水分析快速数据日产品（GRIB，5km）
         "SURF_CMPA_FRT_5KM_DAY": CMPAS-V2.1融合降水分析实时数据日产品（GRIB，5km）
     :param fcst_ele: elements
-    :param zoom: the zoom out integer > 1, like 2.
+    :param zoom: the zoom out integer > 1, like 2. 像元缩小倍数, 数值大于1，1的整数倍.
     :param units: forecast element's units, defaults to retrieved units.
     :param scale_off: [scale, offset], return values = values*scale + offset.
     :param cache: cache retrieved data to local directory, default is True.
@@ -1515,7 +1516,7 @@ def cmadaas_obs_by_years(data_code="SURF_CHN_YER_MMUT_19812010",
 
 def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_ASI_NC',
                              levattrs={'long_name':'Height above Ground', 'units':'m'}, level_type='-',
-                             fcst_level=0, fcst_ele="TMP", zoom=None, units=None, scale_off=None,
+                             fcst_level=None, fcst_ele="TMP", zoom=None, units=None, scale_off=None,
                              cache=True, cache_clear=True):
     """
     Retrieve CLDAS analysis data from CMADaaS service.
@@ -1523,20 +1524,26 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_
     :param time_str: analysis time, like "20160817120000", format: YYYYMMDDHHMISS
     :param limit: [min_lat, min_lon, max_lat, max_lon]
     :param data_code: MUSIC data code, default is "NAFP_CLDAS2.0_NRT_ASI_NC"
-                      CLDAS2.0近实时数据产品（NC）-亚洲区域.
-    :param fcst_level: vertical level, default is 2.
-    :param level_type: vertical level type, default is 999998
+                      CLDAS2.0近实时数据产品（NC）-亚洲区域. Others like:
+                      NAFP_HRCLDAS_CHN_1KM_RT, HRCLDAS中国0.01°×0.01°逐小时实时融合实况分析产品
+    :param fcst_level: vertical level, default is None.
+    :param level_type: vertical level type, default is -, 表示没有层次类型
     :param fcst_ele: forecast element, default is 2m temperature "TAIR"
-    :param zoom: the zoom out integer > 1, like 2.
+    :param zoom: the zoom out integer > 1, like 2. 像元缩小倍数, 数值大于1，1的整数倍.
     :param units: forecast element's units, defaults to retrieved units.
     :param scale_off: [scale, offset], return values = values*scale + offset.
     :param cache: cache retrieved data to local directory, default is True.
     :return: xarray dataset.
 
     Examples:
-    >>> data = cmadaas_analysis_by_time("20210123000000", data_code="NAFP_CLDAS2.0_NRT_ASI_NC", 
-                                        fcst_level=0, level_type='-', fcst_ele='TMP', units="C",
-                                        scale_off=[1.0, -273.15], cache=False)
+    >>> data = cmadaas_analysis_by_time(
+            "20210123000000", data_code="NAFP_CLDAS2.0_NRT_ASI_NC", 
+            fcst_ele='TMP', units="C", scale_off=[1.0, -273.15],
+            cache=False)
+    >>> data = cmadaas_analysis_by_time(
+            "20210821020000", data_code="NAFP_HRCLDAS_CHN_1KM_RT", 
+            fcst_ele='TAIR', units="C",
+            scale_off=[1.0, -273.15], cache=False)
     """
 
     # retrieve data from cached file
@@ -1556,7 +1563,6 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_
         params = {'dataCode': data_code,
                   'time': time_str,
                   'levelType': str(level_type).strip(),
-                  'fcstLevel': '{:d}'.format(fcst_level),
                   'fcstEle': fcst_ele}
         if zoom is not None: params['zoomOut'] = str(zoom)
         interface_id = 'getNafpAnaEleGridByTimeAndLevel'
@@ -1568,9 +1574,10 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_
                   "maxLat": '{:.10f}'.format(limit[2]),
                   "maxLon": '{:.10f}'.format(limit[3]),
                   'levelType': str(level_type).strip(),
-                  'fcstLevel': '{:d}'.format(fcst_level),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpAnaEleGridInRectByTimeAndLevel'
+    if fcst_level is not None:
+        params['fcstLevel'] = '{:d}'.format(fcst_level)
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
@@ -1605,7 +1612,7 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_
     lat_coord = ('lat', lat, {
         'long_name':'latitude', 'units':'degrees_north',
         '_CoordinateAxisType':'Lat', 'axis': 'Y'})
-    if fcst_level != 0:
+    if fcst_level is not None:
         level_coord = ('level', np.array([fcst_level]), levattrs)
     varname = fcst_ele
     varattrs = {'long_name': name, 'units': units}
@@ -1614,7 +1621,7 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_
     data = np.array(contents['DS'], dtype=np.float32)
     if scale_off is not None:
         data = data * scale_off[0] + scale_off[1]
-    if fcst_level == 0:
+    if fcst_level is None:
         data = data[np.newaxis, ...]
         data = xr.Dataset({
             varname:(['time', 'lat', 'lon'], data, varattrs)},
