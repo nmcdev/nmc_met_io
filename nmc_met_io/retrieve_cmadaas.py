@@ -105,6 +105,34 @@ def get_rest_result(interface_id, params, url_only=False,
     return req.data
 
 
+def _load_contents(contents):
+    """
+    Extract information from contents.
+
+    Args:
+        contents (string): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    if contents is None:
+        print('Return None.')
+        return None
+    
+    try:
+        contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
+    except Exception as e:
+        print(e)
+        print(contents)
+        return None
+    
+    if contents['returnCode'] != '0':
+        print(contents)
+        return None
+    
+    return contents
+
+
 def cmadaas_obs_convert_type(obs_data):
     """
     Convert observation dataframe to numeric types.
@@ -154,11 +182,7 @@ def cmadaas_get_obs_latest_time(data_code="SURF_CHN_MUL_HOR", latestTime=12):
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
-    if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
-        return None
+    contents = _load_contents(contents)
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
@@ -207,10 +231,8 @@ def cmadaas_get_obs_files(times, data_code="SURF_CMPA_RT_NC", out_dir=None, pbar
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # loop every file and download
@@ -272,10 +294,8 @@ def cmadaas_obs_by_time(times, data_code="SURF_CHN_MUL_HOR_N",
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -343,10 +363,8 @@ def cmadaas_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR_N",
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -405,10 +423,8 @@ def cmadaas_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR_N",
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -468,10 +484,8 @@ def cmadaas_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR_N",
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -532,10 +546,8 @@ def cmadaas_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR_N",
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -600,10 +612,8 @@ def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -662,10 +672,8 @@ def cmadaas_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -730,10 +738,8 @@ def cmadaas_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SU
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -792,10 +798,8 @@ def cmadaas_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HO
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -861,10 +865,8 @@ def cmadaas_obs_in_basin_by_time_range(time_range, basin="CJLY", data_code="SURF
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -922,10 +924,8 @@ def cmadaas_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MU
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -986,10 +986,8 @@ def cmadaas_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -1050,10 +1048,8 @@ def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -1126,10 +1122,8 @@ def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM
     
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # get time information
@@ -1261,10 +1255,8 @@ def cmadaas_obs_by_days_of_year(data_code="SURF_CHN_DAY_MMUT_19812010",
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -1323,10 +1315,8 @@ def cmadaas_obs_by_pens_of_year(data_code="SURF_CHN_PEN_MMUT_19812010",
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -1385,10 +1375,8 @@ def cmadaas_obs_by_tens_of_year(data_code="SURF_CHN_TEN_MMUT_19812010",
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -1444,10 +1432,8 @@ def cmadaas_obs_by_months_of_year(data_code="SURF_CHN_MON_MMUT_19812010",
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -1500,10 +1486,8 @@ def cmadaas_obs_by_years(data_code="SURF_CHN_YER_MMUT_19812010",
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -1581,10 +1565,8 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # get time information
@@ -1703,10 +1685,8 @@ def cmadaas_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", lates
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # construct pandas DataFrame
@@ -1791,10 +1771,8 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # get time information
@@ -2125,10 +2103,8 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # get time information
@@ -2263,10 +2239,8 @@ def cmadaas_model_by_pionts(init_time_str, data_code='NAFP_FOR_FTM_HIGH_EC_ANEA'
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # convert to numeric
@@ -2378,10 +2352,8 @@ def cmadaas_get_model_file(time, data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", fcst_ele
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
     if contents is None:
-        return None
-    contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    if contents['returnCode'] != '0':
         return None
 
     # just return the url
