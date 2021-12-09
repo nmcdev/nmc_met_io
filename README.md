@@ -39,37 +39,59 @@ Using the fellowing command to install packages:
   - [arm_pyart](http://arm-doe.github.io/pyart/), `conda install -c conda-forge arm_pyart`
 
 ## 设置配置文件
-若要访问CIMISS、CMADaaS或MICAPS服务器等, 需在配置文件中设置地址和用户信息(若不需要, 则相应项无需配置).
+若要访问CMADaaS(大数据云), MICAPS服务器等, 需在配置文件中设置地址和用户信息(若不需要, 则相应项无需配置).
 
 * 在系统用户目录下("C:\Users\用户名"(windows)或"/home/用户名/"(Linux)), 建立文件夹".nmcdev"(若Windows下无法直接创建, 在命令窗口中输入`mkdir .nmcdev`创建)
 * 在".nmcdev"中创建文本文件"config.ini", 内容模板为:
   
 ```
+# 用于nmc_met_io读取大数据云, MICAPS服务器等的配置文件.
+# 若用不到某个服务器, 则不设置或删除改段落即可.
+# 注意设置IP地址时, 不要加http等前缀信息.
+
+# CMADaaS大数据云平台配置:
+#     DNS为IP地址, PORT为端口
+#     USER_ID和PASSWORD分别为用户名和密码
+#     serviceNodeId为服务节点名称(一般为 NMIC_MUSIC_CMADAAS)
+[CMADaaS]
+DNS = xx.xx.xx.xx
+PORT = xx
+USER_ID = xxxxxxxx
+PASSWORD = xxxxxxxx
+serviceNodeId = NMIC_MUSIC_CMADAAS
+
+# MICAPS Cassandra服务器配置(一般需要联系运维开通访问权限)
+#     GDS_IP为IP地址, GDS_PORT为端口
+#     可以人为设置本地数据缓存的地址CACHE_DIR, 默认为配置文件夹目录下的cache文件夹
+[MICAPS]
+GDS_IP = xx.xx.xx.xx
+GDS_PORT = 8080
+# Cached file directory, if not set,
+#   /user_home/.nmcdev/cache will be used.
+# CACHE_DIR = ~
+
+# CIMISS网址及用户ID和PASSWORD, 2021年年底CIMISS停止提供服务
+#     DNS为IP地址, PORT为端口
+#     USER_ID和PASSWORD分别为用户名和密码
 [CIMISS]
 DNS = xx.xx.xx.xx
 USER_ID = xxxxxxxxx
 PASSWORD = xxxxxxxx
 
-[CMADaaS]
-DNS = xx.xx.xx.xx
-PORT = xx
-USER_ID = xxxxxxxxx
-PASSWORD = xxxxxxxx
-serviceNodeId = NMIC_MUSIC_CMADAAS
+# 彩云天气API的访问口令
+[CAIY]
+token = xxxxxxxxxxxxxx
 
-[MICAPS]
-GDS_IP = xx.xx.xx.xx
-GDS_PORT = xxxx
-
-# Cached file directory, if not set,
-#   /home/USERNAME/.nmcdev/cache (linux) or C:/Users/USERNAME/.nmcdev/cache (windows) will be used.
-[CACHE]
-# CACHE_DIR = ~ 
-
+# MAPBOX地图数据的访问口令(nmc_met_graphics绘图可以用)
+# https://docs.mapbox.com/help/glossary/access-token 申请
 [MAPBOX]
-token = pk.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
+token = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-这里xxxx用相应的地址, 接口和用户信息代替. 如果要用到MAPBOX地图, 可以申请[access token](https://docs.mapbox.com/help/glossary/access-token).
+# 天地地图数据的访问口令(nmc_met_graphics绘图可以用)
+# http://lbs.tianditu.gov.cn/server/MapService.html 申请
+[TIANDITU]
+token = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+```
 
 ---

@@ -821,7 +821,7 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True, c
     :return: satellite information and data.
 
     :Examples:
-    >>> directory = "SATELLITE/FY2E/L1/IR1/EQUAL"
+    >>> directory = "SATELLITE/FY4A/L1/CHINA/C004"
     >>> data = get_fy_awx(directory)
     """
 
@@ -868,7 +868,7 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True, c
                 print('There is no data ' + filename + ' in ' + directory)
                 return None
 
-            # the first class file head
+            # the first class file head  一级文件头记录采用定长方式, 共40字节
             head1_dtype = [
                 ('SAT96', 'S12'),                    # SAT96 filename
                 ('byteSequence', 'i2'),              # 整型数的字节顺序, 0 低字节在前, 高字节在后; !=0 高字节在前, 低字节在后.
@@ -886,7 +886,7 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True, c
             ind = 40
 
             if head1_info['productCategory']:
-                # the second class file head
+                # the second class file head  二级文件头采用不定长方式，内容依据产品的不同而不同.
                 head2_dtype = [
                     ('satelliteName', 'S8'),                 # 卫星名
                     ('year', 'i2'), ('month', 'i2'),
@@ -961,12 +961,15 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True, c
                 ind += head1_info['padDataLength'][0]
 
                  # retrieve data records
-                data_len = (head1_info['dataRecordNumber'][0].astype(np.int) *
+                data_len = (head1_info['dataRecordNumber'][0].astype(int) *
                             head1_info['recordLength'][0])
                 data = np.frombuffer(byteArray[ind:(ind + data_len)], dtype='u1', count=data_len)
                 if calibration_table is not None:
                     data = calibration_table[data]
                 data.shape = (head1_info['dataRecordNumber'][0], head1_info['recordLength'][0])
+                
+                # 由于数据是按照左上角开始放置, 为此需要对纬度顺序进行反转
+                data = np.flip(data, axis=0)
 
                 # construct longitude and latitude coordinates
                 # if use the verticalResolution and horizontalResolution, lon and lat will not be correct.
