@@ -48,7 +48,8 @@ def read_micaps_1(fname, limit=None):
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
-                txt = f.read().replace('\n', ' ').split()
+                # txt = f.read().replace('\n', ' ').split()
+                txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
         except Exception:
             pass
     if txt is None:
@@ -140,7 +141,8 @@ def read_micaps_2(fname, limit=None):
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
-                txt = f.read().replace('\n', ' ').split()
+                # txt = f.read().replace('\n', ' ').split()
+                txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
         except Exception:
             pass
     if txt is None:
@@ -240,7 +242,8 @@ def read_micaps_3(fname, limit=None):
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
-                txt = f.read().replace('\n', ' ').split()
+                # txt = f.read().replace('\n', ' ').split()
+                txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
         except Exception:
             pass
     if txt is None:
@@ -347,7 +350,8 @@ def read_micaps_4(fname, limit=None, varname='data', varattrs={'units':''}, scal
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
-                txt = f.read().replace('\n', ' ').split()
+                # txt = f.read().replace('\n', ' ').split()
+                txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
         except Exception:
             pass
     if txt is None:
@@ -472,7 +476,8 @@ def read_micaps_5(fname, limit=None):
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
-                txt = f.read().replace('\n', ' ').split()
+                # txt = f.read().replace('\n', ' ').split()
+                txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
         except Exception:
             pass
     if txt is None:
@@ -568,7 +573,8 @@ def read_micaps_7(fname):
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
-                txt = f.read().replace('\n', ' ').split()
+                # txt = f.read().replace('\n', ' ').split()
+                txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
         except Exception:
             pass
     if txt is None:
@@ -656,7 +662,8 @@ def read_micaps_8(fname, limit=None):
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
-                txt = f.read().replace('\n', ' ').split()
+                # txt = f.read().replace('\n', ' ').split()
+                txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
         except Exception:
             pass
     if txt is None:
@@ -739,7 +746,8 @@ def read_micaps_11(fname, limit=None, scale_off=None, no_level=False,
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
-                txt = f.read().replace('\n', ' ').split()
+                # txt = f.read().replace('\n', ' ').split()
+                txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
         except Exception:
             pass
     if txt is None:
@@ -871,7 +879,8 @@ def read_micaps_14(fname):
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
-                txt = f.read().replace('\n', ' ').split()
+                # txt = f.read().replace('\n', ' ').split()
+                txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
         except Exception:
             pass
     if txt is None:
@@ -1483,7 +1492,8 @@ def read_micaps_120(fname, limit=None):
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
-                txt = f.read().replace('\n', ' ').split()
+                # txt = f.read().replace('\n', ' ').split()
+                txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
         except Exception:
             pass
     if txt is None:
