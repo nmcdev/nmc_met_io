@@ -378,8 +378,8 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                             coords={'lon': lon_coord, 'lat': lat_coord, 
                                     'level': level_coord, 'time': time_coord})
                 else:
-                    speed = np.squeeze(data[0, :, :, :])
-                    angle = np.squeeze(data[1, :, :, :])
+                    speed = np.squeeze(data[:, 0, :, :])
+                    angle = np.squeeze(data[:, 1, :, :])
                     # 原始数据文件中存储为: 西风为0度，南风为90度，东风为180度，北风为270度
                     # 修改为气象风向常规定义: 北方为0度, 东风为90度, 南风为180度, 西方为270度
                     angle = 270. - angle
