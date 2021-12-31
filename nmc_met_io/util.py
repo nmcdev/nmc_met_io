@@ -233,7 +233,7 @@ def get_initTime_deal(periods, iTimes, currentTime=None):
                 return None
 
 
-def get_initTime(iHours, delayHour=6, currentTime=None):
+def get_initTime(iHours, delayHour=6, currentTime=None, N=1):
     """
     Construct model initial time. 通过当前时间, 模式的起报时刻, 以及模式的延迟时间, 计算模式的起报时间.
     
@@ -241,6 +241,7 @@ def get_initTime(iHours, delayHour=6, currentTime=None):
         iHours (list): model initial hours, like [8, 20]
         delayHour (integer): model data delay hours.
         currentTime (datetime, optional): current time. Defaults to system time.
+        N (integer): 返回最近的N个时次的模式起报时间.
 
     Examples:
     >>> print(get_initTime([8, 20]))
@@ -253,18 +254,17 @@ def get_initTime(iHours, delayHour=6, currentTime=None):
 
     # loop every hour
     i = 0
-    while (not currentTime.hour in iHours):
+    initTimes = []
+    while (i < N):
         currentTime = currentTime - timedelta(hours=1)
-        i += 1
-        if i > 24:
-            warnings.warn("Can not find initial time.")
-            break
-
-    # return initial time
-    initTime = datetime(
-        currentTime.year, currentTime.month,
-        currentTime.day, currentTime.hour)
-    return initTime
+        if currentTime.hour in iHours:
+            initTime = datetime(
+                currentTime.year, currentTime.month,
+                currentTime.day, currentTime.hour)
+            initTimes.append(initTime)
+            i += 1
+    
+    return initTimes
 
 
 def get_sub_stations(data, limit=[70, 140, 8, 60],
