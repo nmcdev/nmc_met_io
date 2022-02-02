@@ -2371,6 +2371,28 @@ def cmadaas_get_model_file(time, data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", fcst_ele
 
     return out_files
 
+def _load_rise_contents(contents):
+    """
+    Extract information from contents.
+
+    Args:
+        contents (string): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    if contents is None:
+        print('Return None.')
+        return None
+    
+    try:
+        contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
+    except Exception as e:
+        print(e)
+        print(contents)
+        return None
+    
+    return contents
 
 def cmadaas_get_rise_model_file(time, data_code="NAFP_WOG_ANA_100M", fcst_ele=None, userId=None, pwd=None,
                            out_dir=None, pbar=False, just_url=False):
