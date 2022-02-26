@@ -63,8 +63,7 @@ setup(
       'protobuf>=3.12.0',
       'urllib3>=1.25.9',
       'tqdm>=4.47.0',
-      'python-dateutil>=2.8.1',
-      'cassandra-driver>=3.18.0']
+      'python-dateutil>=2.8.1']
 )
 
 # development mode (DOS command):

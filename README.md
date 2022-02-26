@@ -38,6 +38,9 @@ Using the fellowing command to install packages:
 * 若需要使用将标准雷达格式转化为pyart格式程序`standard_data_to_pyart`, 请安装:
   - [arm_pyart](http://arm-doe.github.io/pyart/), `conda install -c conda-forge arm_pyart`
 
+* 若需要对Cassandra集群数据库进行访问, 请安装:
+  - [cassandra-driver](https://pypi.org/project/cassandra-driver/), 'pip install cassandra-driver'
+
 ## 设置配置文件
 若要访问CMADaaS(大数据云), MICAPS服务器等, 需在配置文件中设置地址和用户信息(若不需要, 则相应项无需配置).
 

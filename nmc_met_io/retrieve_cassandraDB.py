@@ -4,19 +4,23 @@
 # Distributed under the terms of the GPL V3 License.
 
 """
-Concat me with e-mail:songofsongs@vip.qq.com
-This is the retrieve module which get data from  cassandra DB
+This is the retrieve module which get data from cassandra DB
 with Python Cassandra driver API.
 
 The API is same as the retrieve_micaps_cassandra
+
+Change Log:
+  - Created by 王清龙/湖北/宜昌, 2022/2/26, e-mail:songofsongs@vip.qq.com
 """
 
+import sys
 import warnings
 from glob import glob
 import re
 import pickle
 import bz2
 import zlib
+import gzip
 from io import BytesIO
 from datetime import datetime, timedelta
 import numpy as np
@@ -25,9 +29,14 @@ import pandas as pd
 from tqdm import tqdm
 import nmc_met_io.config as CONFIG
 from nmc_met_io.read_radar import StandardData
-from cassandra.cluster import Cluster
-from cassandra.auth import PlainTextAuthProvider
-import gzip
+
+try:
+    from cassandra.cluster import Cluster
+    from cassandra.auth import PlainTextAuthProvider
+except ImportError:
+    print("cassandra-driver is not installed (pip install cassandra-driver)")
+    sys.exit(1)
+
 
 _db_client={
     "ClusterIPAddresses":CONFIG.CONFIG['Cassandra']['ClusterIPAddresses'].split(","),
