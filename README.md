@@ -92,6 +92,12 @@ token = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 [TIANDITU]
 token = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
+# 配置Cassandra集群访问接口
+[Cassandra]
+ClusterIPAddresses=Cassandra集群IP地址以“,”分隔，可以参考MICAPS4的配置文件配置
+ClusterPort=Cassandra集群服务端口
+KeySpace=Cassandra上数据存储的主键名
+
 ```
 
 ---
