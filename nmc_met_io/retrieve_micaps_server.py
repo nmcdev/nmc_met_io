@@ -880,12 +880,12 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True, c
                 ('dataRecordNumber', 'i2'),          # 产品数据占用记录数
                 ('productCategory', 'i2'),           # 产品类别, 1：静止, 2：极轨, 3：格点定量, 4：离散, 5: 图形和分析
                 ('compressMethod', 'i2'),            # 压缩方式, 0: 未压缩; 1 行程编码压缩; 2 LZW方式压缩; 3 特点方式压缩
-                ('formatString', 'S8'),              # 格式说明字符串, 'SAT2004'
+                ('formatString', 'S8'),              # 格式说明字符串, 'SAT2004', 'SAT98'为早期版本(不支持)
                 ('qualityFlag', 'i2')]               # 产品数据质量标记, 1 完全可靠; 2 基本可靠; 3 有缺值, 可用; 4 不可用
             head1_info = np.frombuffer(byteArray[0:40], dtype=head1_dtype)
             ind = 40
 
-            if head1_info['productCategory']:
+            if head1_info['productCategory'] == 1:
                 # the second class file head  二级文件头采用不定长方式，内容依据产品的不同而不同.
                 head2_dtype = [
                     ('satelliteName', 'S8'),                 # 卫星名
@@ -927,16 +927,17 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True, c
                     table_B =  np.frombuffer(byteArray[ind:(ind + 256)], dtype='u1')
                     ind += 256
                 
-                # calibration table
+                # calibration table  定标数据块
                 calibration_table = None
                 if head2_info['dataLengthOfCalibration'] != 0:
-                    calibration_table = np.frombuffer(byteArray[ind:(ind + 2048)], dtype='i2')
+                    calibration_table = np.frombuffer(byteArray[ind:(ind + 2048)], dtype='u2')
                     calibration_table = calibration_table * 0.01
-                    if (np.array_equal(calibration_table[0::4], calibration_table[1::4]) and
-                        np.array_equal(calibration_table[0::4], calibration_table[2::4]) and
-                        np.array_equal(calibration_table[0::4], calibration_table[3::4])):
+                    #if (np.array_equal(calibration_table[0::4], calibration_table[1::4]) and
+                    #    np.array_equal(calibration_table[0::4], calibration_table[2::4]) and
+                    #    np.array_equal(calibration_table[0::4], calibration_table[3::4])):
                         # This is a trick, refer to http://bbs.06climate.com/forum.php?mod=viewthread&tid=89296
-                        calibration_table = calibration_table[0::4]
+                    #    calibration_table = calibration_table[0::4]
+                    calibration_table = calibration_table[0::4]
                     ind += 2048
 
                 # geolocation table
@@ -1036,6 +1037,8 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True, c
     else:
         return None
 
+directory = "SATELLITE/FY2G/L1/IR1/EQUAL/"
+data = get_fy_awx(directory, cache=False)
 
 def get_fy_awxs(directory, filenames, allExists=True, pbar=False, **kargs):
     """
