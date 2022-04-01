@@ -32,7 +32,7 @@ def resolve_awx_bytearray(btarray, units=''):
         ('dataRecordNumber', 'i2'),          # 产品数据占用记录数
         ('productCategory', 'i2'),           # 产品类别, 1：静止, 2：极轨, 3：格点定量, 4：离散, 5: 图形和分析
         ('compressMethod', 'i2'),            # 压缩方式, 0: 未压缩; 1 行程编码压缩; 2 LZW方式压缩; 3 特点方式压缩
-        ('formatString', 'S8'),              # 格式说明字符串, 'SAT2004', 'SAT98'为早期版本(不支持)
+        ('formatString', 'S8'),              # 格式说明字符串, 'SAT2004', 'SAT98'为早期版本
         ('qualityFlag', 'i2')]               # 产品数据质量标记, 1 完全可靠; 2 基本可靠; 3 有缺值, 可用; 4 不可用
     head1_info = np.frombuffer(btarray[0:40], dtype=head1_dtype)
     ind = 40
@@ -119,13 +119,13 @@ def resolve_awx_bytearray(btarray, units=''):
         pad_field = np.frombuffer(btarray[ind:(ind+head1_info['padDataLength'][0])], dtype='u1')
         ind += head1_info['padDataLength'][0]
 
-            # retrieve data records
-        data_len = (head1_info['dataRecordNumber'][0].astype(int) *
-                    head1_info['recordLength'][0])
+        # retrieve data records
+        data_len = (head2_info['heightOfImage'][0].astype(int) *
+                    head2_info['widthOfImage'][0])
         data = np.frombuffer(btarray[ind:(ind + data_len)], dtype='u1', count=data_len)
         if calibration_table is not None:
             data = calibration_table[data]
-        data.shape = (head1_info['dataRecordNumber'][0], head1_info['recordLength'][0])
+        data.shape = (head2_info['heightOfImage'][0], head2_info['widthOfImage'][0])
         
         # 由于数据是按照左上角开始放置, 为此需要对纬度顺序进行反转
         data = np.flip(data, axis=0)
@@ -184,16 +184,115 @@ def resolve_awx_bytearray(btarray, units=''):
         return data
     
     elif head1_info['productCategory'] == 3:
-        # TODO，参考https://github.com/wqshen/AwxReader 读取格点定量数据
-        print("The productCategory is not supported.")
-        return None
-    
+        # 参考https://github.com/wqshen/AwxReader 读取格点定量数据
+        # the second class file head  二级文件头采用不定长方式，内容依据产品的不同而不同.
+        head2_dtype = [
+            ('satelliteName', 'S8'),                 # 卫星名
+            ('element', 'i2'),                       # 格点场要素
+            ('byte', 'i2'),                          # 格点数据字节
+            ('base', 'i2'),                          # 格点数据基准值
+            ('scale', 'i2'),                         # 格点数据比例因子
+            ('timeScale', 'i2'),                     # 时间范围代码
+            ('startYear', 'i2'), ('startMonth', 'i2'),
+            ('startDay', 'i2'), ('startHour', 'i2'), 
+            ('startMinute', 'i2'), ('endYear', 'i2'),
+            ('endMonth', 'i2'), ('endDay', 'i2'),
+            ('endHour', 'i2'), ('endMinute', 'i2'),
+            ('leftupLat', 'i2'),                     # 网格左上角纬度
+            ('leftupLon', 'i2'),                     # 网格左上角经度
+            ('rightdownLat', 'i2'),                 # 网格右下角纬度
+            ('rightdownLon', 'i2'),                 # 网格右下角经度
+            ('resolutionUnit', 'i2'),                # 格距单位
+            ('horizontalResolution', 'i2'),          # 横向格距
+            ('verticalResolution', 'i2'),            # 纵向格距
+            ('widthOfImage', 'i2'),                  # 横行格点数
+            ('heightOfImage', 'i2'),                 # 纵向格点数
+            ('hasLand', 'i2'),                       # 有无陆地判释值
+            ('land', 'i2'),                          # 陆地具体判释值
+            ('hasCloud', 'i2'),                      # 有无云判释值
+            ('cloud', 'i2'),                         # 云具体判释值
+            ('hasWater', 'i2'),                      # 有无水体判释值
+            ('water', 'i2'),                         # 水体具体判释值
+            ('hasIce', 'i2'),                        # 有无冰体判释值
+            ('ice', 'i2'),                           # 冰体具体判释值
+            ('hasQuality', 'i2'),                    # 是否有质量控制值
+            ('qualityUp', 'i2'),                     # 质量控制值上限
+            ('qualityDown', 'i2'),                   # 质量控制值下限
+            ('reserved', 'i2')]        
+        head2_info = np.frombuffer(btarray[ind:(ind+80)], dtype=head2_dtype)
+        ind += 80
+        
+        # 读入数据      
+        hgrid_num, vgrid_num = head2_info['widthOfImage'][0].astype(int), head2_info['heightOfImage'][0].astype(int)
+        data_len = hgrid_num * vgrid_num
+        data = np.frombuffer(btarray[ind:(ind + data_len)], dtype='u1', count=data_len)
+        data.shape = (vgrid_num, hgrid_num)
+        data = (data.astype(float) + head2_info['base'][0]) / head2_info['scale'][0]
+        
+        # 由于数据是按照左上角开始放置, 为此需要对纬度顺序进行反转
+        data = np.flip(data, axis=0)
+        
+        # construct longitude and latitude coordinates
+        latmax = head2_info['leftupLat'][0] / 100.
+        lonmin = head2_info['leftupLon'][0] / 100.
+        latmin = head2_info['rightdownLat'][0] / 100.
+        lonmax = head2_info['rightdownLon'][0] / 100.
+        hreso  = head2_info['horizontalResolution'][0] / 100.
+        vreso  = head2_info['verticalResolution'][0] / 100.
+        lon = np.arange(lonmin, lonmax + hreso, hreso)
+        lat = np.arange(latmin, latmax + vreso, vreso)
+        
+        # construct time
+        time = datetime(
+            head2_info['startYear'][0], head2_info['startMonth'][0],
+            head2_info['startDay'][0], head2_info['startHour'][0], head2_info['startMinute'][0])
+        time = np.array([time], dtype='datetime64[ms]')
+        
+        # define element
+        _element = {0: '数值预报', 1: '海面温度（K）', 2: '海冰分布', 3: '海冰密度', 4: '射出长波辐射（W/m2）',
+                    5: '归一化植被指数', 6: '比值植被指数', 7: '积雪分布', 8: '土壤湿度（kg/m3）',
+                    9: '日照（小时）', 10: '云顶高度（hPa）', 11: '云顶温度（K）', 12: '低云云量', 13: '高云云量',
+                    14: '降水指数（mm/1小时）', 15: '降水指数（mm/6小时）', 16: '降水指数（mm/12小时）',
+                    17: '降水指数（mm/24小时）', 18: '对流层中上层水汽量（相对湿度）', 19: '亮度温度',
+                    20: '云总量（百分比）', 21: '云分类', 22: '降水估计（mm/6小时）', 23: '降水估计（mm/24小时）',
+                    24: '晴空大气可降水（mm）', 25: '备用', 26: '地面入射太阳辐射（W/m2）', 27: '备用', 28: '备用',
+                    29: '备用', 30: '备用', 31: '1000hPa相对湿度', 32: '850hPa相对湿度', 33: '700hPa相对湿度',
+                    34: '600hPa相对湿度', 35: '500hPa相对湿度', 36: '400hPa相对湿度', 37: '300hPa相对湿度'}
+        
+        # define coordinates
+        time_coord = ('time', time)
+        lon_coord = ('lon', lon, {
+            'long_name':'longitude', 'units':'degrees_east',
+            '_CoordinateAxisType':'Lon', 'axis': "X"})
+        lat_coord = ('lat', lat, {
+            'long_name':'latitude', 'units':'degrees_north',
+            '_CoordinateAxisType':'Lat', 'axis': "Y"})
+
+        # create xarray
+        data = data[np.newaxis, ...]
+        varattrs = {
+            'productCategory': head1_info['productCategory'][0],   # 产品类型, 1:静止, 2:极轨, 3:格点, 4:离散, 5:图形和分析
+            'formatString': head1_info['formatString'][0],         # 产品格式名称
+            'qualityFlag': head1_info['qualityFlag'][0],           # 产品质量标识
+            'satelliteName': head2_info['satelliteName'][0],       # 卫星名称
+            'element': _element[head2_info['element'][0]],         # 格点场要素
+            'units': units}
+        data = xr.Dataset({
+            'image':(['time', 'lat', 'lon'], data, varattrs)},
+            coords={ 'time':time_coord, 'lat':lat_coord, 'lon':lon_coord})
+
+        # add attributes
+        data.attrs['Conventions'] = "CF-1.6"
+        data.attrs['Origin'] = 'MICAPS Cassandra Server'
+
+        # return
+        return data
     else:
         print("The productCategory is not supported.")
         return None
 
 
-def read_awx_cloud(fname, units=''):
+def read_fy_awx(fname, units=''):
     """
     Read satellite awx format file.
 
@@ -201,7 +300,8 @@ def read_awx_cloud(fname, units=''):
     :return: data list
 
     :Example:
-    >>> headinfo, data = read_awx_cloud("./data/ANI_IR1_R04_20191026_2100_FY2G.AWX")
+    >>> data = read_fy_awx("./examples/samples/ANI_IR1_R04_20220331_2100_FY2G.AWX")
+    >>> data = read_fy_awx("./examples/samples/FY2E_CTA_MLT_OTG_20170126_0130.AWX")
     """
 
     # read part of binary

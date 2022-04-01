@@ -175,6 +175,8 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     >>> data = get_model_grid("ECMWF_HR/TMP/850")
     >>> data_ens = get_model_grid("ECMWF_ENSEMBLE/RAW/HGT/500", filename='18021708.024')
     >>> data_ens = get_model_grid('ECMWF_ENSEMBLE/RAW/TMP_2M', '19083008.024')
+    >>> directory = "SATELLITE/FY4A/L2/CHINA/CLT/"
+    >>> data = get_model_grid(directory, suffix="*.000")
     """
 
     # get data file name
