@@ -90,7 +90,7 @@ def resolve_awx_bytearray(btarray, units=''):
             if head2_info['channel'] == 4:
                 # 对于可见光通道图像, 定标数据在0-63的范围内查找
                 calibration_table = calibration_table * 0.01
-                calibration_table = calibration_table[1:64]
+                calibration_table = calibration_table[0:64]
                 calibration_table = calibration_table.repeat(4)
             else:
                 # 对于红外,水汽图像, 在全局范围内查找, 但要隔4进行跳点

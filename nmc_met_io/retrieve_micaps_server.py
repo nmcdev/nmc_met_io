@@ -826,6 +826,7 @@ def get_fy_awx(directory, filename=None, suffix="*.AWX", units='', cache=True, c
     :Examples:
     >>> directory = "SATELLITE/FY4A/L1/CHINA/C004"
     >>> data = get_fy_awx(directory)
+    >>> data = get_fy_awx("SATELLITE/GOES16/L1/C02", filename="C02_20220516101000_GOES16.AWX")
     """
 
     # get data file name
