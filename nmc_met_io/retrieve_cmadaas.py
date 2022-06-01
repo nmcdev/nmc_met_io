@@ -249,7 +249,7 @@ def cmadaas_get_obs_files(times, data_code="SURF_CMPA_RT_NC", out_dir=None, pbar
 
 def cmadaas_obs_by_time(times, data_code="SURF_CHN_MUL_HOR_N",
                         sta_levels=None, ranges=None, order=None, 
-                        count=None, distinct=False, trans_type=True,
+                        count=None, distinct=False, trans_type=True, 
                         elements="Station_Id_C,Station_Id_d,lat,lon,Datetime,TEM"):
     """
     Retrieve station records from CMADaaS by times.
@@ -1483,6 +1483,381 @@ def cmadaas_obs_by_years(data_code="SURF_CHN_YER_MMUT_19812010",
     else:
         params['staIds'] = sta_ids
         interface_id = "getSurfMYerEleByStaID"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+    if contents is None:
+        return None
+
+    # construct pandas DataFrame
+    data = pd.DataFrame(contents['DS'])
+    if trans_type: data = cmadaas_obs_convert_type(data)
+
+    # return
+    return data
+
+
+def cmadaas_get_sounding_latest_time(data_code="UPAR_CHN_MUL_FTM", latestTime=24):
+    """
+    Get the latest time of the soundings.
+    
+    Args:
+        data_code (str, optional): dataset code. Defaults to "UPAR_CHN_MUL_FTM".
+        latestTime (int, optional): latestTime > 0, like 2 is return 
+                                    the latest time in 2 hours. Defaults to 12.
+    Returns:
+        datetime object, the latest time
+
+    Examples:
+    >>> print(cmadaas_get_sounding_latest_time())
+        2020-03-12 03:00:00
+    """
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'latestTime': str(latestTime+8)}    # 由于服务器是世界时, 因此需要+8才能与当前时间比较.
+
+    # interface id
+    interface_id = "getUparLatestTime"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+
+    # construct pandas DataFrame
+    data = pd.DataFrame(contents['DS'])
+    time = pd.to_datetime(data['Datetime'], format="%Y%m%d%H%M%S")
+
+    return time[0]
+
+
+def cmadaas_sounding_by_time(times, data_code="UPAR_CHN_MUL_FTM", ranges=None, 
+                             order=None, count=None, distinct=False, trans_type=True, 
+                             elements="Station_Name,Station_Id_C,Lat,Lon,Alti,Year,Mon,Day,Hour,Min,Second,PRS_HWC,GPH,TEM,DPT,DTD,WIN_D"):
+    """
+    Retrieve sounding records from CMADaaS by times.
+    
+    Args:
+        times (str): times for retrieve, 'YYYYMMDDHHMISS,YYYYMMDDHHMISS,...'
+        data_code (str, optional): dataset code. Defaults to "UPAR_CHN_MUL_FTM".
+        ranges (str, optional): elements value ranges, seperated by ';'
+            range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
+                   [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
+            list: a,b,c;
+            e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.. Defaults to None.
+        order (str, optional): elements order, seperated by ',', like
+            "TEM:asc,SUM_PRE_1h:desc" is ascending order temperature first and descending PRE_1h. Defaults to None.
+        count (int, optional): the number of maximum returned records. Defaults to None.
+        distinct (bool, optional): return unique records. Defaults to False.
+        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric. Defaults to True.
+        elements (str, optional): elements for retrieve, 'ele1,ele2,...'. 
+    
+    Returns:
+        pandas data frame: sounding records.
+    
+    Examples:
+        uparData = cmadaas_sounding_by_time('20220531000000')
+    """
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'times': times,
+              'orderby': order if order is not None else "Datetime:ASC",
+              'elements': elements}
+    if ranges is not None: params['eleValueRanges'] = ranges
+    if count is not None: params['limitCnt'] = str(count)
+    if distinct: params['distinct'] = "true"
+
+    # Interface, refer to
+    interface_id = "getUparEleByTime"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+    if contents is None:
+        return None
+
+    # construct pandas DataFrame
+    data = pd.DataFrame(contents['DS'])
+    if trans_type: data = cmadaas_obs_convert_type(data)
+
+    # return
+    return data
+
+
+def cmadaas_sounding_by_time_and_press(
+        times, data_code="UPAR_CHN_MUL_FTM", press=500, ranges=None,
+        order=None, count=None, distinct=False, trans_type=True, 
+        elements="Station_Name,Station_Id_C,Lat,Lon,Alti,Year,Mon,Day,Hour,Min,Second,PRS_HWC,GPH,TEM,DPT,DTD,WIN_D"):
+    """
+    Retrieve sounding records from CMADaaS by times.
+    
+    Args:
+        times (str): times for retrieve, 'YYYYMMDDHHMISS,YYYYMMDDHHMISS,...'
+        data_code (str, optional): dataset code. Defaults to "UPAR_CHN_MUL_FTM".
+        press (str, optional): pressure level. Defaults to 500.
+        ranges (str, optional): elements value ranges, seperated by ';'
+            range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
+                   [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
+            list: a,b,c;
+            e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.. Defaults to None.
+        order (str, optional): elements order, seperated by ',', like
+            "TEM:asc,SUM_PRE_1h:desc" is ascending order temperature first and descending PRE_1h. Defaults to None.
+        count (int, optional): the number of maximum returned records. Defaults to None.
+        distinct (bool, optional): return unique records. Defaults to False.
+        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric. Defaults to True.
+        elements (str, optional): elements for retrieve, 'ele1,ele2,...'. 
+    
+    Returns:
+        pandas data frame: sounding records.
+    
+    Examples:
+        uparData = cmadaas_sounding_by_time_and_press('20220531000000', press=500)
+    """
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'times': times,
+              'pLayers': str(press).strip(),
+              'orderby': order if order is not None else "Datetime:ASC",
+              'elements': elements}
+    if ranges is not None: params['eleValueRanges'] = ranges
+    if count is not None: params['limitCnt'] = str(count)
+    if distinct: params['distinct'] = "true"
+
+    # Interface, refer to
+    interface_id = "getUparEleByTimeAndPress"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+    if contents is None:
+        return None
+
+    # construct pandas DataFrame
+    data = pd.DataFrame(contents['DS'])
+    if trans_type: data = cmadaas_obs_convert_type(data)
+
+    # return
+    return data
+
+
+def cmadaas_sounding_by_time_and_height(
+        times, data_code="UPAR_CHN_MUL_FTM", height=5000, ranges=None,
+        order=None, count=None, distinct=False, trans_type=True, 
+        elements="Station_Name,Station_Id_C,Lat,Lon,Alti,Year,Mon,Day,Hour,Min,Second,PRS_HWC,GPH,TEM,DPT,DTD,WIN_D"):
+    """
+    Retrieve sounding records from CMADaaS by times.
+    
+    Args:
+        times (str): times for retrieve, 'YYYYMMDDHHMISS,YYYYMMDDHHMISS,...'
+        data_code (str, optional): dataset code. Defaults to "UPAR_CHN_MUL_FTM".
+        height (str, optional): height level. Defaults to 5000.
+        ranges (str, optional): elements value ranges, seperated by ';'
+            range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
+                   [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
+            list: a,b,c;
+            e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.. Defaults to None.
+        order (str, optional): elements order, seperated by ',', like
+            "TEM:asc,SUM_PRE_1h:desc" is ascending order temperature first and descending PRE_1h. Defaults to None.
+        count (int, optional): the number of maximum returned records. Defaults to None.
+        distinct (bool, optional): return unique records. Defaults to False.
+        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric. Defaults to True.
+        elements (str, optional): elements for retrieve, 'ele1,ele2,...'. 
+    
+    Returns:
+        pandas data frame: sounding records.
+    
+    Examples:
+        uparData = cmadaas_sounding_by_time_and_height('20220531000000', height=5000)
+    """
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'times': times,
+              'hLayers': str(height).strip(),
+              'orderby': order if order is not None else "Datetime:ASC",
+              'elements': elements}
+    if ranges is not None: params['eleValueRanges'] = ranges
+    if count is not None: params['limitCnt'] = str(count)
+    if distinct: params['distinct'] = "true"
+
+    # Interface, refer to
+    interface_id = "getUparEleByTimeAndHeight"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+    if contents is None:
+        return None
+
+    # construct pandas DataFrame
+    data = pd.DataFrame(contents['DS'])
+    if trans_type: data = cmadaas_obs_convert_type(data)
+
+    # return
+    return data
+
+
+def cmadaas_sounding_in_rect_by_time(
+        times, limit=[3.51, 73.33, 53.33, 135.05], data_code="UPAR_CHN_MUL_FTM",
+        ranges=None, order=None, count=None, trans_type=True,
+        elements="Station_Name,Station_Id_C,Lat,Lon,Alti,Year,Mon,Day,Hour,Min,Second,PRS_HWC,GPH,TEM,DPT,DTD,WIN_D,WIN_S"):
+    """
+    Retrieve sounding records from CIMISS in region by times.
+    
+    Args:
+        times (str): time for retrieve, 'YYYYMMDDHHMISS,YYYYMMDDHHMISS,...'
+        limit (list, optional):  map limits, [min_lat, min_lon, max_lat, max_lon]
+        data_code (str, optional): dataset code. Defaults to "UPAR_CHN_MUL_FTM".
+        ranges (str, optional): elements value ranges, seperated by ';'
+            range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
+                   [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
+            list: a,b,c;
+            e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.. Defaults to None.
+        order (str, optional): elements order, seperated by ',', like
+            "TEM:asc,SUM_PRE_1h:desc" is ascending order temperature first and descending PRE_1h. Defaults to None.
+        count (int, optional): the number of maximum returned records. Defaults to None.
+        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric. Defaults to True.
+        elements (str, optional): elements for retrieve, 'ele1,ele2,...'. 
+    
+    Returns:
+        pandas data frame: sounding records.
+    
+    Examples:
+    >>> data = cmadaas_sounding_in_rect_by_time('20220531000000', limit=[3.51, 73.33, 53.33, 135.05])
+    """
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'elements': elements,
+              'times': times,
+              'minLat': '{:.10f}'.format(limit[0]),
+              'minLon': '{:.10f}'.format(limit[1]),
+              'maxLat': '{:.10f}'.format(limit[2]),
+              'maxLon': '{:.10f}'.format(limit[3]),
+              'orderby': order if order is not None else "Datetime:ASC"}
+    if ranges is not None: params['eleValueRanges'] = ranges
+    if count is not None: params['limitCnt'] = str(count)
+
+    # interface id
+    interface_id = "getUparEleInRectByTime"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+    if contents is None:
+        return None
+
+    # construct pandas DataFrame
+    data = pd.DataFrame(contents['DS'])
+    if trans_type: data = cmadaas_obs_convert_type(data)
+
+    # return
+    return data
+
+
+def cmadaas_sounding_by_time_and_id(
+        times, data_code="UPAR_CHN_MUL_FTM", sta_ids='54511', ranges=None,
+        order=None, count=None, distinct=False, trans_type=True, 
+        elements="Station_Name,Station_Id_C,Lat,Lon,Alti,Year,Mon,Day,Hour,Min,Second,PRS_HWC,GPH,TEM,DPT,DTD,WIN_D"):
+    """
+    Retrieve sounding records from CMADaaS by times.
+    
+    Args:
+        times (str): times for retrieve, 'YYYYMMDDHHMISS,YYYYMMDDHHMISS,...'
+        data_code (str, optional): dataset code. Defaults to "UPAR_CHN_MUL_FTM".
+        sta_ids (str, optional): station id, 多个以逗号(,)分隔，区域站以字母开头. Defaults to 54511.
+        ranges (str, optional): elements value ranges, seperated by ';'
+            range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
+                   [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
+            list: a,b,c;
+            e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.. Defaults to None.
+        order (str, optional): elements order, seperated by ',', like
+            "TEM:asc,SUM_PRE_1h:desc" is ascending order temperature first and descending PRE_1h. Defaults to None.
+        count (int, optional): the number of maximum returned records. Defaults to None.
+        distinct (bool, optional): return unique records. Defaults to False.
+        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric. Defaults to True.
+        elements (str, optional): elements for retrieve, 'ele1,ele2,...'. 
+    
+    Returns:
+        pandas data frame: sounding records.
+    
+    Examples:
+        uparData = cmadaas_sounding_by_time_and_id('20220531000000', sta_ids='54511')
+    """
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'times': times,
+              'staIds': str(sta_ids).strip(),
+              'orderby': order if order is not None else "Datetime:ASC",
+              'elements': elements}
+    if ranges is not None: params['eleValueRanges'] = ranges
+    if count is not None: params['limitCnt'] = str(count)
+    if distinct: params['distinct'] = "true"
+
+    # Interface, refer to
+    interface_id = "getUparEleByTimeAndStaID"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+    if contents is None:
+        return None
+
+    # construct pandas DataFrame
+    data = pd.DataFrame(contents['DS'])
+    if trans_type: data = cmadaas_obs_convert_type(data)
+
+    # return
+    return data
+
+
+def cmadaas_sounding_in_rect_by_time_range(
+        time_range, limit=[3.51, 73.33, 53.33, 135.05], data_code="UPAR_CHN_MUL_FTM",
+        ranges=None, order=None, count=None, trans_type=True,
+        elements="Station_Name,Station_Id_C,Lat,Lon,Alti,Year,Mon,Day,Hour,Min,Second,PRS_HWC,GPH,TEM,DPT,DTD,WIN_D,WIN_S"):
+    """
+    Retrieve sounding records from CIMISS in region by times.
+    
+    Args:
+        time_range (str): time for retrieve, "[YYYYMMDDHHMISS,YYYYMMDDHHMISS]"
+        limit (list, optional):  map limits, [min_lat, min_lon, max_lat, max_lon]
+        data_code (str, optional): dataset code. Defaults to "UPAR_CHN_MUL_FTM".
+        ranges (str, optional): elements value ranges, seperated by ';'
+            range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
+                   [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
+            list: a,b,c;
+            e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.. Defaults to None.
+        order (str, optional): elements order, seperated by ',', like
+            "TEM:asc,SUM_PRE_1h:desc" is ascending order temperature first and descending PRE_1h. Defaults to None.
+        count (int, optional): the number of maximum returned records. Defaults to None.
+        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric. Defaults to True.
+        elements (str, optional): elements for retrieve, 'ele1,ele2,...'. 
+    
+    Returns:
+        pandas data frame: sounding records.
+    
+    Examples:
+    >>> data = cmadaas_sounding_in_rect_by_time_range('[20220531000000,20220531010000]', limit=[3.51, 73.33, 53.33, 135.05])
+    """
+
+    # set retrieve parameters
+    params = {'dataCode': data_code,
+              'elements': elements,
+              'timeRange': time_range,
+              'minLat': '{:.10f}'.format(limit[0]),
+              'minLon': '{:.10f}'.format(limit[1]),
+              'maxLat': '{:.10f}'.format(limit[2]),
+              'maxLon': '{:.10f}'.format(limit[3]),
+              'orderby': order if order is not None else "Datetime:ASC"}
+    if ranges is not None: params['eleValueRanges'] = ranges
+    if count is not None: params['limitCnt'] = str(count)
+
+    # interface id
+    interface_id = "getUparEleInRectByTimeRange"
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
