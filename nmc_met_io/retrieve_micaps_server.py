@@ -155,7 +155,8 @@ def get_latest_initTime(directory, suffix="*.006"):
 def get_model_grid(directory, filename=None, suffix="*.024",
                    varname='data', varattrs={'units':''}, scale_off=None,
                    levattrs={'long_name':'pressure_level', 'units':'hPa',
-                             '_CoordinateAxisType':'Pressure'}, cache=True, cache_clear=True):
+                             '_CoordinateAxisType':'Pressure'},
+                   cache=True, cache_clear=True, list_first=True):
     """
     Retrieve numeric model grid forecast from MICAPS cassandra service.
     Support ensemble member forecast.
@@ -206,16 +207,22 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                 data = pickle.load(f)
                 return data
     
-    # get data contents
-    try:
-        file_list = get_file_list(directory)
-        if filename not in file_list:
+    if list_first:
+        # get data contents
+        try:
+            file_list = get_file_list(directory)
+            if filename not in file_list:
+                return None
+            service = GDSDataService()
+            status, response = service.getData(directory, filename)
+        except ValueError:
+            print('Can not retrieve data' + filename + ' from ' + directory)
             return None
+    else:
         service = GDSDataService()
         status, response = service.getData(directory, filename)
-    except ValueError:
-        print('Can not retrieve data' + filename + ' from ' + directory)
-        return None
+    
+    
     ByteArrayResult = DataBlock_pb2.ByteArrayResult()
     if status == 200:
         ByteArrayResult.ParseFromString(response)
@@ -438,7 +445,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
         return None
 
 
-def get_model_grids(directory, filenames, allExists=True, pbar=False, **kargs):
+def get_model_grids(directory, filenames, allExists=True, pbar=False, list_first=False, **kargs):
     """
     Retrieve multiple time grids from MICAPS cassandra service.
     
@@ -451,19 +458,27 @@ def get_model_grids(directory, filenames, allExists=True, pbar=False, **kargs):
     """
 
     dataset = []
+    
     if pbar:
         tqdm_filenames = tqdm(filenames, desc=directory + ": ")
     else:
         tqdm_filenames = filenames
+    
+    file_list = get_file_list(directory)
     for filename in tqdm_filenames:
-        data = get_model_grid(directory, filename=filename, **kargs)
-        if data:
-            dataset.append(data)
-        else:
+        if filename not in file_list:
             if allExists:
                 warnings.warn("{} doese not exists.".format(directory+'/'+filename))
                 return None
-    
+        else:
+            data = get_model_grid(directory, filename=filename, list_first=list_first, **kargs)
+            if data:
+                dataset.append(data)
+            else:
+                if allExists:
+                    warnings.warn("{} doese not exists.".format(directory+'/'+filename))
+                    return None
+
     return xr.concat(dataset, dim='time')
 
 
