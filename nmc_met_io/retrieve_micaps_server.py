@@ -156,7 +156,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                    varname='data', varattrs={'units':''}, scale_off=None,
                    levattrs={'long_name':'pressure_level', 'units':'hPa',
                              '_CoordinateAxisType':'Pressure'},
-                   cache=True, cache_clear=True, list_first=True):
+                   cache=True, cache_clear=True, check_file_first=True):
     """
     Retrieve numeric model grid forecast from MICAPS cassandra service.
     Support ensemble member forecast.
@@ -169,7 +169,9 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     :param varattrs: set variable attributes, dictionary type.
     :param scale_off: [scale, offset], return values = values*scale + offset.
     :param levattrs: set level coordinate attributes, diectionary type.
-    :param cache: cache retrieved data to local directory, default is True.
+    :param cache: cache retrieved data to local directory, Default is True.
+    :param cache_clear: 如果设置了清除缓存, 则会将缓存文件逐周存放, 并删除过去的周文件夹.
+    :param check_file_first: check file exists firstly, do not recommend. Default is False.
     :return: data, xarray type
 
     :Examples:
@@ -196,6 +198,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                 filename = StringResult.name
                 if filename == '':
                     return None
+                check_file_first = False     # file existed
             else:
                 return None
 
@@ -207,21 +210,18 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                 data = pickle.load(f)
                 return data
     
-    if list_first:
-        # get data contents
-        try:
+    # get data contents
+    try:
+        # get the file list and check file exists
+        if check_file_first:
             file_list = get_file_list(directory)
             if filename not in file_list:
                 return None
-            service = GDSDataService()
-            status, response = service.getData(directory, filename)
-        except ValueError:
-            print('Can not retrieve data' + filename + ' from ' + directory)
-            return None
-    else:
         service = GDSDataService()
         status, response = service.getData(directory, filename)
-    
+    except ValueError:
+        print('Can not retrieve data' + filename + ' from ' + directory)
+        return None
     
     ByteArrayResult = DataBlock_pb2.ByteArrayResult()
     if status == 200:
@@ -445,7 +445,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
         return None
 
 
-def get_model_grids(directory, filenames, allExists=True, pbar=False, list_first=False, **kargs):
+def get_model_grids(directory, filenames, allExists=True, pbar=False, **kargs):
     """
     Retrieve multiple time grids from MICAPS cassandra service.
     
@@ -464,21 +464,23 @@ def get_model_grids(directory, filenames, allExists=True, pbar=False, list_first
     else:
         tqdm_filenames = filenames
     
+    # get the file list for check
     file_list = get_file_list(directory)
     for filename in tqdm_filenames:
-        if filename not in file_list:
-            if allExists:
-                warnings.warn("{} doese not exists.".format(directory+'/'+filename))
-                return None
-        else:
-            data = get_model_grid(directory, filename=filename, list_first=list_first, **kargs)
+        # check the file exists
+        if filename in file_list:
+            data = get_model_grid(directory, filename=filename, check_file_first=False, **kargs)
             if data:
                 dataset.append(data)
             else:
                 if allExists:
                     warnings.warn("{} doese not exists.".format(directory+'/'+filename))
                     return None
-
+        else:
+            if allExists:
+                warnings.warn("{} doese not exists.".format(directory+'/'+filename))
+                return None
+            
     return xr.concat(dataset, dim='time')
 
 
