@@ -1626,7 +1626,7 @@ def get_swan_radar(directory, filename=None, suffix="*.000", scale=[0.1, 0],
             if byteArray == '':
                 print('There is no data ' + filename + ' in ' + directory)
                 return None
-            if filename.endswith('.BZ2') or filename.endswith('.bz2'):
+            if filename.endswith(('.BZ2','.bz2')):
                 byteArray = bz2.decompress(byteArray)
             # define head structure
             head_dtype = [
