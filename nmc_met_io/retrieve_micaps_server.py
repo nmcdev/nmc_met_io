@@ -718,7 +718,7 @@ def get_station_data(directory, filename=None, suffix="*.000",
 
             # loop every station to retrieve record
             # id_type=0 保持不变
-            if id_type==0
+            if id_type==0:
                 record_head_dtype = [
                     ('ID', 'i4'), ('lon', 'f4'), ('lat', 'f4'), ('numb', 'i2')]
                 records = []
