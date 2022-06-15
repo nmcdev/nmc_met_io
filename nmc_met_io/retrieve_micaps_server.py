@@ -686,10 +686,11 @@ def get_station_data(directory, filename=None, suffix="*.000",
                           ('level', 'f4'), ('levelDescription', 'S50'),
                           ('year', 'i4'), ('month', 'i4'), ('day', 'i4'),
                           ('hour', 'i4'), ('minute', 'i4'), ('second', 'i4'),
-                          ('Timezone', 'i4'), ('extent', 'S100')]
+                          ('Timezone', 'i4'), ('id_type', 'i2'), ('extent', 'S98')]
 
             # read head information
             head_info = np.frombuffer(byteArray[0:288], dtype=head_dtype)
+            id_type = head_info['id_type'][0]
             ind = 288
 
             # read the number of stations
@@ -716,31 +717,65 @@ def get_station_data(directory, filename=None, suffix="*.000",
                 element_map[element_id] = element_type_map[element_type]
 
             # loop every station to retrieve record
-            record_head_dtype = [
-                ('ID', 'i4'), ('lon', 'f4'), ('lat', 'f4'), ('numb', 'i2')]
-            records = []
-            for i in range(station_number):
-                record_head = np.frombuffer(
-                    byteArray[ind:(ind+14)], dtype=record_head_dtype)
-                ind += 14
-                record = {
-                    'ID': record_head['ID'][0], 'lon': record_head['lon'][0],
-                    'lat': record_head['lat'][0]}
-                for j in range(record_head['numb'][0]):    # the record element number is not same, missing value is not included.
-                    element_id = str(
-                        np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0])
-                    ind += 2
-                    element_type = element_map[element_id]
-                    if element_type == 'S':                # if the element type is string, we need get the length of string
-                        str_len = np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0]
+            # id_type=0 保持不变
+            if id_type==0
+                record_head_dtype = [
+                    ('ID', 'i4'), ('lon', 'f4'), ('lat', 'f4'), ('numb', 'i2')]
+                records = []
+                for i in range(station_number):
+                    record_head = np.frombuffer(
+                        byteArray[ind:(ind+14)], dtype=record_head_dtype)
+                    ind += 14
+                    record = {
+                        'ID': record_head['ID'][0], 'lon': record_head['lon'][0],
+                        'lat': record_head['lat'][0]}
+                    for j in range(record_head['numb'][0]):    # the record element number is not same, missing value is not included.
+                        element_id = str(
+                            np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0])
                         ind += 2
-                        element_type = element_type + str(str_len)
-                    element_len = int(element_type[1:])
-                    record[element_id] = np.frombuffer(
-                        byteArray[ind:(ind + element_len)],
-                        dtype=element_type)[0]
-                    ind += element_len
-                records += [record]
+                        element_type = element_map[element_id]
+                        if element_type == 'S':                # if the element type is string, we need get the length of string
+                            str_len = np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0]
+                            ind += 2
+                            element_type = element_type + str(str_len)
+                        element_len = int(element_type[1:])
+                        record[element_id] = np.frombuffer(
+                            byteArray[ind:(ind + element_len)],
+                            dtype=element_type)[0]
+                        ind += element_len
+                    records += [record]
+            else: # ==1
+                record_head_dtype = [
+                    ('lon', 'f4'), ('lat', 'f4'), ('numb', 'i2')]
+                records = []
+                for i in range(station_number):
+                    # 原先为14个字节固定，现在改成前2字节定义接下来ID string长度
+                    ID_string_length = np.frombuffer(byteArray[ind:(ind + 2)], dtype="i2")[0]
+                    record_ID = np.frombuffer(byteArray[ind + 2:(ind + 2 + ID_string_length)], 
+                                              dtype="S" + str(ID_string_length))[0]
+                    record_ID = record_ID.decode()
+                    ind += (2 + ID_string_length)
+                    record_head = np.frombuffer(
+                        byteArray[ind:(ind+10)], dtype=record_head_dtype)
+                    ind += 10
+                    record = {
+                        'ID': record_head['ID'][0], 'lon': record_head['lon'][0],
+                        'lat': record_head['lat'][0]}
+                    for j in range(record_head['numb'][0]):    # the record element number is not same, missing value is not included.
+                        element_id = str(
+                            np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0])
+                        ind += 2
+                        element_type = element_map[element_id]
+                        if element_type == 'S':                # if the element type is string, we need get the length of string
+                            str_len = np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0]
+                            ind += 2
+                            element_type = element_type + str(str_len)
+                        element_len = int(element_type[1:])
+                        record[element_id] = np.frombuffer(
+                            byteArray[ind:(ind + element_len)],
+                            dtype=element_type)[0]
+                        ind += element_len
+                    records += [record]
 
             # convert to pandas data frame
             records = pd.DataFrame(records)
