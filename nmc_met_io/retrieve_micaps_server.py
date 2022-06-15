@@ -759,7 +759,7 @@ def get_station_data(directory, filename=None, suffix="*.000",
                         byteArray[ind:(ind+10)], dtype=record_head_dtype)
                     ind += 10
                     record = {
-                        'ID': record_head['ID'][0], 'lon': record_head['lon'][0],
+                        'ID': record_ID, 'lon': record_head['lon'][0],
                         'lat': record_head['lat'][0]}
                     for j in range(record_head['numb'][0]):    # the record element number is not same, missing value is not included.
                         element_id = str(
