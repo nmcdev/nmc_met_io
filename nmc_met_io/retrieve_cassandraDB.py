@@ -171,7 +171,8 @@ def get_latest_initTime(directory, suffix="*.006"):
 def get_model_grid(directory, filename=None, suffix="*.024",
                    varname='data', varattrs={'units':''}, scale_off=None,
                    levattrs={'long_name':'pressure_level', 'units':'hPa',
-                             '_CoordinateAxisType':'Pressure'}, cache=True, cache_clear=True):
+                             '_CoordinateAxisType':'Pressure'}, 
+                   cache=True, cache_clear=True, check_file_first=True):
     """
     Retrieve numeric model grid forecast from MICAPS cassandra service.
     Support ensemble member forecast.
@@ -185,6 +186,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     :param scale_off: [scale, offset], return values = values*scale + offset.
     :param levattrs: set level coordinate attributes, diectionary type.
     :param cache: cache retrieved data to local directory, default is True.
+    :param check_file_first: check file exists firstly. Default is True.
     :return: data, xarray type
 
     :Examples:
@@ -207,12 +209,18 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                 filename = response
                 if filename == '':
                     return None
+                check_file_first = False     # file existed
             else:
                 return None
 
     # retrieve data from cached file
     if cache:
-        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA", cache_clear=cache_clear)
+        cache_file = CONFIG.get_cache_file(
+            directory, 
+            filename, 
+            name="MICAPS_DATA", 
+            cache_clear=cache_clear
+        )
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -220,9 +228,11 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     
     # get data contents
     try:
-        file_list = get_file_list(directory)
-        if filename not in file_list:
-            return None
+        # get the file list and check file exists
+        if check_file_first:
+            file_list = get_file_list(directory)
+            if filename not in file_list:
+                return None
         service = CassandraDB()
         status, response = service.getData(directory, filename)
     except ValueError:
@@ -463,10 +473,19 @@ def get_model_grids(directory, filenames, allExists=True, pbar=False, **kargs):
         tqdm_filenames = tqdm(filenames, desc=directory + ": ")
     else:
         tqdm_filenames = filenames
+
+    # get the file list for check
+    file_list = get_file_list(directory)
     for filename in tqdm_filenames:
-        data = get_model_grid(directory, filename=filename, **kargs)
-        if data:
-            dataset.append(data)
+        # check the file exists
+        if filename in file_list:
+            data = get_model_grid(directory, filename=filename, check_file_first=False, **kargs)
+            if data:
+                dataset.append(data)
+            else:
+                if allExists:
+                    warnings.warn("{} doese not exists.".format(directory+'/'+filename))
+                    return None
         else:
             if allExists:
                 warnings.warn("{} doese not exists.".format(directory+'/'+filename))

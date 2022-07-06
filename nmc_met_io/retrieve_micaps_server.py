@@ -50,10 +50,23 @@ def get_http_result(host, port, url):
 
 
 class GDSDataService:
-    def __init__(self):
+    def __init__(self, gdsIP=None, gdsPort=None):
+        """
+        Args:
+            gdsIP (str, optional): 
+                Micaps cassandra server IP. Defaults from config.ini file.
+            gdsPort (str, optional):
+                Micaps cassandra server port. Defaults from config.ini file.
+        """
         # set MICAPS GDS服务器地址
-        self.gdsIp = CONFIG.CONFIG['MICAPS']['GDS_IP']
-        self.gdsPort = CONFIG.CONFIG['MICAPS']['GDS_PORT']
+        if gdsIP is None:
+            self.gdsIp = CONFIG.CONFIG['MICAPS']['GDS_IP']
+        else:
+            self.gdsIp = gdsIP
+        if gdsPort is None:
+            self.gdsPort = CONFIG.CONFIG['MICAPS']['GDS_PORT']
+        else:
+            self.gdsPort = gdsPort
 
     def getLatestDataName(self, directory, filter):
         return get_http_result(
@@ -156,7 +169,8 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                    varname='data', varattrs={'units':''}, scale_off=None,
                    levattrs={'long_name':'pressure_level', 'units':'hPa',
                              '_CoordinateAxisType':'Pressure'},
-                   cache=True, cache_clear=True, check_file_first=True):
+                   cache=True, cache_clear=True, check_file_first=True,
+                   gdsIP=None, gdsPort=None):
     """
     Retrieve numeric model grid forecast from MICAPS cassandra service.
     Support ensemble member forecast.
@@ -171,7 +185,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     :param levattrs: set level coordinate attributes, diectionary type.
     :param cache: cache retrieved data to local directory, Default is True.
     :param cache_clear: 如果设置了清除缓存, 则会将缓存文件逐周存放, 并删除过去的周文件夹.
-    :param check_file_first: check file exists firstly, do not recommend. Default is False.
+    :param check_file_first: check file exists firstly. Default is True.
     :return: data, xarray type
 
     :Examples:
@@ -186,7 +200,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     if filename is None:
         try:
             # connect to data service
-            service = GDSDataService()
+            service = GDSDataService(gdsIP=gdsIP, gdsPort=gdsPort)
             status, response = service.getLatestDataName(directory, suffix)
         except ValueError:
             print('Can not retrieve data from ' + directory)
@@ -204,7 +218,11 @@ def get_model_grid(directory, filename=None, suffix="*.024",
 
     # retrieve data from cached file
     if cache:
-        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA", cache_clear=cache_clear)
+        cache_file = CONFIG.get_cache_file(
+            directory, 
+            filename, 
+            name="MICAPS_DATA", 
+            cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -217,7 +235,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
             file_list = get_file_list(directory)
             if filename not in file_list:
                 return None
-        service = GDSDataService()
+        service = GDSDataService(gdsIP=gdsIP, gdsPort=gdsPort)
         status, response = service.getData(directory, filename)
     except ValueError:
         print('Can not retrieve data' + filename + ' from ' + directory)

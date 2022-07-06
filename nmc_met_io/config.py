@@ -26,17 +26,27 @@ def _get_config_dir():
 CONFIG_DIR = _get_config_dir()
 
 
-def _ConfigFetchError(Exception):
+class _ConfigFetchError(Exception):
     pass
 
 
 def _get_config_from_rcfile():
     """
-    Get configure information from config_dk_met_io.ini file.
+    Get configure information from config.ini file in .nmcdev directory.
     """
     rc = CONFIG_DIR / "config.ini"
     if not rc.is_file():
         rc = Path("~/config_met_io.ini").expanduser()
+
+    # check configure file
+    if not rc.is_file():
+        msg = (
+            "The {} doese not exist. Please create it with text editor. "
+            "\n Refer to https://github.com/nmcdev/nmc_met_io ".format(
+                CONFIG_DIR / "config.ini")
+        )
+        raise _ConfigFetchError(msg)
+
     try:
         config = configparser.ConfigParser()
         config.read(rc)
