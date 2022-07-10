@@ -38,8 +38,6 @@ setup(
       'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
       'Topic :: Scientific/Engineering',
       'Topic :: Scientific/Engineering :: Atmospheric Science',
-      'Programming Language :: Python :: 3',
-      'Programming Language :: Python :: 3.6',
       'Programming Language :: Python :: 3.7',
       'Programming Language :: Python :: 3.8',
       'Operating System :: POSIX :: Linux',
@@ -53,6 +51,7 @@ setup(
     packages=find_packages(exclude=[
       'documents', 'docs', 'examples', 'notebooks', 'tests', 'build', 'dist']),
     include_package_data=True,
+    package_data={'':['LICENSE','README.md']},
     exclude_package_data={'': ['.gitignore']},
 
     install_requires=[
@@ -74,5 +73,5 @@ setup(
 #     python setup.py build --build-base=D:/test/python/build
 
 # distribution mode:
-#     python setup.py sdist build              # create source tar.gz file in /dist
+#     python setup.py bdist_wheel              # create source tar.gz file in /dist
 #     twine upload --skip-existing dist/*      # upload package to pypi
