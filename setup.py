@@ -49,7 +49,7 @@ setup(
     platforms = ["all"],
 
     packages=find_packages(exclude=[
-      'documents', 'docs', 'examples', 'notebooks', 'tests', 'build', 'dist']),
+      'documents', 'docs', 'examples', 'notebooks', 'tests', 'tests.*', 'build', 'dist']),
     include_package_data=True,
     package_data={'':['LICENSE','README.md']},
     exclude_package_data={'': ['.gitignore']},
