@@ -2035,19 +2035,20 @@ def cmadaas_analysis_by_times(times_str, pbar=True, allExists=True, **kargs):
     return xr.concat(dataset, dim='time')
 
 
-def cmadaas_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", latestTime=24):
+def cmadaas_get_model_latest_time(data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", latestTime=24):
     """
     Get the latest run time of the model.
+    注意不是所有的模式都有获取最新起步时间的接口函数.
     
     Args:
-        data_code (str, optional): dataset code, like "NAFP_ECMF_FTM_HIGH_ANEA_FOR".
+        data_code (str, optional): dataset code, like "NAFP_FOR_FTM_HIGH_EC_ANEA".
         latestTime (int, optional): latestTime > 0, like 2 is return 
                                     the latest time in 2 hours. Defaults to 24.
     Returns:
         datetime object, the latest time
 
     Examples:
-    >>> print(cmadaas_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", latestTime=24))
+    >>> print(cmadaas_get_model_latest_time(data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", latestTime=24))
         2020-03-11 12:00:00
     """
 
