@@ -2698,32 +2698,38 @@ def cmadaas_get_model_file(time, data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", fcst_ele
     >>> out_files = cmadaas_get_model_file('20210113000000', fcst_ele='TEM', out_dir=".")
     >>> out_files = cmadaas_get_model_file('[20210111000000,20210130000000]', fcst_ele='TEM', out_dir=".")
     """
+    
+    # check initial time
+    if isinstance(time, datetime):
+        time_str = time.strftime("%Y%m%d%H%M%S")
+    else:
+        time_str = time
 
     if out_dir is None:
         out_dir = CONFIG.get_cache_file(data_code, "", name="CMADaaS")
     
-    time = time.strip()
+    time_str = time_str.strip()
     if fcst_ele is None:
         params = {'dataCode': data_code}
-        if time[0] == '[':
+        if time_str[0] == '[':
             # set retrieve parameters
-            params['timeRange'] = time 
+            params['timeRange'] = time_str 
             interface_id = "getNafpFileByTimeRange"
         else:
             # set retrieve parameters
-            params['time'] = time
+            params['time'] = time_str
             interface_id = "getNafpFileByTime"
     else:
         params = {'dataCode': data_code,
                   'fcstEle': fcst_ele.strip(),
                   'levelType': str(level_type).strip()} 
-        if time[0] == '[':
+        if time_str[0] == '[':
             # set retrieve parameters
-            params['timeRange'] = time
+            params['timeRange'] = time_str
             interface_id = "getNafpFileByElementAndTimeRange"
         else:
             # set retrieve parameters
-            params['time'] = time
+            params['time'] = time_str
             interface_id = "getNafpFileByElementAndTime"
 
     # retrieve data contents
