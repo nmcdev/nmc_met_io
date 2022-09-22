@@ -6,7 +6,7 @@
 """
 从CMADaaS 大数据云平台读取睿思模式数据.
 
-Writed by Tangjian.
+Writed by Tangjian in 2022/2/5.
 """
 
 import json
@@ -43,8 +43,9 @@ def _load_rise_contents(contents):
     return contents
 
 
-def cmadaas_get_rise_model_file(time, data_code="NAFP_WOG_ANA_100M", fcst_ele=None, userId=None, pwd=None,
-                           out_dir=None, pbar=False, just_url=False):
+def cmadaas_get_rise_model_file(time, data_code="NAFP_WOG_ANA_100M", 
+                                fcst_ele=None, userId=None, pwd=None,
+                                out_dir=None, pbar=False, just_url=False):
 
     if out_dir is None:
         out_dir = CONFIG.get_cache_file(data_code, "", name="CMADaaS")
@@ -102,7 +103,7 @@ def cmadaas_get_rise_model_file(time, data_code="NAFP_WOG_ANA_100M", fcst_ele=No
 
 
 def get_rise_rest_result(interface_id, params, url_only=False,
-                    dns=None, port=None, data_format='json'):
+                         dns=None, port=None, data_format='json'):
 
     # set MUSIC server dns port
     if dns is None:
@@ -148,8 +149,8 @@ def get_rise_rest_result(interface_id, params, url_only=False,
 
 
 def rise5_model_by_pionts(init_time_str, data_code='RMAPSRISE5',
-                        time_range=[0, 24], 
-                        points="39.90/116.40", fcst_ele="2T,apcp_1hr,RH,10U,10V,10FG1"):
+                          time_range=[0, 24], 
+                          points="39.90/116.40", fcst_ele="2T,apcp_1hr,RH,10U,10V,10FG1"):
 
     # set retrieve parameters
     params = {'datacode': data_code,
