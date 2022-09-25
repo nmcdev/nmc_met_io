@@ -991,7 +991,7 @@ def cimiss_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FRT_5KM",
         directory = os.path.join(data_code, fcst_ele)
         filename = time_str
         if limit is not None:
-            filename = filename + '.' + str(limit)
+            filename = filename + '.' + str(limit).replace(" ","")
         cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
@@ -1169,7 +1169,7 @@ def cimiss_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_RT_GR
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
         filename = time_str
         if limit is not None:
-            filename = filename + '.' + str(limit)
+            filename = filename + '.' + str(limit).replace(" ","")
         cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
@@ -1332,7 +1332,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
         filename = init_time_str + '.' + str(valid_time).zfill(3)
         if limit is not None:
-            filename = init_time_str + '_' +str(limit) +'.' + str(valid_time).zfill(3)
+            filename = init_time_str + '_' +str(limit).replace(" ","") +'.' + str(valid_time).zfill(3)
         cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
@@ -1648,7 +1648,7 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
         filename = init_time_str + '.' + str(valid_time).zfill(3)
         if limit is not None:
-            filename = init_time_str + '_' +str(limit) +'.' + str(valid_time).zfill(3)
+            filename = init_time_str + '_' +str(limit).replace(" ","") +'.' + str(valid_time).zfill(3)
         cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:

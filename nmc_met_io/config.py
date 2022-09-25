@@ -7,7 +7,7 @@
 Read configure file.
 """
 
-import os
+import glob
 import datetime
 import shutil
 import configparser
@@ -86,12 +86,21 @@ def get_cache_file(sub_dir, filename, name=None, cache_clear=True):
     # 如果设置了清除缓存, 则会将缓存文件逐周存放, 并删除过去的周文件夹. 
     if cache_clear:
         # Use the week number of year as subdir
-        cache_subdir1 = cache_dir / datetime.date.today().strftime("%Y%U")
+        cache_subdir1 = cache_dir / datetime.date.today().strftime("cached_%Y%m%d")
         cache_subdir2 = cache_subdir1 / sub_dir
         cache_subdir2.mkdir(parents=True, exist_ok=True)
-
-        for f in cache_dir.iterdir():
-            if f != cache_subdir1:
+        
+        if CONFIG.has_option('CACHE', 'CACHE_DAYS'):
+            cache_days = int(CONFIG['CACHE']['CACHE_DAYS'])
+        else:
+            cache_days = 7
+        deadline_time = datetime.datetime.now() - datetime.timedelta(days=cache_days)
+            
+        # 删除cache_days天之前的缓存数据目录
+        dirs = cache_dir.glob("cached_????????")
+        for f in dirs:
+            ftime = datetime.datetime.fromtimestamp(f.stat().st_mtime)
+            if ftime < deadline_time:
                 shutil.rmtree(f)
     else:
         cache_subdir2 = cache_dir / sub_dir
