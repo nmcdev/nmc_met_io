@@ -11,6 +11,7 @@ refer to:
 """
 
 import os
+import fnmatch
 import warnings
 import json
 import pickle
@@ -2753,3 +2754,84 @@ def cmadaas_get_model_file(time, data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", fcst_ele
 
     return out_files
 
+
+def cmadaas_get_model_file_with_filter(
+    time, data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", 
+    filter=None, out_dir=None, pbar=False, just_url=False):
+    """
+    Download numeric weather predication model file.
+    与cmadaas_get_model_file函数不同, 本程序增加了对检索文件的过滤.
+    
+    Args:
+        times (str): model initial time for retrieve, 
+                     single time 'YYYYMMDDHHMISS'; or
+                     time range, '[YYYYMMDDHHMISS,YYYYMMDDHHMISS]'
+        data_code (str, optional): dataset code. Defaults to "SURF_CMPA_RT_NC".
+        filter (str, optional): filename's filter string. Defaults to None.
+        out_dir (str, optional): download files to out_dir. if out_dir is None,
+                                 the cached directory will be used. Defaults to None.
+        pbar (bool, optional): Show progress bar, default to True.
+        just_url (bool, optional): if just_url = True, return url string array, no files are downloaded.
+
+    Returns:
+        the list of download files path.
+
+    Examples:
+    >>> out_files = cmadaas_get_model_file('20210113000000', just_url=True)
+    """
+    
+    # check initial time
+    if isinstance(time, datetime):
+        time_str = time.strftime("%Y%m%d%H%M%S")
+    else:
+        time_str = time
+    time_str = time_str.strip()
+
+    if out_dir is None:
+        out_dir = CONFIG.get_cache_file(data_code, "", name="CMADaaS")
+    
+    params = {'dataCode': data_code}
+    if time_str[0] == '[':
+        # set retrieve parameters
+        params['timeRange'] = time_str 
+        interface_id = "getNafpFileByTimeRange"
+    else:
+        # set retrieve parameters
+        params['time'] = time_str
+        interface_id = "getNafpFileByTime"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+    if contents is None:
+        return None
+    
+    # filter contents
+    files = []
+    if filter is not None:
+        for file in contents['DS']:
+            if fnmatch.fnmatch(file['FILE_NAME'], filter):
+                files.append(file)
+    else:
+        files = contents['DS']
+    if len(files) < 1:
+        return None
+
+    # just return the url
+    if just_url:
+        return files
+
+    # loop every file and download
+    out_files = []
+    files = tqdm(files) if pbar else files
+    for file in files:
+        out_file = Path(out_dir) / file['FILE_NAME']
+        if not out_file.is_file():
+            urllib.request.urlretrieve(file['FILE_URL'], out_file)
+        out_files.append(out_file)
+
+    return out_files
+
+out_files = cmadaas_get_model_file_with_filter(
+    '20220920000000', data_code="NAFP_GRAPESREPS_FOR_FTM_DIS_CHN", 
+    filter="*_TEM_103_*_4_4.*", just_url=True)
