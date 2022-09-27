@@ -1343,7 +1343,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
     if limit is None:
         params = {'dataCode': data_code,
                   'time': init_time_str + '0000',
-                  'fcstLevel': '{:d}'.format(fcst_level),
+                  'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
                   'validTime': '{:d}'.format(valid_time),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
@@ -1354,7 +1354,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
                   "minLon": '{:.10f}'.format(limit[1]),
                   "maxLat": '{:.10f}'.format(limit[2]),
                   "maxLon": '{:.10f}'.format(limit[3]),
-                  'fcstLevel': '{:d}'.format(fcst_level),
+                  'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
                   'validTime': '{:d}'.format(valid_time),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
@@ -1386,6 +1386,10 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
     name = contents['fieldNames']
     if units is None:
         units = contents['fieldUnits']
+        
+    # set missing fcst_level for fcst_leve='-'
+    if type(fcst_level) == str:
+        fcst_level = 0
 
     # define coordinates and variables
     time_coord = ('time', time)
@@ -1659,7 +1663,7 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
     if limit is None:
         params = {'dataCode': data_code,
                   'time': init_time_str + '0000',
-                  'fcstLevel': '{:d}'.format(fcst_level),
+                  'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
                   'validTime': '{:d}'.format(valid_time),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
@@ -1670,7 +1674,7 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
                   "minLon": '{:.10f}'.format(limit[1]),
                   "maxLat": '{:.10f}'.format(limit[2]),
                   "maxLon": '{:.10f}'.format(limit[3]),
-                  'fcstLevel': '{:d}'.format(fcst_level),
+                  'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
                   'validTime': '{:d}'.format(valid_time),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
@@ -1702,6 +1706,10 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
     name = contents['fieldNames']
     if units is None:
         units = contents['fieldUnits']
+        
+    # set missing fcst_level for fcst_leve='-'
+    if type(fcst_level) == str:
+        fcst_level = 0
 
     # define coordinates and variables
     time_coord = ('time', time)
@@ -1800,7 +1808,7 @@ def cimiss_model_by_piont(init_time_str,
     # set retrieve parameters
     params = {'dataCode': data_code,
               'time': init_time_str + '0000',
-              'fcstLevel': '{:d}'.format(fcst_level),
+              'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
               'minVT': '{:d}'.format(time_range[0]),
               'maxVT': '{:d}'.format(time_range[1]),
               'latLons': points,
