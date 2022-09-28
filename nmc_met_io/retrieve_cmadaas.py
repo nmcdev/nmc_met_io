@@ -2206,7 +2206,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     if units is None:
         units = contents['fieldUnits']
         
-    # set missing fcst_level for fcst_leve='-'
+    # set missing fcst_level for like fcst_leve='-'
     if type(fcst_level) == str:
         fcst_level = 0
 
