@@ -1061,25 +1061,27 @@ def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000
     return data
 
 
-def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM",
-                             fcst_ele="PRE", zoom=None, units=None, scale_off=None,
+def cmadaas_obs_grid_by_time(time, limit=None, data_code="SURF_CMPA_FAST_5KM",
+                             fcst_ele="PRE", zoom=None, varname='data', 
+                             units=None, scale_off=None,
                              cache=True, cache_clear=True):
     """
-    Retrieve surface analysis grid products, like CMPAS-V2.1融合降水分析实时数据产品（NC）.
+    Retrieve surface analysis grid products, like CMPAS-V2.1融合降水分析实时数据产品(NC).
     For SURF_CMPA_RT_NC, this function will retrieve the 0.01 resolution data and take long time.
     该函数主要用于降水实况分析数据检索, 若需要温度、风的实况分析, 使用cmadaas_analysis_by_time.
 
-    :param time_str: analysis time string, like "20171008000000", format: YYYYMMDDHHMISS
+    :param time: analysis time, datetime object or string like "20171008000000", format: YYYYMMDDHHMISS
     :param limit: [min_lat, min_lon, max_lat, max_lon]
     :param data_code: MUSIC data code, default is "SURF_CMPA_FRT_5KM"
-        "SURF_CMPA_RT_NC": 实时产品滞后约50~60分钟,分两种空间分辨率：1小时/0.05°、1小时/0.01°
+        "SURF_CMPA_RT_NC": 实时产品滞后约50~60分钟,分两种空间分辨率: 1小时/0.05°、1小时/0.01°
         "SURF_CMPA_FRT_5KM_10MIN"(PRE_10MIN): CMPAS-V2.1融合降水分析实时数据10分钟产品
-        "SURF_CMPA_FAST_5KM": CMPAS-V2.1融合降水分析快速数据小时产品, 时效在15分钟以内，包含小时降水和3小时累计降水两种要素
-        "SURF_CMPA_FRT_5KM": CMPAS-V2.1融合降水分析实时数据小时产品（GRIB，5km）
-        "SURF_CMPA_FAST_5KM_DAY": CMPAS-V2.1融合降水分析快速数据日产品（GRIB，5km）
-        "SURF_CMPA_FRT_5KM_DAY": CMPAS-V2.1融合降水分析实时数据日产品（GRIB，5km）
+        "SURF_CMPA_FAST_5KM": CMPAS-V2.1融合降水分析快速数据小时产品, 时效在15分钟以内, 包含小时降水和3小时累计降水两种要素
+        "SURF_CMPA_FRT_5KM": CMPAS-V2.1融合降水分析实时数据小时产品(GRIB, 5km)
+        "SURF_CMPA_FAST_5KM_DAY": CMPAS-V2.1融合降水分析快速数据日产品(GRIB, 5km)
+        "SURF_CMPA_FRT_5KM_DAY": CMPAS-V2.1融合降水分析实时数据日产品(GRIB, 5km)
     :param fcst_ele: elements
-    :param zoom: the zoom out integer > 1, like 2. 像元缩小倍数, 数值大于1，1的整数倍.
+    :param zoom: the zoom out integer > 1, like 2. 像元缩小倍数, 数值大于1, 1的整数倍.
+    :param varname: set variable name, default is 'data'
     :param units: forecast element's units, defaults to retrieved units.
     :param scale_off: [scale, offset], return values = values*scale + offset.
     :param cache: cache retrieved data to local directory, default is True.
@@ -1090,6 +1092,14 @@ def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM
     >>> data_code = "SURF_CMPA_FAST_5KM"
     >>> data = cmadaas_obs_grid_by_time(time_str, data_code=data_code, fcst_ele="PRE")
     """
+    # check time_str type
+    if isinstance(time, datetime):
+        time_str = time.strftime("%Y%m%d%H%M%S")
+    elif isinstance(time, str):
+        time_str = time
+    else:
+        warnings.warn('The type of time is not supportted')
+        return None
 
     # retrieve data from cached file
     if cache:
@@ -1152,7 +1162,6 @@ def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM
     lat_coord = ('lat', lat, {
         'long_name':'latitude', 'units':'degrees_north',
         '_CoordinateAxisType':'Lat', 'axis': "Y"})
-    varname = fcst_ele
     varattrs = {'long_name': name, 'units': units}
 
     # construct xarray
@@ -1874,22 +1883,23 @@ def cmadaas_sounding_in_rect_by_time_range(
     return data
 
 
-def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_ASI_NC',
+def cmadaas_analysis_by_time(time, limit=None, data_code='NAFP_CLDAS2.0_NRT_ASI_NC',
                              levattrs={'long_name':'Height above Ground', 'units':'m'}, level_type='-',
-                             fcst_level=None, fcst_ele="TMP", zoom=None, units=None, scale_off=None,
-                             cache=True, cache_clear=True):
+                             fcst_level=None, fcst_ele="TMP", zoom=None, varname='data', units=None, 
+                             scale_off=None, cache=True, cache_clear=True):
     """
     Retrieve CLDAS analysis data from CMADaaS service.
 
-    :param time_str: analysis time, like "20160817120000", format: YYYYMMDDHHMISS
+    :param time: analysis time, like "20160817120000", format: YYYYMMDDHHMISS
     :param limit: [min_lat, min_lon, max_lat, max_lon]
     :param data_code: MUSIC data code, default is "NAFP_CLDAS2.0_NRT_ASI_NC"
-                      CLDAS2.0近实时数据产品（NC）-亚洲区域. Others like:
-                      NAFP_HRCLDAS_CHN_1KM_RT, HRCLDAS中国0.01°×0.01°逐小时实时融合实况分析产品
+                      CLDAS2.0近实时数据产品(NC)-亚洲区域. Others like:
+                      NAFP_HRCLDAS_CHN_1KM_RT, HRCLDAS中国0.01°x0.01°逐小时实时融合实况分析产品
     :param fcst_level: vertical level, default is None.
     :param level_type: vertical level type, default is -, 表示没有层次类型
     :param fcst_ele: forecast element, default is 2m temperature "TAIR"
-    :param zoom: the zoom out integer > 1, like 2. 像元缩小倍数, 数值大于1，1的整数倍.
+    :param zoom: the zoom out integer > 1, like 2. 像元缩小倍数, 数值大于1, 1的整数倍.
+    :param varname: set variable name, default is 'data'
     :param units: forecast element's units, defaults to retrieved units.
     :param scale_off: [scale, offset], return values = values*scale + offset.
     :param cache: cache retrieved data to local directory, default is True.
@@ -1905,6 +1915,14 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_
             fcst_ele='TAIR', units="C",
             scale_off=[1.0, -273.15], cache=False)
     """
+    # check time_str type
+    if isinstance(time, datetime):
+        time_str = time.strftime("%Y%m%d%H%M%S")
+    elif isinstance(time, str):
+        time_str = time
+    else:
+        warnings.warn('The type of time is not supportted')
+        return None
 
     # retrieve data from cached file
     if cache:
@@ -1972,7 +1990,6 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_
         '_CoordinateAxisType':'Lat', 'axis': 'Y'})
     if fcst_level is not None:
         level_coord = ('level', np.array([fcst_level]), levattrs)
-    varname = fcst_ele
     varattrs = {'long_name': name, 'units': units}
 
     # construct xarray
@@ -2116,8 +2133,11 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     # check initial time
     if isinstance(init_time, datetime):
         init_time_str = init_time.strftime("%Y%m%d%H")
-    else:
+    elif isinstance(init_time, str):
         init_time_str = init_time
+    else:
+        warnings.warn('The type of init_time is not supportted')
+        return None
 
     # retrieve data from cached file
     if cache:
