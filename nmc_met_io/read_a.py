@@ -8,6 +8,7 @@ The Afile Reader module which get data from Afile(compatible with the A0File)
 
 Change Log:
     - Created by 王清龙/湖北/宜昌, 2022/10/1, e-mail:songofsongs@vip.qq.com
+    - Update by 王清龙/湖北/宜昌, 2023/4/3, e-mail:songofsongs@vip.qq.com
 """
 
 import sys
@@ -48,9 +49,9 @@ def read_A0file_metaD(metaline):
     """
     stationcode=metaline[:5]
     lat=int(metaline[6:8]) +int(metaline[8:10])/60
-    latstr=metaline[6:8]+'°'+metaline[8:10]+'″'
+    latstr=metaline[6:8]+'°'+metaline[8:10]+'′'
     lon=int(metaline[10:13]) +int(metaline[13:14])/60
-    lonstr=metaline[12:15]+'°'+metaline[15:17]+'″'
+    lonstr=metaline[12:15]+'°'+metaline[15:17]+'′'
     alti=int(metaline[16:21])/10
     PRS_alti=int(metaline[22:27])/10
     year=int(metaline[28:32])
@@ -71,12 +72,12 @@ def read_Afile_metaD(metaline):
     latF=metaline[10]
     if(latF=='S'):
         lat=lat*-1
-    latstr=metaline[6:8]+'°'+metaline[8:10]+'″'+latF
+    latstr=metaline[6:8]+'°'+metaline[8:10]+'′'+latF
     lon=int(metaline[12:15]) +int(metaline[15:17])/60
     lonF=metaline[17]
     if(lonF=='W'):
         lon=lon*-1
-    lonstr=metaline[12:15]+'°'+metaline[15:17]+'″'+lonF
+    lonstr=metaline[12:15]+'°'+metaline[15:17]+'′'+lonF
     altiF=metaline[19]
     alti=int(metaline[20:25])/10
     PRS_altiF=metaline[26]
@@ -481,7 +482,8 @@ def ReadAfile(afile:str):
             if(removedatablank):
                 ds=list(filter(lambda x:len(x)>0,ds))
             #print(len(ds))
-            left_datas.extend([left_fs[i](ds[i]) for i in range(left_len)])
+            if(left_len>0):
+                left_datas.extend([left_fs[i](ds[i]) for i in range(left_len)])
             if(right_len>0):
                 right_datas.extend([right_fs[i](ds[i+left_len]) for i in range(right_len)])
         return left_datas,right_datas
@@ -914,7 +916,7 @@ def ReadAfile(afile:str):
     ti=10
     if(OB_hs[ti]=='1'):
         if(OB_ts[ti]=='0'):
-            left_datas,right_datas=f_line(lines[OB_is[ti]+1:OB_is[ti]+1+metadata['daycounts']],1,0,rx)
+            left_datas,right_datas=f_line(lines[OB_is[ti]+1:OB_is[ti]+1+metadata['daycounts']],1,0,rx,datasplit='.',removedatablank=False)
             dialy_datas['WEP_Record']=left_datas
             dialy_datas['WEP_Sumary']=list(map(txt2wsumary,left_datas))
     #endregion 
@@ -2235,9 +2237,3 @@ def A2Excel(afile:str,excelfile:str,templatefile=templateexcel_f):
 
     wb.active = wb['封面']
     wb.save(excelfile)
-
-
-
-
-
-
