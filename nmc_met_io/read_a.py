@@ -8,7 +8,6 @@ The Afile Reader module which get data from Afile(compatible with the A0File)
 
 Change Log:
     - Created by 王清龙/湖北/宜昌, 2022/10/1, e-mail:songofsongs@vip.qq.com
-    - Update by 王清龙/湖北/宜昌, 2023/4/3, e-mail:songofsongs@vip.qq.com
 """
 
 import sys
@@ -22,6 +21,7 @@ import openpyxl as xl
 from openpyxl.styles import Font
 from openpyxl.styles import NamedStyle, Alignment, Font, Border, Side
 #region 常量定义区
+__version__=0.9
 #A文件的气象要素标识符，一个字符表示一个气象要素
 OBstrs='PTIEUNHCVRWLZGFDKASB'
 #region 用base64存储excel模板文件，直接在代码中调用，减少模板文件被修改的可能。
@@ -358,19 +358,19 @@ def ReadAfile(afile:str):
     #region 各要素处理函数
 
     def txt2int(txt):
-        if(str(txt).isdigit()):
+        try:
             return int(txt)
-        else:
-            return np.nan 
+        except:
+            return np.nan
         
     def txt2float(txt):
-        if(str(txt).isdigit()):
+        try:
             return int(txt)/10
-        else:
-            return np.nan 
+        except:
+            return np.nan
 
     def rx(x):
-        return x;
+        return x
     def P_txt2float(txt):
         ti=txt2float(txt)
         if(not np.isnan(ti) and ti<500):
@@ -2237,3 +2237,9 @@ def A2Excel(afile:str,excelfile:str,templatefile=templateexcel_f):
 
     wb.active = wb['封面']
     wb.save(excelfile)
+
+
+
+
+
+
