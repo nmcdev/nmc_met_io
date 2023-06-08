@@ -59,10 +59,11 @@ setup(
       'scipy>=1.4.0',
       'pandas>=1.0.0',
       'xarray>=0.16.0',
-      'protobuf>=3.12.0',
+      'protobuf>=3.17.0',
       'urllib3>=1.25.9',
       'tqdm>=4.47.0',
-      'python-dateutil>=2.8.1']
+      'python-dateutil>=2.8.1',
+      'openpyxl>=3.0.4',]
 )
 
 # development mode (DOS command):
