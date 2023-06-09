@@ -65,23 +65,27 @@ def ReadJfile(jfile:str):
             return np.nan  
         
 
-    def PT(Olines,Otype=float):
+    def PT(Olines,Otype=float,dlen=60*24*28):
         ots=sep.join(Olines)
         ots=ots.replace(',',sep)
         ots=ots.replace('.',sep)
         ots=ots.replace('=',sep)
         obs=list(map(lambda x:txt2int(x),filter(lambda x:len(x)>0,ots.split(sep))))
+        if(len(obs)<dlen):
+            obs.extend([np.nan]*(dlen-len(obs)))
         return np.array(obs)
 
-    def U(Olines):
+    def U(Olines,dlen=60*24*28):
         ots=sep.join(Olines)
         ots=ots.replace(',',sep)
         ots=ots.replace('.',sep)
         ots=ots.replace('=',sep)    
         obs=list(map(lambda x:100 if x=='%%' else txt2int(x),filter(lambda x:len(x)>0,ots.split(sep))))
+        if(len(obs)<dlen):
+            obs.extend([np.nan]*(dlen-len(obs)))
         return np.array(obs)
     
-    def R(Olines):
+    def R(Olines,dlen=60*24*28):
         Rs=[]
         last_dayendi=-1
         for i in range(len(Olines)):
@@ -97,16 +101,26 @@ def ReadJfile(jfile:str):
                 if(line[-1] in '.='):
                     Rs.extend([0.0]*(60*(24-(i-last_dayendi))))
                     last_dayendi=i     
+        if(len(Rs)<dlen):
+            Rs.extend([np.nan]*(dlen-len(Rs)))
         return np.array(Rs)          
 
-    def F(Olines):
+    def F(Olines,dlen=60*24*28):
         ots=sep.join(Olines)
         ots=ots.replace(',',sep)
         ots=ots.replace('.',sep)
         ots=ots.replace('=',sep)    
         obs=list(map(lambda x:(txt2int(x[:3]),txt2int(x[3:])/10.0),filter(lambda x:len(x)>0,ots.split(sep))))
-        wd,ws=zip(*obs)
+        if(len(obs)>0):
+            wd,ws=zip(*obs)
+        else:
+            wd,ws=[],[]        
+        if(len(wd)<dlen):
+            wd.extend([np.nan]*(dlen-len(wd)))
+        if(len(ws)<dlen):
+            ws.extend([np.nan]*(dlen-len(ws)))
         return np.array(wd),np.array(ws)
+        
     #endregion
 
     #region 读取元数据
@@ -181,11 +195,12 @@ def ReadJfile(jfile:str):
         if(lines[i][0] in OBstrs and len(lines[i])<10):
             OB_istarts.append(i)
     
-    Ps=PT(lines[OB_istarts[0]+1:OB_istarts[1]])/10.0
-    Ts=PT(lines[OB_istarts[1]+1:OB_istarts[2]])/10.0
-    Us=U(lines[OB_istarts[2]+1:OB_istarts[3]])
-    Rs=R(lines[OB_istarts[3]+1:OB_istarts[4]])
-    Wd,Ws=F(lines[OB_istarts[4]+1:len(lines)-1])
+    Ps=PT(lines[OB_istarts[0]+1:OB_istarts[1]],dlen=metadata['Data_counts'])/10.0
+    Ts=PT(lines[OB_istarts[1]+1:OB_istarts[2]],dlen=metadata['Data_counts'])/10.0
+    Us=U(lines[OB_istarts[2]+1:OB_istarts[3]],dlen=metadata['Data_counts'])
+    Rs=R(lines[OB_istarts[3]+1:OB_istarts[4]],dlen=metadata['Data_counts'])
+    Wd,Ws=F(lines[OB_istarts[4]+1:len(lines)-1],dlen=metadata['Data_counts'])
+    
     ds=pd.DataFrame({
         'Datetime':Dts,
         'PRS':Ps,
