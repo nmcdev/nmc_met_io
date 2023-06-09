@@ -154,7 +154,7 @@ def ReadAfile(afile:str):
             'ten percent',
             'm',
             'type string',
-            'Km',
+            'Km or m',
             'mm',
             'weather string',
             'mm',
@@ -858,7 +858,7 @@ def ReadAfile(afile:str):
         if(OB_ts[ti]=='B'):
             if('.' in lines[line_start+1]):
                 line_end=line_end+metadata['daycounts']
-            left_datas,right_datas=f_line(lines[line_start:line_end],24,2,txt2float,[txt2float,rx],linesplit='.')
+            left_datas,right_datas=f_line(lines[line_start:line_end],24,2,txt2int,[txt2int,rx],linesplit='.')
             hourly_datas['VIS']=left_datas
             dialy_datas['VIS_Min']=[right_datas[i] for i in range(0,len(right_datas),2)]
             dialy_datas['VIS_Min_OTime']=[right_datas[i] for i in range(1,len(right_datas),2)]  
@@ -2237,9 +2237,3 @@ def A2Excel(afile:str,excelfile:str,templatefile=templateexcel_f):
 
     wb.active = wb['封面']
     wb.save(excelfile)
-
-
-
-
-
-
