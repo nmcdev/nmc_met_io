@@ -18,7 +18,6 @@ import calendar
 import os.path
 from datetime import datetime,timedelta
 import openpyxl as xl
-from openpyxl.styles import Font
 from openpyxl.styles import NamedStyle, Alignment, Font, Border, Side
 #region 常量定义区
 #A文件的气象要素标识符，一个字符表示一个气象要素
