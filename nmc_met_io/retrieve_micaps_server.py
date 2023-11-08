@@ -1128,9 +1128,9 @@ def get_radar_mosaic(directory, filename=None, suffix="*.BIN", cache=True, cache
                 ind = 256
 
                 # get data information
-                varname = head_info['varname'][0]
-                longname = head_info['description'][0]
-                units = head_info['units'][0]
+                varname = head_info['varname'][0].decode("utf-8", 'ignore').strip('\x00')
+                longname = head_info['description'][0].decode("utf-8", 'ignore').strip('\x00')
+                units = head_info['units'][0].decode("utf-8", 'ignore').strip('\x00')
 
                 # define data variable
                 rows = head_info['nY'][0]
