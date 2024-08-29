@@ -11,18 +11,21 @@ refer to:
   https://github.com/babybearming/CIMISSDataGet/blob/master/cimissRead_v0.1.py
 """
 
-import os
-import warnings
 import json
+import os
 import pickle
+import warnings
 from datetime import datetime, timedelta
-import urllib3
+
 import numpy as np
 import pandas as pd
+import urllib3
 import xarray as xr
 from tqdm import tqdm
+
 import nmc_met_io.config as CONFIG
 from nmc_met_io.config import _get_config_from_rcfile
+
 
 def get_http_result(interface_id, params, data_format='json'):
     """
@@ -1369,7 +1372,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
 
     # get time information
     init_time = datetime.strptime(init_time_str, '%Y%m%d%H')
-    fhour = np.array([valid_time], dtype=np.float)
+    fhour = np.array([valid_time], dtype=np.float64)
     time = init_time + timedelta(hours=fhour[0])
     init_time = np.array([init_time], dtype='datetime64[ms]')
     time = np.array([time], dtype='datetime64[ms]')
@@ -1689,7 +1692,7 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
 
     # get time information
     init_time = datetime.strptime(init_time_str, '%Y%m%d%H')
-    fhour = np.array([valid_time], dtype=np.float)
+    fhour = np.array([valid_time], dtype=np.float64)
     time = init_time + timedelta(hours=fhour[0])
     init_time = np.array([init_time], dtype='datetime64[ms]')
     time = np.array([time], dtype='datetime64[ms]')

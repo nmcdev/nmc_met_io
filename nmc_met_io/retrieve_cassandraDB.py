@@ -13,27 +13,30 @@ Change Log:
   - Created by 王清龙/湖北/宜昌, 2022/2/26, e-mail:songofsongs@vip.qq.com
 """
 
+import bz2
+import gzip
+import pickle
+import re
 import sys
 import warnings
-from glob import glob
-import re
-import pickle
-import bz2
 import zlib
-import gzip
-from io import BytesIO
 from datetime import datetime, timedelta
+from glob import glob
+from io import BytesIO
+
 import numpy as np
-import xarray as xr
 import pandas as pd
+import xarray as xr
 from tqdm import tqdm
+
 import nmc_met_io.config as CONFIG
 from nmc_met_io.read_radar import StandardData
 from nmc_met_io.read_satellite import resolve_awx_bytearray
 
 try:
-    from cassandra.cluster import Cluster
+    # please install cassandra-driver first
     from cassandra.auth import PlainTextAuthProvider
+    from cassandra.cluster import Cluster
 except ImportError:
     print("cassandra-driver is not installed (pip install cassandra-driver)")
     sys.exit(1)
@@ -324,7 +327,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
             # construct initial time and forecast hour
             init_time = datetime(head_info['year'][0], head_info['month'][0],
                                  head_info['day'][0], head_info['hour'][0])
-            fhour = np.array([head_info['period'][0]], dtype=np.float)
+            fhour = np.array([head_info['period'][0]], dtype=np.float64)
             time = init_time + timedelta(hours=fhour[0])
             init_time = np.array([init_time], dtype='datetime64[ms]')
             time = np.array([time], dtype='datetime64[ms]')
@@ -1563,7 +1566,7 @@ def get_swan_radar(directory, filename=None, suffix="*.000", scale=[0.1, 0],
                 fhour = int(filename.split('.')[1])/60.0
             else:
                 fhour = 0
-            fhour = np.array([fhour], dtype=np.float)
+            fhour = np.array([fhour], dtype=np.float64)
             time = init_time + timedelta(hours=fhour[0])
             init_time = np.array([init_time], dtype='datetime64[ms]')
             time = np.array([time], dtype='datetime64[ms]')
