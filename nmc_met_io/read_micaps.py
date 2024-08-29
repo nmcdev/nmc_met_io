@@ -44,7 +44,7 @@ def read_micaps_1(fname, limit=None):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
@@ -138,7 +138,7 @@ def read_micaps_2(fname, limit=None):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
@@ -240,7 +240,7 @@ def read_micaps_3(fname, limit=None):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
@@ -349,7 +349,7 @@ def read_micaps_4(fname, limit=None, varname='data', varattrs={'units':''}, scal
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
@@ -476,7 +476,7 @@ def read_micaps_5(fname, limit=None):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
@@ -574,7 +574,7 @@ def read_micaps_7(fname):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
@@ -664,7 +664,7 @@ def read_micaps_8(fname, limit=None):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
@@ -749,7 +749,7 @@ def read_micaps_11(fname, limit=None, scale_off=None, no_level=False,
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
@@ -882,7 +882,7 @@ def read_micaps_14(fname):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     txt = None
     for encoding in encodings:
         txt = None
@@ -1497,7 +1497,7 @@ def read_micaps_120(fname, limit=None):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
