@@ -11,21 +11,23 @@ Checking url, like:
 http://10.32.8.164:8080/DataService?requestType=getLatestDataName&directory=ECMWF_HR/TMP/850&fileName=&filter=*.024
 """
 
-import warnings
-import re
-import http.client
-import urllib.parse
-import pickle
 import bz2
+import http.client
+import pickle
+import re
+import urllib.parse
+import warnings
 import zlib
-from io import BytesIO
 from datetime import datetime, timedelta
+from io import BytesIO
+
 import numpy as np
-import xarray as xr
 import pandas as pd
+import xarray as xr
 from tqdm import tqdm
-from nmc_met_io import DataBlock_pb2
+
 import nmc_met_io.config as CONFIG
+from nmc_met_io import DataBlock_pb2
 from nmc_met_io.read_radar import StandardData
 from nmc_met_io.read_satellite import resolve_awx_bytearray
 
@@ -330,7 +332,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
             # construct initial time and forecast hour
             init_time = datetime(head_info['year'][0], head_info['month'][0],
                                  head_info['day'][0], head_info['hour'][0])
-            fhour = np.array([head_info['period'][0]], dtype=np.float)
+            fhour = np.array([head_info['period'][0]], dtype=np.float64)
             time = init_time + timedelta(hours=fhour[0])
             init_time = np.array([init_time], dtype='datetime64[ms]')
             time = np.array([time], dtype='datetime64[ms]')
@@ -1625,7 +1627,7 @@ def get_swan_radar(directory, filename=None, suffix="*.000", scale=[0.1, 0],
                 fhour = int(filename.split('.')[1])/60.0
             else:
                 fhour = 0
-            fhour = np.array([fhour], dtype=np.float)
+            fhour = np.array([fhour], dtype=np.float64)
             time = init_time + timedelta(hours=fhour[0])
             init_time = np.array([init_time], dtype='datetime64[ms]')
             time = np.array([time], dtype='datetime64[ms]')

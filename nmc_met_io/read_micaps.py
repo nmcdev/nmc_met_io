@@ -8,10 +8,11 @@ Read micaps data file.
 """
 
 import os.path
-import numpy as np
-import xarray as xr
-import pandas as pd
 from datetime import datetime, timedelta
+
+import numpy as np
+import pandas as pd
+import xarray as xr
 
 
 def read_micaps_1(fname, limit=None):
@@ -374,7 +375,7 @@ def read_micaps_4(fname, limit=None, varname='data', varattrs={'units':''}, scal
     if hour >= 24:    # some times, micaps file head change the order.
         hour = int(txt[7])
         fhour = int(txt[6])
-    fhour = np.array([fhour], dtype=np.float)
+    fhour = np.array([fhour], dtype=np.float64)
     init_time = datetime(year, month, day, hour)
     time = init_time + timedelta(hours=fhour[0])
     init_time = np.array([init_time], dtype='datetime64[ms]')
@@ -770,7 +771,7 @@ def read_micaps_11(fname, limit=None, scale_off=None, no_level=False,
     month = int(txt[4])
     day = int(txt[5])
     hour = int(txt[6])
-    fhour = np.array([int(txt[7])], dtype=np.float)
+    fhour = np.array([int(txt[7])], dtype=np.float64)
     init_time = datetime(year, month, day, hour)
     time = init_time + timedelta(hours=fhour[0])
     init_time = np.array([init_time], dtype='datetime64[ms]')

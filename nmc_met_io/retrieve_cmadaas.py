@@ -10,21 +10,23 @@ refer to:
   http://idata.cma/cmadaas/
 """
 
-import os
 import fnmatch
-import warnings
-import json
-import pickle
 import hashlib
-import uuid
-from datetime import datetime, timedelta
-import urllib3
+import json
+import os
+import pickle
 import urllib.request
+import uuid
+import warnings
+from datetime import datetime, timedelta
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
+import urllib3
 import xarray as xr
 from tqdm import tqdm
+
 import nmc_met_io.config as CONFIG
 
 
@@ -2208,7 +2210,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
 
     # get time information
     init_time = datetime.strptime(init_time_str, '%Y%m%d%H')
-    fhour = np.array([valid_time], dtype=np.float)
+    fhour = np.array([valid_time], dtype=np.float64)
     time = init_time + timedelta(hours=fhour[0])
     init_time = np.array([init_time], dtype='datetime64[ms]')
     time = np.array([time], dtype='datetime64[ms]')
@@ -2591,7 +2593,7 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None, fcst_member=None,
 
     # get time information
     init_time = datetime.strptime(init_time_str, '%Y%m%d%H')
-    fhour = np.array([valid_time], dtype=np.float)
+    fhour = np.array([valid_time], dtype=np.float64)
     time = init_time + timedelta(hours=fhour[0])
     init_time = np.array([init_time], dtype='datetime64[ms]')
     time = np.array([time], dtype='datetime64[ms]')
