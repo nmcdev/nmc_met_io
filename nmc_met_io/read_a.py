@@ -20,6 +20,7 @@ from datetime import datetime,timedelta
 import openpyxl as xl
 from openpyxl.styles import NamedStyle, Alignment, Font, Border, Side
 #region 常量定义区
+__version__=0.9
 #A文件的气象要素标识符，一个字符表示一个气象要素
 OBstrs='PTIEUNHCVRWLZGFDKASB'
 #region 用base64存储excel模板文件，直接在代码中调用，减少模板文件被修改的可能。
@@ -47,9 +48,9 @@ def read_A0file_metaD(metaline):
     """
     stationcode=metaline[:5]
     lat=int(metaline[6:8]) +int(metaline[8:10])/60
-    latstr=metaline[6:8]+'°'+metaline[8:10]+'″'
+    latstr=metaline[6:8]+'°'+metaline[8:10]+'′'
     lon=int(metaline[10:13]) +int(metaline[13:14])/60
-    lonstr=metaline[12:15]+'°'+metaline[15:17]+'″'
+    lonstr=metaline[12:15]+'°'+metaline[15:17]+'′'
     alti=int(metaline[16:21])/10
     PRS_alti=int(metaline[22:27])/10
     year=int(metaline[28:32])
@@ -70,12 +71,12 @@ def read_Afile_metaD(metaline):
     latF=metaline[10]
     if(latF=='S'):
         lat=lat*-1
-    latstr=metaline[6:8]+'°'+metaline[8:10]+'″'+latF
+    latstr=metaline[6:8]+'°'+metaline[8:10]+'′'+latF
     lon=int(metaline[12:15]) +int(metaline[15:17])/60
     lonF=metaline[17]
     if(lonF=='W'):
         lon=lon*-1
-    lonstr=metaline[12:15]+'°'+metaline[15:17]+'″'+lonF
+    lonstr=metaline[12:15]+'°'+metaline[15:17]+'′'+lonF
     altiF=metaline[19]
     alti=int(metaline[20:25])/10
     PRS_altiF=metaline[26]
@@ -152,7 +153,7 @@ def ReadAfile(afile:str):
             'ten percent',
             'm',
             'type string',
-            'Km',
+            'Km or m',
             'mm',
             'weather string',
             'mm',
@@ -356,19 +357,19 @@ def ReadAfile(afile:str):
     #region 各要素处理函数
 
     def txt2int(txt):
-        if(str(txt).isdigit()):
+        try:
             return int(txt)
-        else:
-            return np.nan 
+        except:
+            return np.nan
         
     def txt2float(txt):
-        if(str(txt).isdigit()):
+        try:
             return int(txt)/10
-        else:
-            return np.nan 
+        except:
+            return np.nan
 
     def rx(x):
-        return x;
+        return x
     def P_txt2float(txt):
         ti=txt2float(txt)
         if(not np.isnan(ti) and ti<500):
@@ -480,7 +481,8 @@ def ReadAfile(afile:str):
             if(removedatablank):
                 ds=list(filter(lambda x:len(x)>0,ds))
             #print(len(ds))
-            left_datas.extend([left_fs[i](ds[i]) for i in range(left_len)])
+            if(left_len>0):
+                left_datas.extend([left_fs[i](ds[i]) for i in range(left_len)])
             if(right_len>0):
                 right_datas.extend([right_fs[i](ds[i+left_len]) for i in range(right_len)])
         return left_datas,right_datas
@@ -855,7 +857,7 @@ def ReadAfile(afile:str):
         if(OB_ts[ti]=='B'):
             if('.' in lines[line_start+1]):
                 line_end=line_end+metadata['daycounts']
-            left_datas,right_datas=f_line(lines[line_start:line_end],24,2,txt2float,[txt2float,rx],linesplit='.')
+            left_datas,right_datas=f_line(lines[line_start:line_end],24,2,txt2int,[txt2int,rx],linesplit='.')
             hourly_datas['VIS']=left_datas
             dialy_datas['VIS_Min']=[right_datas[i] for i in range(0,len(right_datas),2)]
             dialy_datas['VIS_Min_OTime']=[right_datas[i] for i in range(1,len(right_datas),2)]  
@@ -913,7 +915,7 @@ def ReadAfile(afile:str):
     ti=10
     if(OB_hs[ti]=='1'):
         if(OB_ts[ti]=='0'):
-            left_datas,right_datas=f_line(lines[OB_is[ti]+1:OB_is[ti]+1+metadata['daycounts']],1,0,rx)
+            left_datas,right_datas=f_line(lines[OB_is[ti]+1:OB_is[ti]+1+metadata['daycounts']],1,0,rx,datasplit='.',removedatablank=False)
             dialy_datas['WEP_Record']=left_datas
             dialy_datas['WEP_Sumary']=list(map(txt2wsumary,left_datas))
     #endregion 
@@ -2234,9 +2236,3 @@ def A2Excel(afile:str,excelfile:str,templatefile=templateexcel_f):
 
     wb.active = wb['封面']
     wb.save(excelfile)
-
-
-
-
-
-
