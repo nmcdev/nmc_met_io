@@ -20,6 +20,7 @@ import uuid
 import warnings
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional, Dict, Any, Union
 
 import numpy as np
 import pandas as pd
@@ -812,72 +813,144 @@ def cmadaas_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HO
     # return
     return data
 
+# Constants for clarity and maintainability
+DEFAULT_ELEMENTS_SURF_CHN_MUL_HOR_N = "Station_Id_C,Datetime,Lat,Lon,TEM"
+INTERFACE_ID_SURF_ELE_IN_BASIN = "getSurfEleInBasinByTimeRange"
 
-def cmadaas_obs_in_basin_by_time_range(time_range, basin="CJLY", data_code="SURF_CHN_MUL_HOR_N",
-                                       sta_levels=None, ranges=None, order=None, 
-                                       count=None, trans_type=True,
-                                       elements="Station_Id_C,Datetime,Lat,Lon,TEM"):
+def cmadaas_obs_in_basin_by_time_range(
+    time_range: str,
+    basin: str = "CJLY",
+    data_code: str = "SURF_CHN_MUL_HOR_N",
+    sta_levels: Optional[str] = None,
+    ranges: Optional[str] = None,
+    order: Optional[str] = None,
+    count: Optional[int] = None,
+    trans_type: bool = True,
+    elements: Optional[str] = None,  # Changed default to None for more flexible handling
+) -> Optional[pd.DataFrame]:
     """
     Retrieve observation records from CIMISS by basin and time range.
-    
+
     Args:
-        time_range (str): time for retrieve, "[YYYYMMDDHHMISS,YYYYMMDDHHMISS]"
-        basin (str, optional):  basin codes, sperated by ",",  like "CJLY" is Yangzi River, 
-                                "sta_2480" is 2480 stations. Defaults to "CJLY".
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
-        sta_levels (str, optional): station levels, seperated by ',',
-             like "011,012,013" for standard, base and general stations. Defaults to None.
-        ranges (str, optional): elements value ranges, seperated by ';'
-            range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
-                   [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
-            list: a,b,c;
-            e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.. Defaults to None.
-        order (str, optional): elements order, seperated by ',', like
-            "TEM:asc,SUM_PRE_1h:desc" is ascending order temperature first and descending PRE_1h. Defaults to None.
-        count (int, optional): the number of maximum returned records. Defaults to None.
-        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric. Defaults to True.
-        elements (str, optional): elements for retrieve, 'ele1,ele2,...'. 
-            Defaults to "Station_Id_C,Station_Id_d,lat,lon,Datetime,TEM".
-    
+        time_range (str): Time for retrieval, e.g., "[20160801000000,20160801000000]".
+        basin (str, optional): Basin codes, separated by ",", e.g., "CJLY" (Yangzi River),
+                               "sta_2480" (specific station group). Defaults to "CJLY".
+        data_code (str, optional): Dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        sta_levels (str, optional): Station levels, separated by ',',
+             e.g., "011,012,013" for national, basic, and general stations. Defaults to None.
+        ranges (str, optional): Element value ranges, separated by ';'.
+            Format examples:
+            - Range: "(a,)" (>a), "[a,)" (>=a), "(,a)" (<a), "(,a]" (<=a),
+                     "(a,b)" (>a & <b), "[a,b)" (>=a & <b),
+                     "(a,b]" (>a & <=b), "[a,b]" (>=a & <=b)
+            - List: "a,b,c"
+            e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" (PRE quantity is credible).
+            Defaults to None.
+        order (str, optional): Element order, separated by ',', e.g.,
+            "TEM:asc,SUM_PRE_1h:desc" (ascending temperature, then descending PRE_1h).
+            Defaults to "Datetime:ASC" if not provided.
+        count (int, optional): The maximum number of records to return. Defaults to None.
+        trans_type (bool, optional): If True, convert DataFrame column types (e.g.,
+                                     Datetime to datetime objects, relevant fields to numeric).
+                                     Defaults to True.
+        elements (str, optional): Elements for retrieval, 'ele1,ele2,...'.
+            If None, defaults to "Station_Id_C,Datetime,Lat,Lon,TEM" for
+            data_code "SURF_CHN_MUL_HOR_N". For other data_codes, if elements
+            is None, it's passed as such to the API (which might use its own
+            default or error if mandatory).
+            Original docstring default was "Station_Id_C,Station_Id_d,lat,lon,Datetime,TEM".
+            The actual code default was "Station_Id_C,Datetime,Lat,Lon,TEM". This version
+            uses the latter for consistency with the original code's behavior for the
+            default data_code.
+
     Returns:
-        pandas data frame: observation records.
-    
+        Optional[pd.DataFrame]: A pandas DataFrame containing observation records,
+                                 or None if an error occurs. Returns an empty DataFrame
+                                 if no records are found but the request was successful.
+
     Examples:
-    >>> elements = ("Station_Id_C,Station_Id_d,Station_Name,"
-                    "Station_levl,Datetime,Lat,Lon,PRE_Time_0808")
-    >>> time_range = "[20160801000000,20160801000000]"
-    >>> data_code = "SURF_CHN_MUL_DAY"
-    >>> data = cmadaas_obs_in_basin_by_time_range(
-            time_range, basin="CJLY", data_code=data_code,
-            elements=elements)
+    >>> elements_example = ("Station_Id_C,Station_Id_d,Station_Name,"
+    ...                     "Station_levl,Datetime,Lat,Lon,PRE_Time_0808")
+    >>> time_range_example = "[20160801000000,20160801000000]"
+    >>> data_code_example = "SURF_CHN_MUL_DAY"
+    >>> df = cmadaas_obs_in_basin_by_time_range(
+    ...         time_range=time_range_example,
+    ...         basin="CJLY",
+    ...         data_code=data_code_example,
+    ...         elements=elements_example
+    ...     )
+    >>> if df is not None: # df can be an empty DataFrame if no records found
+    ...     print(f"DataFrame shape: {df.shape}")
+
     """
+    # Determine elements to use
+    final_elements = elements
+    if final_elements is None and data_code == "SURF_CHN_MUL_HOR_N":
+        final_elements = DEFAULT_ELEMENTS_SURF_CHN_MUL_HOR_N
 
-    # set retrieve parameters
-    params = {'dataCode': data_code,
-              'elements': elements,
-              'timeRange': time_range,
-              'basinCodes': basin,
-              'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    # Prepare parameters for the API call
+    api_params: Dict[str, Union[str, int]] = {
+        'dataCode': data_code,
+        'timeRange': time_range,
+        'basinCodes': basin,
+        'orderby': order or "Datetime:ASC",  # More concise default for order
+    }
 
-    # interface id
-    # http://10.20.76.55/cimissapiweb/apicustomapiclassdefine_list.action?ids=getNafpEleGridByTimeAndLevelAndValidtime&apiclass=NAFP_API
-    interface_id = "getSurfEleInBasinByTimeRange"
+    if final_elements is not None:
+        api_params['elements'] = final_elements
+    if sta_levels is not None:
+        api_params['staLevels'] = sta_levels
+    if ranges is not None:
+        api_params['eleValueRanges'] = ranges
+    if count is not None:
+        api_params['limitCnt'] = str(count)  # API typically expects count as string
 
-    # retrieve data contents
-    contents = get_rest_result(interface_id, params)
-    contents = _load_contents(contents)
-    if contents is None:
+    try:
+        # Retrieve data contents
+        raw_response = get_rest_result(INTERFACE_ID_SURF_ELE_IN_BASIN, api_params)
+
+        # Process contents (e.g., JSON parsing, error checking within response)
+        processed_contents = _load_contents(raw_response)
+
+        if processed_contents is None:
+            # log.warning(f"Failed to load contents for params: {api_params}")
+            print(f"Warning: Failed to load contents for API params: {api_params}")
+            return None
+
+        # Extract data part; 'DS' is a common key in CIMISS responses
+        data_list = processed_contents.get('DS')
+
+        if data_list is None:
+            # log.info(f"No 'DS' key in response or it's None. Response: {processed_contents}")
+            print(f"Info: No 'DS' key in response or it's None. Response: {processed_contents}")
+            # Depending on API contract, this might be an error or "no data"
+            return pd.DataFrame() # Return empty DataFrame if 'DS' is missing but call was "ok"
+
+        if not isinstance(data_list, list):
+            # log.error(f"'DS' key does not contain a list. Found: {type(data_list)}. Response: {processed_contents}")
+            print(f"Error: 'DS' key does not contain a list. Response: {processed_contents}")
+            return None
+
+        # Construct pandas DataFrame
+        df = pd.DataFrame(data_list) # Handles empty list correctly (empty DataFrame)
+
+        if trans_type and not df.empty:
+            df = cmadaas_obs_convert_type(df)
+
+        return df
+
+    except ConnectionError as e:  # Specific error for network issues
+        # log.error(f"Connection error retrieving data: {e}. Params: {api_params}")
+        print(f"Error: Connection error retrieving data: {e}. Params: {api_params}")
         return None
-
-    # construct pandas DataFrame
-    data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
-
-    # return
-    return data
+    except KeyError as e:  # If 'DS' was expected but missing and not handled by .get() logic above
+        # log.error(f"KeyError during data processing: {e}. Response: {processed_contents if 'processed_contents' in locals() else 'N/A'}")
+        print(f"Error: KeyError during data processing: {e}. Response: {processed_contents if 'processed_contents' in locals() else 'N/A'}")
+        return None
+    except Exception as e:  # Catch-all for other unexpected errors
+        # log.exception(f"An unexpected error occurred. Params: {api_params}") # .exception includes stack trace
+        print(f"Error: An unexpected error occurred: {e}. Params: {api_params}")
+        return None
 
 
 def cmadaas_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MUL_HOR_N",
