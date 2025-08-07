@@ -206,9 +206,9 @@ def _create_DataFrame_1stn(filename, verbose=False):
                 warnings.append(element_tmp+\
                         ' values have been divided by ten' + \
                         ' as specified by readme.txt')
-                value[i] = np.float(val_tmp) / 10.
+                value[i] = np.float64(val_tmp) / 10.
             else:
-                value[i] = np.float(val_tmp)
+                value[i] = np.float64(val_tmp)
             
             mflag.append(line[ cols[1] ])
             qflag.append(line[ cols[2] ])
