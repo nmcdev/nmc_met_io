@@ -1596,8 +1596,8 @@ def get_swan_radar(directory, filename=None, suffix="*.000", scale=[0.1, 0],
             nlon = head_info['XNumGrids'][0].astype(np.int64)
             nlat = head_info['YNumGrids'][0].astype(np.int64)
             nlev = head_info['ZNumGrids'][0].astype(np.int64)
-            dlon = head_info['XReso'][0].astype(np.float)
-            dlat = head_info['YReso'][0].astype(np.float)
+            dlon = head_info['XReso'][0].astype(np.float64)
+            dlat = head_info['YReso'][0].astype(np.float64)
             lat = head_info['StartLat'][0] - np.arange(nlat)*dlat - dlat/2.0
             lon = head_info['StartLon'][0] + np.arange(nlon)*dlon - dlon/2.0
             level = head_info['ZhighGrids'][0][0:nlev]
@@ -1779,3 +1779,4 @@ def get_radar_standard(directory, filename=None, suffix="*.BZ2", cache=True, cac
 
     # return
     return data
+
