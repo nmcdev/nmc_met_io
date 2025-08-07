@@ -11,18 +11,21 @@ refer to:
   https://github.com/babybearming/CIMISSDataGet/blob/master/cimissRead_v0.1.py
 """
 
-import os
-import warnings
 import json
+import os
 import pickle
+import warnings
 from datetime import datetime, timedelta
-import urllib3
+
 import numpy as np
 import pandas as pd
+import urllib3
 import xarray as xr
 from tqdm import tqdm
+
 import nmc_met_io.config as CONFIG
 from nmc_met_io.config import _get_config_from_rcfile
+
 
 def get_http_result(interface_id, params, data_format='json'):
     """
@@ -991,7 +994,7 @@ def cimiss_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FRT_5KM",
         directory = os.path.join(data_code, fcst_ele)
         filename = time_str
         if limit is not None:
-            filename = filename + '.' + str(limit)
+            filename = filename + '.' + str(limit).replace(" ","")
         cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
@@ -1169,7 +1172,7 @@ def cimiss_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_RT_GR
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
         filename = time_str
         if limit is not None:
-            filename = filename + '.' + str(limit)
+            filename = filename + '.' + str(limit).replace(" ","")
         cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
@@ -1332,7 +1335,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
         filename = init_time_str + '.' + str(valid_time).zfill(3)
         if limit is not None:
-            filename = init_time_str + '_' +str(limit) +'.' + str(valid_time).zfill(3)
+            filename = init_time_str + '_' +str(limit).replace(" ","") +'.' + str(valid_time).zfill(3)
         cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
@@ -1343,7 +1346,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
     if limit is None:
         params = {'dataCode': data_code,
                   'time': init_time_str + '0000',
-                  'fcstLevel': '{:d}'.format(fcst_level),
+                  'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
                   'validTime': '{:d}'.format(valid_time),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
@@ -1354,7 +1357,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
                   "minLon": '{:.10f}'.format(limit[1]),
                   "maxLat": '{:.10f}'.format(limit[2]),
                   "maxLon": '{:.10f}'.format(limit[3]),
-                  'fcstLevel': '{:d}'.format(fcst_level),
+                  'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
                   'validTime': '{:d}'.format(valid_time),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
@@ -1369,7 +1372,7 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
 
     # get time information
     init_time = datetime.strptime(init_time_str, '%Y%m%d%H')
-    fhour = np.array([valid_time], dtype=np.float)
+    fhour = np.array([valid_time], dtype=np.float64)
     time = init_time + timedelta(hours=fhour[0])
     init_time = np.array([init_time], dtype='datetime64[ms]')
     time = np.array([time], dtype='datetime64[ms]')
@@ -1386,6 +1389,10 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
     name = contents['fieldNames']
     if units is None:
         units = contents['fieldUnits']
+        
+    # set missing fcst_level for fcst_leve='-'
+    if type(fcst_level) == str:
+        fcst_level = 0
 
     # define coordinates and variables
     time_coord = ('time', time)
@@ -1648,7 +1655,7 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
         filename = init_time_str + '.' + str(valid_time).zfill(3)
         if limit is not None:
-            filename = init_time_str + '_' +str(limit) +'.' + str(valid_time).zfill(3)
+            filename = init_time_str + '_' +str(limit).replace(" ","") +'.' + str(valid_time).zfill(3)
         cache_file = CONFIG.get_cache_file(directory, filename, name="CIMISS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
@@ -1659,7 +1666,7 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
     if limit is None:
         params = {'dataCode': data_code,
                   'time': init_time_str + '0000',
-                  'fcstLevel': '{:d}'.format(fcst_level),
+                  'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
                   'validTime': '{:d}'.format(valid_time),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
@@ -1670,7 +1677,7 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
                   "minLon": '{:.10f}'.format(limit[1]),
                   "maxLat": '{:.10f}'.format(limit[2]),
                   "maxLon": '{:.10f}'.format(limit[3]),
-                  'fcstLevel': '{:d}'.format(fcst_level),
+                  'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
                   'validTime': '{:d}'.format(valid_time),
                   'fcstEle': fcst_ele}
         interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
@@ -1685,7 +1692,7 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
 
     # get time information
     init_time = datetime.strptime(init_time_str, '%Y%m%d%H')
-    fhour = np.array([valid_time], dtype=np.float)
+    fhour = np.array([valid_time], dtype=np.float64)
     time = init_time + timedelta(hours=fhour[0])
     init_time = np.array([init_time], dtype='datetime64[ms]')
     time = np.array([time], dtype='datetime64[ms]')
@@ -1702,6 +1709,10 @@ def cimiss_model_by_time(init_time_str, valid_time=0, limit=None,
     name = contents['fieldNames']
     if units is None:
         units = contents['fieldUnits']
+        
+    # set missing fcst_level for fcst_leve='-'
+    if type(fcst_level) == str:
+        fcst_level = 0
 
     # define coordinates and variables
     time_coord = ('time', time)
@@ -1800,7 +1811,7 @@ def cimiss_model_by_piont(init_time_str,
     # set retrieve parameters
     params = {'dataCode': data_code,
               'time': init_time_str + '0000',
-              'fcstLevel': '{:d}'.format(fcst_level),
+              'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
               'minVT': '{:d}'.format(time_range[0]),
               'maxVT': '{:d}'.format(time_range[1]),
               'latLons': points,

@@ -8,10 +8,11 @@ Read micaps data file.
 """
 
 import os.path
-import numpy as np
-import xarray as xr
-import pandas as pd
 from datetime import datetime, timedelta
+
+import numpy as np
+import pandas as pd
+import xarray as xr
 
 
 def read_micaps_1(fname, limit=None):
@@ -43,13 +44,14 @@ def read_micaps_1(fname, limit=None):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
                 # txt = f.read().replace('\n', ' ').split()
                 txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
+                break
         except Exception:
             pass
     if txt is None:
@@ -136,13 +138,14 @@ def read_micaps_2(fname, limit=None):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
                 # txt = f.read().replace('\n', ' ').split()
                 txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
+                break
         except Exception:
             pass
     if txt is None:
@@ -237,13 +240,14 @@ def read_micaps_3(fname, limit=None):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
                 # txt = f.read().replace('\n', ' ').split()
                 txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
+                break
         except Exception:
             pass
     if txt is None:
@@ -345,13 +349,14 @@ def read_micaps_4(fname, limit=None, varname='data', varattrs={'units':''}, scal
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
                 # txt = f.read().replace('\n', ' ').split()
                 txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
+                break
         except Exception:
             pass
     if txt is None:
@@ -370,7 +375,7 @@ def read_micaps_4(fname, limit=None, varname='data', varattrs={'units':''}, scal
     if hour >= 24:    # some times, micaps file head change the order.
         hour = int(txt[7])
         fhour = int(txt[6])
-    fhour = np.array([fhour], dtype=np.float)
+    fhour = np.array([fhour], dtype=np.float64)
     init_time = datetime(year, month, day, hour)
     time = init_time + timedelta(hours=fhour[0])
     init_time = np.array([init_time], dtype='datetime64[ms]')
@@ -471,13 +476,14 @@ def read_micaps_5(fname, limit=None):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
                 # txt = f.read().replace('\n', ' ').split()
                 txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
+                break
         except Exception:
             pass
     if txt is None:
@@ -568,13 +574,14 @@ def read_micaps_7(fname):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
                 # txt = f.read().replace('\n', ' ').split()
                 txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
+                break
         except Exception:
             pass
     if txt is None:
@@ -657,17 +664,18 @@ def read_micaps_8(fname, limit=None):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
                 # txt = f.read().replace('\n', ' ').split()
                 txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
+                break
         except Exception:
             pass
     if txt is None:
-        print("Micaps 1 file error: " + fname)
+        print("Micaps 8 file error: " + fname)
         return None
 
     # head information
@@ -741,13 +749,14 @@ def read_micaps_11(fname, limit=None, scale_off=None, no_level=False,
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
                 # txt = f.read().replace('\n', ' ').split()
                 txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
+                break
         except Exception:
             pass
     if txt is None:
@@ -762,7 +771,7 @@ def read_micaps_11(fname, limit=None, scale_off=None, no_level=False,
     month = int(txt[4])
     day = int(txt[5])
     hour = int(txt[6])
-    fhour = np.array([int(txt[7])], dtype=np.float)
+    fhour = np.array([int(txt[7])], dtype=np.float64)
     init_time = datetime(year, month, day, hour)
     time = init_time + timedelta(hours=fhour[0])
     init_time = np.array([init_time], dtype='datetime64[ms]')
@@ -873,7 +882,7 @@ def read_micaps_14(fname):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     txt = None
     for encoding in encodings:
         txt = None
@@ -881,6 +890,7 @@ def read_micaps_14(fname):
             with open(fname, 'r', encoding=encoding) as f:
                 # txt = f.read().replace('\n', ' ').split()
                 txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
+                break
         except Exception:
             pass
     if txt is None:
@@ -1487,13 +1497,14 @@ def read_micaps_120(fname, limit=None):
         return None
 
     # read contents
-    encodings = ['utf-8', 'gb18030', 'GBK']
+    encodings = ['utf-8', 'utf_8_sig', 'gb18030', 'GBK']
     for encoding in encodings:
         txt = None
         try:
             with open(fname, 'r', encoding=encoding) as f:
                 # txt = f.read().replace('\n', ' ').split()
                 txt = f.read().replace('\n', ' ').replace(',','').split()    # 替换逗号是处理 1,234 这样的数字
+                break
         except Exception:
             pass
     if txt is None:

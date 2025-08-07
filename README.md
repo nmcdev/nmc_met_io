@@ -52,6 +52,14 @@ Using the fellowing command to install packages:
 # 若用不到某个服务器, 则不设置或删除改段落即可.
 # 注意设置IP地址时, 不要加http等前缀信息.
 
+# 当读取CMADaas, MICAPS Cassandra等数据时, 采取了本地文件缓存机制, 以便加快
+# 文件的读取速度和减少数据库访问次数(设置函数参数cache=False可以不用缓存机制).
+# CACHE_DIR, 缓存目录, 若没有设置, 默认为 /user_home/.nmcdev/cache
+# CACHE_DAYS, 缓存天数, 若没有设置, 默认为7, 即7天之前的缓存数据将被删除
+[CACHE]
+# CACHE_DIR = ~
+CACHE_DAYS = 7
+
 # CMADaaS大数据云平台配置:
 #     DNS为IP地址, PORT为端口
 #     USER_ID和PASSWORD分别为用户名和密码
@@ -69,9 +77,6 @@ serviceNodeId = NMIC_MUSIC_CMADAAS
 [MICAPS]
 GDS_IP = xx.xx.xx.xx
 GDS_PORT = 8080
-# Cached file directory, if not set,
-#   /user_home/.nmcdev/cache will be used.
-# CACHE_DIR = ~
 
 # CIMISS网址及用户ID和PASSWORD, 2021年年底CIMISS停止提供服务
 #     DNS为IP地址, PORT为端口

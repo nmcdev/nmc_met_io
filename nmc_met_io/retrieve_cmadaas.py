@@ -10,20 +10,24 @@ refer to:
   http://idata.cma/cmadaas/
 """
 
-import os
-import warnings
-import json
-import pickle
+import fnmatch
 import hashlib
-import uuid
-from datetime import datetime, timedelta
-import urllib3
+import json
+import os
+import pickle
 import urllib.request
+import uuid
+import warnings
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional, Dict, Any, Union
+
 import numpy as np
 import pandas as pd
+import urllib3
 import xarray as xr
 from tqdm import tqdm
+
 import nmc_met_io.config as CONFIG
 
 
@@ -809,72 +813,144 @@ def cmadaas_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HO
     # return
     return data
 
+# Constants for clarity and maintainability
+DEFAULT_ELEMENTS_SURF_CHN_MUL_HOR_N = "Station_Id_C,Datetime,Lat,Lon,TEM"
+INTERFACE_ID_SURF_ELE_IN_BASIN = "getSurfEleInBasinByTimeRange"
 
-def cmadaas_obs_in_basin_by_time_range(time_range, basin="CJLY", data_code="SURF_CHN_MUL_HOR_N",
-                                       sta_levels=None, ranges=None, order=None, 
-                                       count=None, trans_type=True,
-                                       elements="Station_Id_C,Datetime,Lat,Lon,TEM"):
+def cmadaas_obs_in_basin_by_time_range(
+    time_range: str,
+    basin: str = "CJLY",
+    data_code: str = "SURF_CHN_MUL_HOR_N",
+    sta_levels: Optional[str] = None,
+    ranges: Optional[str] = None,
+    order: Optional[str] = None,
+    count: Optional[int] = None,
+    trans_type: bool = True,
+    elements: Optional[str] = None,  # Changed default to None for more flexible handling
+) -> Optional[pd.DataFrame]:
     """
     Retrieve observation records from CIMISS by basin and time range.
-    
+
     Args:
-        time_range (str): time for retrieve, "[YYYYMMDDHHMISS,YYYYMMDDHHMISS]"
-        basin (str, optional):  basin codes, sperated by ",",  like "CJLY" is Yangzi River, 
-                                "sta_2480" is 2480 stations. Defaults to "CJLY".
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
-        sta_levels (str, optional): station levels, seperated by ',',
-             like "011,012,013" for standard, base and general stations. Defaults to None.
-        ranges (str, optional): elements value ranges, seperated by ';'
-            range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
-                   [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
-            list: a,b,c;
-            e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" is PRE quantity is credible.. Defaults to None.
-        order (str, optional): elements order, seperated by ',', like
-            "TEM:asc,SUM_PRE_1h:desc" is ascending order temperature first and descending PRE_1h. Defaults to None.
-        count (int, optional): the number of maximum returned records. Defaults to None.
-        trans_type (bool, optional): transform the return data frame's column type to datetime, numeric. Defaults to True.
-        elements (str, optional): elements for retrieve, 'ele1,ele2,...'. 
-            Defaults to "Station_Id_C,Station_Id_d,lat,lon,Datetime,TEM".
-    
+        time_range (str): Time for retrieval, e.g., "[20160801000000,20160801000000]".
+        basin (str, optional): Basin codes, separated by ",", e.g., "CJLY" (Yangzi River),
+                               "sta_2480" (specific station group). Defaults to "CJLY".
+        data_code (str, optional): Dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        sta_levels (str, optional): Station levels, separated by ',',
+             e.g., "011,012,013" for national, basic, and general stations. Defaults to None.
+        ranges (str, optional): Element value ranges, separated by ';'.
+            Format examples:
+            - Range: "(a,)" (>a), "[a,)" (>=a), "(,a)" (<a), "(,a]" (<=a),
+                     "(a,b)" (>a & <b), "[a,b)" (>=a & <b),
+                     "(a,b]" (>a & <=b), "[a,b]" (>=a & <=b)
+            - List: "a,b,c"
+            e.g., "VIS:(,1000);RHU:(70,)", "Q_PRE_1h:0,3,4" (PRE quantity is credible).
+            Defaults to None.
+        order (str, optional): Element order, separated by ',', e.g.,
+            "TEM:asc,SUM_PRE_1h:desc" (ascending temperature, then descending PRE_1h).
+            Defaults to "Datetime:ASC" if not provided.
+        count (int, optional): The maximum number of records to return. Defaults to None.
+        trans_type (bool, optional): If True, convert DataFrame column types (e.g.,
+                                     Datetime to datetime objects, relevant fields to numeric).
+                                     Defaults to True.
+        elements (str, optional): Elements for retrieval, 'ele1,ele2,...'.
+            If None, defaults to "Station_Id_C,Datetime,Lat,Lon,TEM" for
+            data_code "SURF_CHN_MUL_HOR_N". For other data_codes, if elements
+            is None, it's passed as such to the API (which might use its own
+            default or error if mandatory).
+            Original docstring default was "Station_Id_C,Station_Id_d,lat,lon,Datetime,TEM".
+            The actual code default was "Station_Id_C,Datetime,Lat,Lon,TEM". This version
+            uses the latter for consistency with the original code's behavior for the
+            default data_code.
+
     Returns:
-        pandas data frame: observation records.
-    
+        Optional[pd.DataFrame]: A pandas DataFrame containing observation records,
+                                 or None if an error occurs. Returns an empty DataFrame
+                                 if no records are found but the request was successful.
+
     Examples:
-    >>> elements = ("Station_Id_C,Station_Id_d,Station_Name,"
-                    "Station_levl,Datetime,Lat,Lon,PRE_Time_0808")
-    >>> time_range = "[20160801000000,20160801000000]"
-    >>> data_code = "SURF_CHN_MUL_DAY"
-    >>> data = cmadaas_obs_in_basin_by_time_range(
-            time_range, basin="CJLY", data_code=data_code,
-            elements=elements)
+    >>> elements_example = ("Station_Id_C,Station_Id_d,Station_Name,"
+    ...                     "Station_levl,Datetime,Lat,Lon,PRE_Time_0808")
+    >>> time_range_example = "[20160801000000,20160801000000]"
+    >>> data_code_example = "SURF_CHN_MUL_DAY"
+    >>> df = cmadaas_obs_in_basin_by_time_range(
+    ...         time_range=time_range_example,
+    ...         basin="CJLY",
+    ...         data_code=data_code_example,
+    ...         elements=elements_example
+    ...     )
+    >>> if df is not None: # df can be an empty DataFrame if no records found
+    ...     print(f"DataFrame shape: {df.shape}")
+
     """
+    # Determine elements to use
+    final_elements = elements
+    if final_elements is None and data_code == "SURF_CHN_MUL_HOR_N":
+        final_elements = DEFAULT_ELEMENTS_SURF_CHN_MUL_HOR_N
 
-    # set retrieve parameters
-    params = {'dataCode': data_code,
-              'elements': elements,
-              'timeRange': time_range,
-              'basinCodes': basin,
-              'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    # Prepare parameters for the API call
+    api_params: Dict[str, Union[str, int]] = {
+        'dataCode': data_code,
+        'timeRange': time_range,
+        'basinCodes': basin,
+        'orderby': order or "Datetime:ASC",  # More concise default for order
+    }
 
-    # interface id
-    # http://10.20.76.55/cimissapiweb/apicustomapiclassdefine_list.action?ids=getNafpEleGridByTimeAndLevelAndValidtime&apiclass=NAFP_API
-    interface_id = "getSurfEleInBasinByTimeRange"
+    if final_elements is not None:
+        api_params['elements'] = final_elements
+    if sta_levels is not None:
+        api_params['staLevels'] = sta_levels
+    if ranges is not None:
+        api_params['eleValueRanges'] = ranges
+    if count is not None:
+        api_params['limitCnt'] = str(count)  # API typically expects count as string
 
-    # retrieve data contents
-    contents = get_rest_result(interface_id, params)
-    contents = _load_contents(contents)
-    if contents is None:
+    try:
+        # Retrieve data contents
+        raw_response = get_rest_result(INTERFACE_ID_SURF_ELE_IN_BASIN, api_params)
+
+        # Process contents (e.g., JSON parsing, error checking within response)
+        processed_contents = _load_contents(raw_response)
+
+        if processed_contents is None:
+            # log.warning(f"Failed to load contents for params: {api_params}")
+            print(f"Warning: Failed to load contents for API params: {api_params}")
+            return None
+
+        # Extract data part; 'DS' is a common key in CIMISS responses
+        data_list = processed_contents.get('DS')
+
+        if data_list is None:
+            # log.info(f"No 'DS' key in response or it's None. Response: {processed_contents}")
+            print(f"Info: No 'DS' key in response or it's None. Response: {processed_contents}")
+            # Depending on API contract, this might be an error or "no data"
+            return pd.DataFrame() # Return empty DataFrame if 'DS' is missing but call was "ok"
+
+        if not isinstance(data_list, list):
+            # log.error(f"'DS' key does not contain a list. Found: {type(data_list)}. Response: {processed_contents}")
+            print(f"Error: 'DS' key does not contain a list. Response: {processed_contents}")
+            return None
+
+        # Construct pandas DataFrame
+        df = pd.DataFrame(data_list) # Handles empty list correctly (empty DataFrame)
+
+        if trans_type and not df.empty:
+            df = cmadaas_obs_convert_type(df)
+
+        return df
+
+    except ConnectionError as e:  # Specific error for network issues
+        # log.error(f"Connection error retrieving data: {e}. Params: {api_params}")
+        print(f"Error: Connection error retrieving data: {e}. Params: {api_params}")
         return None
-
-    # construct pandas DataFrame
-    data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
-
-    # return
-    return data
+    except KeyError as e:  # If 'DS' was expected but missing and not handled by .get() logic above
+        # log.error(f"KeyError during data processing: {e}. Response: {processed_contents if 'processed_contents' in locals() else 'N/A'}")
+        print(f"Error: KeyError during data processing: {e}. Response: {processed_contents if 'processed_contents' in locals() else 'N/A'}")
+        return None
+    except Exception as e:  # Catch-all for other unexpected errors
+        # log.exception(f"An unexpected error occurred. Params: {api_params}") # .exception includes stack trace
+        print(f"Error: An unexpected error occurred: {e}. Params: {api_params}")
+        return None
 
 
 def cmadaas_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MUL_HOR_N",
@@ -1060,25 +1136,27 @@ def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000
     return data
 
 
-def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM",
-                             fcst_ele="PRE", zoom=None, units=None, scale_off=None,
+def cmadaas_obs_grid_by_time(time, limit=None, data_code="SURF_CMPA_FAST_5KM",
+                             fcst_ele="PRE", zoom=None, varname='data', 
+                             units=None, scale_off=None,
                              cache=True, cache_clear=True):
     """
-    Retrieve surface analysis grid products, like CMPAS-V2.1融合降水分析实时数据产品（NC）.
+    Retrieve surface analysis grid products, like CMPAS-V2.1融合降水分析实时数据产品(NC).
     For SURF_CMPA_RT_NC, this function will retrieve the 0.01 resolution data and take long time.
     该函数主要用于降水实况分析数据检索, 若需要温度、风的实况分析, 使用cmadaas_analysis_by_time.
 
-    :param time_str: analysis time string, like "20171008000000", format: YYYYMMDDHHMISS
+    :param time: analysis time, datetime object or string like "20171008000000", format: YYYYMMDDHHMISS
     :param limit: [min_lat, min_lon, max_lat, max_lon]
     :param data_code: MUSIC data code, default is "SURF_CMPA_FRT_5KM"
-        "SURF_CMPA_RT_NC": 实时产品滞后约50~60分钟,分两种空间分辨率：1小时/0.05°、1小时/0.01°
+        "SURF_CMPA_RT_NC": 实时产品滞后约50~60分钟,分两种空间分辨率: 1小时/0.05°、1小时/0.01°
         "SURF_CMPA_FRT_5KM_10MIN"(PRE_10MIN): CMPAS-V2.1融合降水分析实时数据10分钟产品
-        "SURF_CMPA_FAST_5KM": CMPAS-V2.1融合降水分析快速数据小时产品, 时效在15分钟以内，包含小时降水和3小时累计降水两种要素
-        "SURF_CMPA_FRT_5KM": CMPAS-V2.1融合降水分析实时数据小时产品（GRIB，5km）
-        "SURF_CMPA_FAST_5KM_DAY": CMPAS-V2.1融合降水分析快速数据日产品（GRIB，5km）
-        "SURF_CMPA_FRT_5KM_DAY": CMPAS-V2.1融合降水分析实时数据日产品（GRIB，5km）
+        "SURF_CMPA_FAST_5KM": CMPAS-V2.1融合降水分析快速数据小时产品, 时效在15分钟以内, 包含小时降水和3小时累计降水两种要素
+        "SURF_CMPA_FRT_5KM": CMPAS-V2.1融合降水分析实时数据小时产品(GRIB, 5km)
+        "SURF_CMPA_FAST_5KM_DAY": CMPAS-V2.1融合降水分析快速数据日产品(GRIB, 5km)
+        "SURF_CMPA_FRT_5KM_DAY": CMPAS-V2.1融合降水分析实时数据日产品(GRIB, 5km)
     :param fcst_ele: elements
-    :param zoom: the zoom out integer > 1, like 2. 像元缩小倍数, 数值大于1，1的整数倍.
+    :param zoom: the zoom out integer > 1, like 2. 像元缩小倍数, 数值大于1, 1的整数倍.
+    :param varname: set variable name, default is 'data'
     :param units: forecast element's units, defaults to retrieved units.
     :param scale_off: [scale, offset], return values = values*scale + offset.
     :param cache: cache retrieved data to local directory, default is True.
@@ -1089,13 +1167,21 @@ def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM
     >>> data_code = "SURF_CMPA_FAST_5KM"
     >>> data = cmadaas_obs_grid_by_time(time_str, data_code=data_code, fcst_ele="PRE")
     """
+    # check time_str type
+    if isinstance(time, datetime):
+        time_str = time.strftime("%Y%m%d%H%M%S")
+    elif isinstance(time, str):
+        time_str = time
+    else:
+        warnings.warn('The type of time is not supportted')
+        return None
 
     # retrieve data from cached file
     if cache:
         directory = os.path.join(data_code, fcst_ele)
         filename = time_str
         if limit is not None:
-            filename = filename + '.' + str(limit)
+            filename = filename + '.' + str(limit).replace(" ","")
         cache_file = CONFIG.get_cache_file(directory, filename, name="CMADaaS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
@@ -1151,7 +1237,6 @@ def cmadaas_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FAST_5KM
     lat_coord = ('lat', lat, {
         'long_name':'latitude', 'units':'degrees_north',
         '_CoordinateAxisType':'Lat', 'axis': "Y"})
-    varname = fcst_ele
     varattrs = {'long_name': name, 'units': units}
 
     # construct xarray
@@ -1873,22 +1958,23 @@ def cmadaas_sounding_in_rect_by_time_range(
     return data
 
 
-def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_ASI_NC',
+def cmadaas_analysis_by_time(time, limit=None, data_code='NAFP_CLDAS2.0_NRT_ASI_NC',
                              levattrs={'long_name':'Height above Ground', 'units':'m'}, level_type='-',
-                             fcst_level=None, fcst_ele="TMP", zoom=None, units=None, scale_off=None,
-                             cache=True, cache_clear=True):
+                             fcst_level=None, fcst_ele="TMP", zoom=None, varname='data', units=None, 
+                             scale_off=None, cache=True, cache_clear=True):
     """
     Retrieve CLDAS analysis data from CMADaaS service.
 
-    :param time_str: analysis time, like "20160817120000", format: YYYYMMDDHHMISS
+    :param time: analysis time, like "20160817120000", format: YYYYMMDDHHMISS
     :param limit: [min_lat, min_lon, max_lat, max_lon]
     :param data_code: MUSIC data code, default is "NAFP_CLDAS2.0_NRT_ASI_NC"
-                      CLDAS2.0近实时数据产品（NC）-亚洲区域. Others like:
-                      NAFP_HRCLDAS_CHN_1KM_RT, HRCLDAS中国0.01°×0.01°逐小时实时融合实况分析产品
+                      CLDAS2.0近实时数据产品(NC)-亚洲区域. Others like:
+                      NAFP_HRCLDAS_CHN_1KM_RT, HRCLDAS中国0.01°x0.01°逐小时实时融合实况分析产品
     :param fcst_level: vertical level, default is None.
     :param level_type: vertical level type, default is -, 表示没有层次类型
     :param fcst_ele: forecast element, default is 2m temperature "TAIR"
-    :param zoom: the zoom out integer > 1, like 2. 像元缩小倍数, 数值大于1，1的整数倍.
+    :param zoom: the zoom out integer > 1, like 2. 像元缩小倍数, 数值大于1, 1的整数倍.
+    :param varname: set variable name, default is 'data'
     :param units: forecast element's units, defaults to retrieved units.
     :param scale_off: [scale, offset], return values = values*scale + offset.
     :param cache: cache retrieved data to local directory, default is True.
@@ -1904,13 +1990,21 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_
             fcst_ele='TAIR', units="C",
             scale_off=[1.0, -273.15], cache=False)
     """
+    # check time_str type
+    if isinstance(time, datetime):
+        time_str = time.strftime("%Y%m%d%H%M%S")
+    elif isinstance(time, str):
+        time_str = time
+    else:
+        warnings.warn('The type of time is not supportted')
+        return None
 
     # retrieve data from cached file
     if cache:
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
         filename = time_str
         if limit is not None:
-            filename = filename + '.' + str(limit)
+            filename = filename + '.' + str(limit).replace(" ","")
         cache_file = CONFIG.get_cache_file(directory, filename, name="CMADaaS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
@@ -1971,7 +2065,6 @@ def cmadaas_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_NRT_
         '_CoordinateAxisType':'Lat', 'axis': 'Y'})
     if fcst_level is not None:
         level_coord = ('level', np.array([fcst_level]), levattrs)
-    varname = fcst_ele
     varattrs = {'long_name': name, 'units': units}
 
     # construct xarray
@@ -2035,19 +2128,20 @@ def cmadaas_analysis_by_times(times_str, pbar=True, allExists=True, **kargs):
     return xr.concat(dataset, dim='time')
 
 
-def cmadaas_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", latestTime=24):
+def cmadaas_get_model_latest_time(data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", latestTime=24):
     """
     Get the latest run time of the model.
+    注意不是所有的模式都有获取最新起步时间的接口函数.
     
     Args:
-        data_code (str, optional): dataset code, like "NAFP_ECMF_FTM_HIGH_ANEA_FOR".
+        data_code (str, optional): dataset code, like "NAFP_FOR_FTM_HIGH_EC_ANEA".
         latestTime (int, optional): latestTime > 0, like 2 is return 
                                     the latest time in 2 hours. Defaults to 24.
     Returns:
         datetime object, the latest time
 
     Examples:
-    >>> print(cmadaas_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", latestTime=24))
+    >>> print(cmadaas_get_model_latest_time(data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", latestTime=24))
         2020-03-11 12:00:00
     """
 
@@ -2071,8 +2165,9 @@ def cmadaas_get_model_latest_time(data_code="NAFP_ECMF_FTM_HIGH_ANEA_FOR", lates
     return time[0]
 
 
-def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, level_type, limit=None,
-                       varname='data', units=None, scale_off=None, cache=True, cache_clear=True,
+def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, level_type, 
+                       fcst_member=None, limit=None, varname='data', units=None, 
+                       scale_off=None, cache=True, cache_clear=True,
                        levattrs={'long_name':'height_above_ground', 'units':'m', '_CoordinateAxisType':'Height'}):
     """
     Retrieve model grid data from CMADaaS service.
@@ -2087,6 +2182,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     :param fcst_ele: forecast element, like 2m temperature "TEM"
     :param fcst_level: vertical level, like 0
     :param level_type: forecast level type, 表示Grib数据中的层次类型, 可在云平台上查询.
+    :param fcst_member: ensemble forecast member, 集合预报成员标识. 如果数据是集合预报, 该变量必须设置.
     :param limit: [min_lat, min_lon, max_lat, max_lon]
     :param varname: set variable name, default is 'data'
     :param units: forecast element's units, defaults to retrieved units.
@@ -2100,22 +2196,33 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     :return: xarray dataset.
 
     Examples:
-    >>> data = cmadaas_model_grid("NAFP_FOR_FTM_HIGH_EC_ANEA", "2021010512", 24, 'TEM', 850, 100, units="C", scale_off=[1.0, -273.15], limit=[10.,100,30,120.],
-                                  levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'}, cache=True)
+    >>> data = cmadaas_model_grid("NAFP_FOR_FTM_HIGH_EC_ANEA", "2021010512", 24, 'TEM', 850, 100, 
+                                  units="C", scale_off=[1.0, -273.15], limit=[10.,100,30,120.],
+                                  levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'},
+                                  cache=True)
+    >>> data = cmadaas_model_grid("NAFP_GRAPESREPS_FOR_FTM_DIS_CHN", "2022092400", 24, 'TEM', 2, 103, 
+                                  fcst_member=1, units="C", scale_off=[1.0, -273.15], 
+                                  limit=[10., 100, 30, 120.], cache=True)
     """
 
     # check initial time
     if isinstance(init_time, datetime):
         init_time_str = init_time.strftime("%Y%m%d%H")
-    else:
+    elif isinstance(init_time, str):
         init_time_str = init_time
+    else:
+        warnings.warn('The type of init_time is not supportted')
+        return None
 
     # retrieve data from cached file
     if cache:
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
-        filename = init_time_str + '.' + str(valid_time).zfill(3)
+        filename = init_time_str
         if limit is not None:
-            filename = init_time_str + '_' +str(limit) +'.' + str(valid_time).zfill(3)
+            filename = filename + '_' + str(limit).replace(" ","")
+        if fcst_member is not None:
+            filename = filename + '_' + str(fcst_member).replace(" ","")
+        filename = filename + '.' + str(valid_time).zfill(3)
         cache_file = CONFIG.get_cache_file(directory, filename, name="CMADaaS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
@@ -2123,26 +2230,50 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
                 return data
 
     # set retrieve parameters
-    if limit is None:
-        params = {'dataCode': data_code,
-                  'time': init_time_str + '0000',
-                  'fcstLevel': '{:d}'.format(fcst_level),
-                  'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
-                  'validTime': '{:d}'.format(valid_time),
-                  'fcstEle': fcst_ele}
-        interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
+    if fcst_member is None:
+        if limit is None:
+            params = {'dataCode': data_code,
+                    'time': init_time_str + '0000',
+                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
+                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'validTime': '{:d}'.format(valid_time),
+                    'fcstEle': fcst_ele}
+            interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
+        else:
+            params = {'dataCode': data_code,
+                    'time': init_time_str + '0000',
+                    'minLat': '{:.10f}'.format(limit[0]),
+                    "minLon": '{:.10f}'.format(limit[1]),
+                    "maxLat": '{:.10f}'.format(limit[2]),
+                    "maxLon": '{:.10f}'.format(limit[3]),
+                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
+                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'validTime': '{:d}'.format(valid_time),
+                    'fcstEle': fcst_ele}
+            interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
     else:
-        params = {'dataCode': data_code,
-                  'time': init_time_str + '0000',
-                  'minLat': '{:.10f}'.format(limit[0]),
-                  "minLon": '{:.10f}'.format(limit[1]),
-                  "maxLat": '{:.10f}'.format(limit[2]),
-                  "maxLon": '{:.10f}'.format(limit[3]),
-                  'fcstLevel': '{:d}'.format(fcst_level),
-                  'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
-                  'validTime': '{:d}'.format(valid_time),
-                  'fcstEle': fcst_ele}
-        interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
+        if limit is None:
+            params = {'dataCode': data_code,
+                    'time': init_time_str + '0000',
+                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
+                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'validTime': '{:d}'.format(valid_time),
+                    'fcstEle': fcst_ele,
+                    'fcstMember': '{:d}'.format(fcst_member)}
+            interface_id = 'getNafpEleGridByTimeAndLevelAndValidtimeAndFcstMember'
+        else:
+            params = {'dataCode': data_code,
+                    'time': init_time_str + '0000',
+                    'minLat': '{:.10f}'.format(limit[0]),
+                    "minLon": '{:.10f}'.format(limit[1]),
+                    "maxLat": '{:.10f}'.format(limit[2]),
+                    "maxLon": '{:.10f}'.format(limit[3]),
+                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
+                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'validTime': '{:d}'.format(valid_time),
+                    'fcstEle': fcst_ele,
+                    'fcstMember': '{:d}'.format(fcst_member)}
+            interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtimeAndFcstMember'
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
@@ -2152,7 +2283,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
 
     # get time information
     init_time = datetime.strptime(init_time_str, '%Y%m%d%H')
-    fhour = np.array([valid_time], dtype=np.float)
+    fhour = np.array([valid_time], dtype=np.float64)
     time = init_time + timedelta(hours=fhour[0])
     init_time = np.array([init_time], dtype='datetime64[ms]')
     time = np.array([time], dtype='datetime64[ms]')
@@ -2169,6 +2300,10 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
     name = contents['fieldNames']
     if units is None:
         units = contents['fieldUnits']
+        
+    # set missing fcst_level for like fcst_leve='-'
+    if type(fcst_level) == str:
+        fcst_level = 0
 
     # define coordinates and variables
     time_coord = ('time', time)
@@ -2178,22 +2313,39 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
         'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
     if fcst_level != 0:
         level_coord = ('level', np.array([fcst_level]), levattrs)
+    if fcst_member is not None:
+        member_coord = ('realization', np.array([fcst_member]), {
+            'long_name':'realization', units:'1'})
     varattrs = {'short_name': fcst_ele, 'long_name': name, 'units': units}
 
     # construct xarray
     data = np.array(contents['DS'], dtype=np.float32)
     if scale_off is not None:
         data = data * scale_off[0] + scale_off[1]
-    if fcst_level == 0:
-        data = data[np.newaxis, ...]
-        data = xr.Dataset({
-            varname:(['time', 'lat', 'lon'], data, varattrs)},
-            coords={'time':time_coord, 'lat':lat_coord, 'lon':lon_coord})
+    if fcst_member is None:
+        if fcst_level == 0:
+            data = data[np.newaxis, ...]
+            data = xr.Dataset({
+                varname:(['time', 'lat', 'lon'], data, varattrs)},
+                coords={'time':time_coord, 'lat':lat_coord, 'lon':lon_coord})
+        else:
+            data = data[np.newaxis, np.newaxis, ...]
+            data = xr.Dataset({
+                varname:(['time', 'level', 'lat', 'lon'], data, varattrs)},
+                coords={'time':time_coord, 'level':level_coord, 'lat':lat_coord, 'lon':lon_coord})
     else:
-        data = data[np.newaxis, np.newaxis, ...]
-        data = xr.Dataset({
-            varname:(['time', 'level', 'lat', 'lon'], data, varattrs)},
-            coords={'time':time_coord, 'level':level_coord, 'lat':lat_coord, 'lon':lon_coord})
+        if fcst_level == 0:
+            data = data[np.newaxis, np.newaxis, ...]
+            data = xr.Dataset({
+                varname:(['realization', 'time', 'lat', 'lon'], data, varattrs)},
+                coords={'realization':member_coord, 'time':time_coord,
+                        'lat':lat_coord, 'lon':lon_coord})
+        else:
+            data = data[np.newaxis, np.newaxis, np.newaxis, ...]
+            data = xr.Dataset({
+                varname:(['realization', 'time', 'level', 'lat', 'lon'], data, varattrs)},
+                coords={'realization':member_coord, 'time':time_coord, 'level':level_coord,
+                        'lat':lat_coord, 'lon':lon_coord})
 
     # add time coordinates
     data.coords['forecast_reference_time'] = init_time[0]
@@ -2409,17 +2561,19 @@ def cmadaas_model_profiles(data_code, init_time, valid_times, fcst_ele, fcst_lev
         return None
 
 
-def cmadaas_model_by_time(init_time, valid_time=0, limit=None, 
+def cmadaas_model_by_time(init_time, valid_time=0, limit=None, fcst_member=None,
                           data_code='NAFP_FOR_FTM_HIGH_EC_GLB', fcst_level=0, level_type=1, 
                           levattrs={'long_name':'pressure_level', 'units':'hPa', '_CoordinateAxisType':'Pressure'},
                           fcst_ele="TEM", varname='data', units=None, scale_off=None, cache=True, cache_clear=True):
     """
     Retrieve grid data from CMADaaS service.
-    与cmadass_model_grid功能相似, 只是接口方式不同.
+    与cmadass_model_grid功能相似, 只是接口方式不同(多了一些默认参数的设置), 
+    建议使用cmadass_model_grid为主.
 
     :param init_time: model run time, like "2016081712", or datetime object.
     :param valid_time: forecast hour, default is 0
     :param limit: [min_lat, min_lon, max_lat, max_lon]
+    :param fcst_member: ensemble forecast member, 集合预报成员标识. 如果数据是集合预报, 该变量必须设置.
     :param varname: set variable name, default is 'data'
     :param data_code: MUSIC data code, default is "NAFP_FOR_FTM_HIGH_EC_GLB", 即EC高分辨率全球地面预报数据.
     :param fcst_level: vertical level, default is 0, 表示地面数据, 可在云平台上查询.
@@ -2445,9 +2599,12 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
     # retrieve data from cached file
     if cache:
         directory = os.path.join(data_code, fcst_ele, str(fcst_level))
-        filename = init_time_str + '.' + str(valid_time).zfill(3)
+        filename = init_time_str
         if limit is not None:
-            filename = init_time_str + '_' +str(limit) +'.' + str(valid_time).zfill(3)
+            filename = filename + '_' + str(limit).replace(" ","")
+        if fcst_member is not None:
+            filename = filename + '_' + str(fcst_member).replace(" ","")
+        filename = filename + '.' + str(valid_time).zfill(3)
         cache_file = CONFIG.get_cache_file(directory, filename, name="CMADaaS", cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
@@ -2455,27 +2612,52 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
                 return data
 
     # set retrieve parameters
-    if limit is None:
-        params = {'dataCode': data_code,
-                  'time': init_time_str + '0000',
-                  'fcstLevel': '{:d}'.format(fcst_level),
-                  'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
-                  'validTime': '{:d}'.format(valid_time),
-                  'fcstEle': fcst_ele}
-        interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
+    if fcst_member is None:
+        if limit is None:
+            params = {'dataCode': data_code,
+                    'time': init_time_str + '0000',
+                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
+                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'validTime': '{:d}'.format(valid_time),
+                    'fcstEle': fcst_ele}
+            interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
+        else:
+            params = {'dataCode': data_code,
+                    'time': init_time_str + '0000',
+                    'minLat': '{:.10f}'.format(limit[0]),
+                    "minLon": '{:.10f}'.format(limit[1]),
+                    "maxLat": '{:.10f}'.format(limit[2]),
+                    "maxLon": '{:.10f}'.format(limit[3]),
+                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
+                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'validTime': '{:d}'.format(valid_time),
+                    'fcstEle': fcst_ele}
+            interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
     else:
-        params = {'dataCode': data_code,
-                  'time': init_time_str + '0000',
-                  'minLat': '{:.10f}'.format(limit[0]),
-                  "minLon": '{:.10f}'.format(limit[1]),
-                  "maxLat": '{:.10f}'.format(limit[2]),
-                  "maxLon": '{:.10f}'.format(limit[3]),
-                  'fcstLevel': '{:d}'.format(fcst_level),
-                  'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
-                  'validTime': '{:d}'.format(valid_time),
-                  'fcstEle': fcst_ele}
-        interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
+        if limit is None:
+            params = {'dataCode': data_code,
+                    'time': init_time_str + '0000',
+                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
+                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'validTime': '{:d}'.format(valid_time),
+                    'fcstEle': fcst_ele,
+                    'fcstMember': '{:d}'.format(fcst_member)}
+            interface_id = 'getNafpEleGridByTimeAndLevelAndValidtimeAndFcstMember'
+        else:
+            params = {'dataCode': data_code,
+                    'time': init_time_str + '0000',
+                    'minLat': '{:.10f}'.format(limit[0]),
+                    "minLon": '{:.10f}'.format(limit[1]),
+                    "maxLat": '{:.10f}'.format(limit[2]),
+                    "maxLon": '{:.10f}'.format(limit[3]),
+                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
+                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'validTime': '{:d}'.format(valid_time),
+                    'fcstEle': fcst_ele,
+                    'fcstMember': '{:d}'.format(fcst_member)}
+            interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtimeAndFcstMember'
 
+    
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
     contents = _load_contents(contents)
@@ -2484,7 +2666,7 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
 
     # get time information
     init_time = datetime.strptime(init_time_str, '%Y%m%d%H')
-    fhour = np.array([valid_time], dtype=np.float)
+    fhour = np.array([valid_time], dtype=np.float64)
     time = init_time + timedelta(hours=fhour[0])
     init_time = np.array([init_time], dtype='datetime64[ms]')
     time = np.array([time], dtype='datetime64[ms]')
@@ -2501,6 +2683,10 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
     name = contents['fieldNames']
     if units is None:
         units = contents['fieldUnits']
+        
+    # set missing fcst_level for fcst_leve='-'
+    if type(fcst_level) == str:
+        fcst_level = 0
 
     # define coordinates and variables
     time_coord = ('time', time)
@@ -2511,22 +2697,39 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None,
         'long_name':'latitude', 'units':'degrees_north', '_CoordinateAxisType':'Lat'})
     if fcst_level != 0:
         level_coord = ('level', np.array([fcst_level]), levattrs)
+    if fcst_member is not None:
+        member_coord = ('realization', np.array([fcst_member]), {
+            'long_name':'realization', units:'1'})
     varattrs = {'long_name': name, 'units': units}
 
     # construct xarray
     data = np.array(contents['DS'], dtype=np.float32)
     if scale_off is not None:
         data = data * scale_off[0] + scale_off[1]
-    if fcst_level == 0:
-        data = data[np.newaxis, ...]
-        data = xr.Dataset({
-            varname:(['time', 'lat', 'lon'], data, varattrs)},
-            coords={'time':time_coord, 'lat':lat_coord, 'lon':lon_coord})
+    if fcst_member is None:
+        if fcst_level == 0:
+            data = data[np.newaxis, ...]
+            data = xr.Dataset({
+                varname:(['time', 'lat', 'lon'], data, varattrs)},
+                coords={'time':time_coord, 'lat':lat_coord, 'lon':lon_coord})
+        else:
+            data = data[np.newaxis, np.newaxis, ...]
+            data = xr.Dataset({
+                varname:(['time', 'level', 'lat', 'lon'], data, varattrs)},
+                coords={'time':time_coord, 'level':level_coord, 'lat':lat_coord, 'lon':lon_coord})
     else:
-        data = data[np.newaxis, np.newaxis, ...]
-        data = xr.Dataset({
-            varname:(['time', 'level', 'lat', 'lon'], data, varattrs)},
-            coords={'time':time_coord, 'level':level_coord, 'lat':lat_coord, 'lon':lon_coord})
+        if fcst_level == 0:
+            data = data[np.newaxis, np.newaxis, ...]
+            data = xr.Dataset({
+                varname:(['realization', 'time', 'lat', 'lon'], data, varattrs)},
+                coords={'realization':member_coord, 'time':time_coord,
+                        'lat':lat_coord, 'lon':lon_coord})
+        else:
+            data = data[np.newaxis, np.newaxis, np.newaxis, ...]
+            data = xr.Dataset({
+                varname:(['realization', 'time', 'level', 'lat', 'lon'], data, varattrs)},
+                coords={'realization':member_coord, 'time':time_coord, 'level':level_coord,
+                        'lat':lat_coord, 'lon':lon_coord})
 
     # add time coordinates
     data.coords['forecast_reference_time'] = init_time[0]
@@ -2603,7 +2806,7 @@ def cmadaas_model_by_pionts(init_time_str, data_code='NAFP_FOR_FTM_HIGH_EC_ANEA'
     # set retrieve parameters
     params = {'dataCode': data_code,
               'time': init_time_str + '0000',
-              'fcstLevel': '{:d}'.format(fcst_level),
+              'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
               'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
               'minVT': '{:d}'.format(time_range[0]),
               'maxVT': '{:d}'.format(time_range[1]),
@@ -2697,32 +2900,38 @@ def cmadaas_get_model_file(time, data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", fcst_ele
     >>> out_files = cmadaas_get_model_file('20210113000000', fcst_ele='TEM', out_dir=".")
     >>> out_files = cmadaas_get_model_file('[20210111000000,20210130000000]', fcst_ele='TEM', out_dir=".")
     """
+    
+    # check initial time
+    if isinstance(time, datetime):
+        time_str = time.strftime("%Y%m%d%H%M%S")
+    else:
+        time_str = time
 
     if out_dir is None:
         out_dir = CONFIG.get_cache_file(data_code, "", name="CMADaaS")
     
-    time = time.strip()
+    time_str = time_str.strip()
     if fcst_ele is None:
         params = {'dataCode': data_code}
-        if time[0] == '[':
+        if time_str[0] == '[':
             # set retrieve parameters
-            params['timeRange'] = time 
+            params['timeRange'] = time_str 
             interface_id = "getNafpFileByTimeRange"
         else:
             # set retrieve parameters
-            params['time'] = time
+            params['time'] = time_str
             interface_id = "getNafpFileByTime"
     else:
         params = {'dataCode': data_code,
                   'fcstEle': fcst_ele.strip(),
                   'levelType': str(level_type).strip()} 
-        if time[0] == '[':
+        if time_str[0] == '[':
             # set retrieve parameters
-            params['timeRange'] = time
+            params['timeRange'] = time_str
             interface_id = "getNafpFileByElementAndTimeRange"
         else:
             # set retrieve parameters
-            params['time'] = time
+            params['time'] = time_str
             interface_id = "getNafpFileByElementAndTime"
 
     # retrieve data contents
@@ -2746,202 +2955,83 @@ def cmadaas_get_model_file(time, data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", fcst_ele
 
     return out_files
 
-def _load_rise_contents(contents):
-    """
-    Extract information from contents.
 
+def cmadaas_get_model_file_with_filter(
+    time, data_code="NAFP_FOR_FTM_HIGH_EC_ANEA", 
+    filter=None, out_dir=None, pbar=False, just_url=False):
+    """
+    Download numeric weather predication model file.
+    与cmadaas_get_model_file函数不同, 本程序增加了对检索文件的过滤.
+    
     Args:
-        contents (string): [description]
+        times (str): model initial time for retrieve, 
+                     single time 'YYYYMMDDHHMISS'; or
+                     time range, '[YYYYMMDDHHMISS,YYYYMMDDHHMISS]'
+        data_code (str, optional): dataset code. Defaults to "SURF_CMPA_RT_NC".
+        filter (str, optional): filename's filter string. Defaults to None.
+        out_dir (str, optional): download files to out_dir. if out_dir is None,
+                                 the cached directory will be used. Defaults to None.
+        pbar (bool, optional): Show progress bar, default to True.
+        just_url (bool, optional): if just_url = True, return url string array, no files are downloaded.
 
     Returns:
-        [type]: [description]
-    """
-    if contents is None:
-        print('Return None.')
-        return None
-    
-    try:
-        contents = json.loads(contents.decode('utf-8').replace('\x00', ''), strict=False)
-    except Exception as e:
-        print(e)
-        print(contents)
-        return None
-    
-    return contents
+        the list of download files path.
 
-def cmadaas_get_rise_model_file(time, data_code="NAFP_WOG_ANA_100M", fcst_ele=None, userId=None, pwd=None,
-                           out_dir=None, pbar=False, just_url=False):
+    Examples:
+    >>> out_files = cmadaas_get_model_file_with_filter(
+        '20220920000000', data_code="NAFP_GRAPESREPS_FOR_FTM_DIS_CHN", 
+        filter="*_TEM_103_*_4_4.*", just_url=True)
+    """
+    
+    # check initial time
+    if isinstance(time, datetime):
+        time_str = time.strftime("%Y%m%d%H%M%S")
+    else:
+        time_str = time
+    time_str = time_str.strip()
 
     if out_dir is None:
         out_dir = CONFIG.get_cache_file(data_code, "", name="CMADaaS")
-
-    time = time.strip()
-    if fcst_ele is None:
-        params = {'dataCode': data_code}
-        if time[0] == '[':
-            # set retrieve parameters
-            params['timeRange'] = time
-            interface_id = "getNafpFileByTimeRange"
-        else:
-            # set retrieve parameters
-            params['time'] = time
-            interface_id = "getNafpFileByTime"
+    
+    params = {'dataCode': data_code}
+    if time_str[0] == '[':
+        # set retrieve parameters
+        params['timeRange'] = time_str 
+        interface_id = "getNafpFileByTimeRange"
     else:
-        params = {'dataCode': data_code,
-                  'fcstEle': fcst_ele.strip(),
-                  'userId': userId,
-                  'pwd': pwd}
-        if time[0] == '[':
-            # set retrieve parameters
-            params['timeRange'] = time
-            interface_id = "getNafpFileByElementAndTimeRange"
-        else:
-            # set retrieve parameters
-            params['time'] = time
-            interface_id = "getNafpFileByElementAndTime"
-    params = {'dataCode': data_code,
-              'userId': userId,
-              'pwd': pwd}
-    params['time'] = time
-    interface_id = "getNafpFileByTime"
+        # set retrieve parameters
+        params['time'] = time_str
+        interface_id = "getNafpFileByTime"
 
     # retrieve data contents
     contents = get_rest_result(interface_id, params)
     contents = _load_contents(contents)
     if contents is None:
         return None
+    
+    # filter contents
+    files = []
+    if filter is not None:
+        for file in contents['DS']:
+            if fnmatch.fnmatch(file['FILE_NAME'], filter):
+                files.append(file)
+    else:
+        files = contents['DS']
+    if len(files) < 1:
+        return None
 
     # just return the url
     if just_url:
-        return contents['DS']
+        return files
+
     # loop every file and download
     out_files = []
-    files = tqdm(contents['DS']) if pbar else contents['DS']
+    files = tqdm(files) if pbar else files
     for file in files:
         out_file = Path(out_dir) / file['FILE_NAME']
         if not out_file.is_file():
-            if 'RMAPS-RISE' in file['FILE_NAME']:
-                urllib.request.urlretrieve(file['FILE_URL'], out_file)
+            urllib.request.urlretrieve(file['FILE_URL'], out_file)
         out_files.append(out_file)
 
     return out_files
 
-
-def get_rise_rest_result(interface_id, params, url_only=False,
-                    dns=None, port=None, data_format='json'):
-
-    # set MUSIC server dns port
-    if dns is None:
-        dns  = CONFIG.CONFIG['BJDaaS']['DNS']
-    if port is None:
-        port = CONFIG.CONFIG['BJDaaS']['PORT']
-
-    # construct complete parameters
-    sign_params = params.copy()
-
-    # user information
-    if 'serviceNodeId' not in sign_params:
-        sign_params['serviceNodeId'] = CONFIG.CONFIG['BJDaaS']['serviceNodeId']
-    if 'userId' not in sign_params:
-         sign_params['userId'] = CONFIG.CONFIG['BJDaaS']['USER_ID']
-    if 'pwd' not in sign_params:
-        sign_params['pwd'] = CONFIG.CONFIG['BJDaaS']['PASSWORD']
-
-    # data interface Id and out data format
-    sign_params['interfaceId'] = interface_id.strip()
-
-    # construct sign string with hashlib md5 code
-    sign_str = ""
-    keys = sorted(sign_params)
-    for key in keys:
-        sign_str = sign_str + key + "=" + str(sign_params.get(key)).strip() + "&"
-    sign_str = sign_str[:-1]
-
-    # construct url
-    url_str = 'http://' + dns + ':' + port + '/services/api/meteodata/data?' + sign_str
-    print(url_str)
-    if url_only:
-        return url_str
-
-    # request http contents
-    http = urllib3.PoolManager()
-    req = http.request('GET', url_str)
-    if req.status != 200:
-        print('Can not access the url: ' + url_str)
-        return None
-
-    return req.data
-
-def rise5_model_by_pionts(init_time_str, data_code='RMAPSRISE5',
-                        time_range=[0, 24], 
-                        points="39.90/116.40", fcst_ele="2T,apcp_1hr,RH,10U,10V,10FG1"):
-
-    # set retrieve parameters
-    params = {'datacode': data_code,
-              'time': init_time_str,
-              'fcstLevel': '2,0,10',
-              'minvalidtime': '{:d}'.format(time_range[0]),
-              'maxvalidtime': '{:d}'.format(time_range[1]),
-              'latlons': points,
-              'elements': fcst_ele}
-    interface_id = 'getNafpTimeSerialByPoint'
-
-
-    # retrieve data contents
-    contents = get_rise_rest_result(interface_id, params)
-    contents = _load_rise_contents(contents)
-    
-    df = pd.DataFrame(contents['data'][0]['DS'])
-    df = df.rename(columns={0:'lat',1:'lon',2:'level',3:'dtime',4:'var',5:'value',6:'time'})
-    #2T,apcp_1hr,RH,10U,10V,10FG1
-    df_2t = df.loc[df['var']=='2T'].rename(columns={'value':'2T'}).drop(['level','var'],axis=1)
-    df_2rh = df.loc[df['var']=='RH'].rename(columns={'value':'2RH'}).drop(['level','var'],axis=1)
-    
-    df_10U = df.loc[df['var']=='10U'].rename(columns={'value':'10U'}).drop(['level','var'],axis=1)
-    df_10V = df.loc[df['var']=='10V'].rename(columns={'value':'10V'}).drop(['level','var'],axis=1)
-    df_10FG1 = df.loc[df['var']=='10FG1'].rename(columns={'value':'10FG1'}).drop(['level','var'],axis=1)
-    df_APCP_1H = df.loc[df['var']=='apcp_1hr'].rename(columns={'value':'APCP_1HR'}).drop(['level','var'],axis=1)
-    
-    
-    cob1=pd.merge(df_2t, df_2rh, how='left', on=['dtime','lat','lon','time'])
-    cob2=pd.merge(df_10U, df_10V, how='left', on=['dtime','lat','lon','time'])
-    cob3=pd.merge(df_10FG1, df_APCP_1H, how='left', on=['dtime','lat','lon','time'])
-    cob4=pd.merge(cob1, cob2, how='left', on=['dtime','lat','lon','time'])
-    cob5=pd.merge(cob3, cob4, how='left', on=['dtime','lat','lon','time'])
-    return cob5
-
-def rise_model_by_pionts(init_time_str, data_code='RMAPSRISE',
-                        time_range=[0, 24], 
-                        points="39.90/116.40", fcst_ele="2T,RH,10U,10V,10FG1"):
-
-    # set retrieve parameters
-    params = {'datacode': data_code,
-              'time': init_time_str,
-              'fcstLevel': '2,0,10',
-              'minvalidtime': '{:d}'.format(time_range[0]),
-              'maxvalidtime': '{:d}'.format(time_range[1]),
-              'latlons': points,
-              'elements': fcst_ele}
-    interface_id = 'getNafpTimeSerialByPoint'
-
-
-    # retrieve data contents
-    contents = get_rise_rest_result(interface_id, params)
-    contents = _load_rise_contents(contents)
-    
-    df = pd.DataFrame(contents['data'][0]['DS'])
-    df = df.rename(columns={0:'lat',1:'lon',2:'level',3:'dtime',4:'var',5:'value',6:'time'})
-    #2T,RH,10U,10V,10FG1
-    df_2t = df.loc[df['var']=='2T'].rename(columns={'value':'2T'}).drop(['level','var'],axis=1)
-    df_2rh = df.loc[df['var']=='RH'].rename(columns={'value':'2RH'}).drop(['level','var'],axis=1)
-    
-    df_10U = df.loc[df['var']=='10U'].rename(columns={'value':'10U'}).drop(['level','var'],axis=1)
-    df_10V = df.loc[df['var']=='10V'].rename(columns={'value':'10V'}).drop(['level','var'],axis=1)
-    df_10FG1 = df.loc[df['var']=='10FG1'].rename(columns={'value':'10FG1'}).drop(['level','var'],axis=1)
-    
-    cob1=pd.merge(df_2t, df_2rh, how='left', on=['dtime','lat','lon','time'])
-    cob2=pd.merge(df_10U, df_10V, how='left', on=['dtime','lat','lon','time'])
-    cob3=pd.merge(cob2, cob1, how='left', on=['dtime','lat','lon','time'])
-    cob4=pd.merge(df_10FG1, cob3, how='left', on=['dtime','lat','lon','time'])
-    
-    return cob4

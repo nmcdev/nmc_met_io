@@ -11,21 +11,23 @@ Checking url, like:
 http://10.32.8.164:8080/DataService?requestType=getLatestDataName&directory=ECMWF_HR/TMP/850&fileName=&filter=*.024
 """
 
-import warnings
-import re
-import http.client
-import urllib.parse
-import pickle
 import bz2
+import http.client
+import pickle
+import re
+import urllib.parse
+import warnings
 import zlib
-from io import BytesIO
 from datetime import datetime, timedelta
+from io import BytesIO
+
 import numpy as np
-import xarray as xr
 import pandas as pd
+import xarray as xr
 from tqdm import tqdm
-from nmc_met_io import DataBlock_pb2
+
 import nmc_met_io.config as CONFIG
+from nmc_met_io import DataBlock_pb2
 from nmc_met_io.read_radar import StandardData
 from nmc_met_io.read_satellite import resolve_awx_bytearray
 
@@ -50,10 +52,23 @@ def get_http_result(host, port, url):
 
 
 class GDSDataService:
-    def __init__(self):
+    def __init__(self, gdsIP=None, gdsPort=None):
+        """
+        Args:
+            gdsIP (str, optional): 
+                Micaps cassandra server IP. Defaults from config.ini file.
+            gdsPort (str, optional):
+                Micaps cassandra server port. Defaults from config.ini file.
+        """
         # set MICAPS GDS服务器地址
-        self.gdsIp = CONFIG.CONFIG['MICAPS']['GDS_IP']
-        self.gdsPort = CONFIG.CONFIG['MICAPS']['GDS_PORT']
+        if gdsIP is None:
+            self.gdsIp = CONFIG.CONFIG['MICAPS']['GDS_IP']
+        else:
+            self.gdsIp = gdsIP
+        if gdsPort is None:
+            self.gdsPort = CONFIG.CONFIG['MICAPS']['GDS_PORT']
+        else:
+            self.gdsPort = gdsPort
 
     def getLatestDataName(self, directory, filter):
         return get_http_result(
@@ -156,7 +171,8 @@ def get_model_grid(directory, filename=None, suffix="*.024",
                    varname='data', varattrs={'units':''}, scale_off=None,
                    levattrs={'long_name':'pressure_level', 'units':'hPa',
                              '_CoordinateAxisType':'Pressure'},
-                   cache=True, cache_clear=True, check_file_first=True):
+                   cache=True, cache_clear=True, check_file_first=True,
+                   gdsIP=None, gdsPort=None):
     """
     Retrieve numeric model grid forecast from MICAPS cassandra service.
     Support ensemble member forecast.
@@ -171,7 +187,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     :param levattrs: set level coordinate attributes, diectionary type.
     :param cache: cache retrieved data to local directory, Default is True.
     :param cache_clear: 如果设置了清除缓存, 则会将缓存文件逐周存放, 并删除过去的周文件夹.
-    :param check_file_first: check file exists firstly, do not recommend. Default is False.
+    :param check_file_first: check file exists firstly. Default is True.
     :return: data, xarray type
 
     :Examples:
@@ -186,7 +202,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
     if filename is None:
         try:
             # connect to data service
-            service = GDSDataService()
+            service = GDSDataService(gdsIP=gdsIP, gdsPort=gdsPort)
             status, response = service.getLatestDataName(directory, suffix)
         except ValueError:
             print('Can not retrieve data from ' + directory)
@@ -204,7 +220,11 @@ def get_model_grid(directory, filename=None, suffix="*.024",
 
     # retrieve data from cached file
     if cache:
-        cache_file = CONFIG.get_cache_file(directory, filename, name="MICAPS_DATA", cache_clear=cache_clear)
+        cache_file = CONFIG.get_cache_file(
+            directory, 
+            filename, 
+            name="MICAPS_DATA", 
+            cache_clear=cache_clear)
         if cache_file.is_file():
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
@@ -217,7 +237,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
             file_list = get_file_list(directory)
             if filename not in file_list:
                 return None
-        service = GDSDataService()
+        service = GDSDataService(gdsIP=gdsIP, gdsPort=gdsPort)
         status, response = service.getData(directory, filename)
     except ValueError:
         print('Can not retrieve data' + filename + ' from ' + directory)
@@ -312,7 +332,7 @@ def get_model_grid(directory, filename=None, suffix="*.024",
             # construct initial time and forecast hour
             init_time = datetime(head_info['year'][0], head_info['month'][0],
                                  head_info['day'][0], head_info['hour'][0])
-            fhour = np.array([head_info['period'][0]], dtype=np.float)
+            fhour = np.array([head_info['period'][0]], dtype=np.float64)
             time = init_time + timedelta(hours=fhour[0])
             init_time = np.array([init_time], dtype='datetime64[ms]')
             time = np.array([time], dtype='datetime64[ms]')
@@ -686,10 +706,11 @@ def get_station_data(directory, filename=None, suffix="*.000",
                           ('level', 'f4'), ('levelDescription', 'S50'),
                           ('year', 'i4'), ('month', 'i4'), ('day', 'i4'),
                           ('hour', 'i4'), ('minute', 'i4'), ('second', 'i4'),
-                          ('Timezone', 'i4'), ('extent', 'S100')]
+                          ('Timezone', 'i4'), ('id_type', 'i2'), ('extent', 'S98')]
 
             # read head information
             head_info = np.frombuffer(byteArray[0:288], dtype=head_dtype)
+            id_type = head_info['id_type'][0]
             ind = 288
 
             # read the number of stations
@@ -716,31 +737,65 @@ def get_station_data(directory, filename=None, suffix="*.000",
                 element_map[element_id] = element_type_map[element_type]
 
             # loop every station to retrieve record
-            record_head_dtype = [
-                ('ID', 'i4'), ('lon', 'f4'), ('lat', 'f4'), ('numb', 'i2')]
-            records = []
-            for i in range(station_number):
-                record_head = np.frombuffer(
-                    byteArray[ind:(ind+14)], dtype=record_head_dtype)
-                ind += 14
-                record = {
-                    'ID': record_head['ID'][0], 'lon': record_head['lon'][0],
-                    'lat': record_head['lat'][0]}
-                for j in range(record_head['numb'][0]):    # the record element number is not same, missing value is not included.
-                    element_id = str(
-                        np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0])
-                    ind += 2
-                    element_type = element_map[element_id]
-                    if element_type == 'S':                # if the element type is string, we need get the length of string
-                        str_len = np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0]
+            # id_type=0 保持不变
+            if id_type==0:
+                record_head_dtype = [
+                    ('ID', 'i4'), ('lon', 'f4'), ('lat', 'f4'), ('numb', 'i2')]
+                records = []
+                for i in range(station_number):
+                    record_head = np.frombuffer(
+                        byteArray[ind:(ind+14)], dtype=record_head_dtype)
+                    ind += 14
+                    record = {
+                        'ID': record_head['ID'][0], 'lon': record_head['lon'][0],
+                        'lat': record_head['lat'][0]}
+                    for j in range(record_head['numb'][0]):    # the record element number is not same, missing value is not included.
+                        element_id = str(
+                            np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0])
                         ind += 2
-                        element_type = element_type + str(str_len)
-                    element_len = int(element_type[1:])
-                    record[element_id] = np.frombuffer(
-                        byteArray[ind:(ind + element_len)],
-                        dtype=element_type)[0]
-                    ind += element_len
-                records += [record]
+                        element_type = element_map[element_id]
+                        if element_type == 'S':                # if the element type is string, we need get the length of string
+                            str_len = np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0]
+                            ind += 2
+                            element_type = element_type + str(str_len)
+                        element_len = int(element_type[1:])
+                        record[element_id] = np.frombuffer(
+                            byteArray[ind:(ind + element_len)],
+                            dtype=element_type)[0]
+                        ind += element_len
+                    records += [record]
+            else: # ==1
+                record_head_dtype = [
+                    ('lon', 'f4'), ('lat', 'f4'), ('numb', 'i2')]
+                records = []
+                for i in range(station_number):
+                    # 原先为14个字节固定，现在改成前2字节定义接下来ID string长度
+                    ID_string_length = np.frombuffer(byteArray[ind:(ind + 2)], dtype="i2")[0]
+                    record_ID = np.frombuffer(byteArray[ind + 2:(ind + 2 + ID_string_length)], 
+                                              dtype="S" + str(ID_string_length))[0]
+                    record_ID = record_ID.decode()
+                    ind += (2 + ID_string_length)
+                    record_head = np.frombuffer(
+                        byteArray[ind:(ind+10)], dtype=record_head_dtype)
+                    ind += 10
+                    record = {
+                        'ID': record_ID, 'lon': record_head['lon'][0],
+                        'lat': record_head['lat'][0]}
+                    for j in range(record_head['numb'][0]):    # the record element number is not same, missing value is not included.
+                        element_id = str(
+                            np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0])
+                        ind += 2
+                        element_type = element_map[element_id]
+                        if element_type == 'S':                # if the element type is string, we need get the length of string
+                            str_len = np.frombuffer(byteArray[ind:(ind + 2)], dtype='i2')[0]
+                            ind += 2
+                            element_type = element_type + str(str_len)
+                        element_len = int(element_type[1:])
+                        record[element_id] = np.frombuffer(
+                            byteArray[ind:(ind + element_len)],
+                            dtype=element_type)[0]
+                        ind += element_len
+                    records += [record]
 
             # convert to pandas data frame
             records = pd.DataFrame(records)
@@ -1075,9 +1130,9 @@ def get_radar_mosaic(directory, filename=None, suffix="*.BIN", cache=True, cache
                 ind = 256
 
                 # get data information
-                varname = head_info['varname'][0]
-                longname = head_info['description'][0]
-                units = head_info['units'][0]
+                varname = head_info['varname'][0].decode("utf-8", 'ignore').strip('\x00')
+                longname = head_info['description'][0].decode("utf-8", 'ignore').strip('\x00')
+                units = head_info['units'][0].decode("utf-8", 'ignore').strip('\x00')
 
                 # define data variable
                 rows = head_info['nY'][0]
@@ -1572,7 +1627,7 @@ def get_swan_radar(directory, filename=None, suffix="*.000", scale=[0.1, 0],
                 fhour = int(filename.split('.')[1])/60.0
             else:
                 fhour = 0
-            fhour = np.array([fhour], dtype=np.float)
+            fhour = np.array([fhour], dtype=np.float64)
             time = init_time + timedelta(hours=fhour[0])
             init_time = np.array([init_time], dtype='datetime64[ms]')
             time = np.array([time], dtype='datetime64[ms]')

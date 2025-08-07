@@ -38,8 +38,6 @@ setup(
       'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
       'Topic :: Scientific/Engineering',
       'Topic :: Scientific/Engineering :: Atmospheric Science',
-      'Programming Language :: Python :: 3',
-      'Programming Language :: Python :: 3.6',
       'Programming Language :: Python :: 3.7',
       'Programming Language :: Python :: 3.8',
       'Operating System :: POSIX :: Linux',
@@ -51,8 +49,9 @@ setup(
     platforms = ["all"],
 
     packages=find_packages(exclude=[
-      'documents', 'docs', 'examples', 'notebooks', 'tests', 'build', 'dist']),
+      'documents', 'docs', 'examples', 'notebooks', 'tests', 'tests.*', 'build', 'dist']),
     include_package_data=True,
+    package_data={'':['LICENSE','README.md']},
     exclude_package_data={'': ['.gitignore']},
 
     install_requires=[
@@ -60,10 +59,11 @@ setup(
       'scipy>=1.4.0',
       'pandas>=1.0.0',
       'xarray>=0.16.0',
-      'protobuf>=3.12.0',
+      'protobuf>=3.17.0',
       'urllib3>=1.25.9',
       'tqdm>=4.47.0',
-      'python-dateutil>=2.8.1']
+      'python-dateutil>=2.8.1',
+      'openpyxl>=3.0.4',]
 )
 
 # development mode (DOS command):
@@ -74,5 +74,5 @@ setup(
 #     python setup.py build --build-base=D:/test/python/build
 
 # distribution mode:
-#     python setup.py sdist build              # create source tar.gz file in /dist
+#     python setup.py bdist_wheel              # create source tar.gz file in /dist
 #     twine upload --skip-existing dist/*      # upload package to pypi
