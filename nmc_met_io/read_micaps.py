@@ -1239,17 +1239,17 @@ def read_micaps_14(fname):
                 idx += 1
 
                 # line color
-                color = np.array(txt[idx:(idx + 4)]).astype(np.int)
+                color = np.array(txt[idx:(idx + 4)]).astype(np.int32)
                 fillarea_color.append(color)
                 idx += 4
 
                 # front color
-                front_color = np.array(txt[idx:(idx + 4)]).astype(np.int)
+                front_color = np.array(txt[idx:(idx + 4)]).astype(np.int32)
                 fillarea_frontcolor.append(front_color)
                 idx += 4
 
                 # background color
-                back_color = np.array(txt[idx:(idx + 4)]).astype(np.int)
+                back_color = np.array(txt[idx:(idx + 4)]).astype(np.int32)
                 fillarea_backcolor.append(back_color)
                 idx += 4
 
@@ -1351,7 +1351,7 @@ def read_micaps_14(fname):
                 idx += 1
 
                 # color
-                color = np.array(txt[idx:(idx + 4)]).astype(np.int)
+                color = np.array(txt[idx:(idx + 4)]).astype(np.int32)
                 nsymbol_color.append(color)
                 idx += 4
 
@@ -1405,7 +1405,7 @@ def read_micaps_14(fname):
                 idx += 1
 
                 # line color
-                color = np.array(txt[idx:(idx + 3)]).astype(np.int)
+                color = np.array(txt[idx:(idx + 3)]).astype(np.int32)
                 plinesym_color.append([color])
                 idx += 3
 
@@ -1554,3 +1554,4 @@ def read_micaps_120(fname, limit=None):
 
     # return
     return data
+
