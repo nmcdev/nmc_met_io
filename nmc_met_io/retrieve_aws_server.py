@@ -69,9 +69,9 @@ def retrieve_era5(varname, year, month, datestart, dateend):
     # open zarr file
     data = xr.open_zarr(s3fs.S3Map(datafile, s3=fs))
     if varname in ['precipitation_amount_1hour_Accumulation']:
-        data.sel(time1=slice(np.datetime64(datestart), np.datetime64(dateend)))
+        data = data.sel(time1=slice(np.datetime64(datestart), np.datetime64(dateend)))
     else:
-        data.sel(time0=slice(np.datetime64(datestart), np.datetime64(dateend)))
+        data = data.sel(time0=slice(np.datetime64(datestart), np.datetime64(dateend)))
 
     return data
 
