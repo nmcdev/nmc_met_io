@@ -51,7 +51,7 @@ def get_rest_result(interface_id, params, url_only=False,
             'serviceNodeId':'NMIC_MUSIC_CMADAAS',
             'userId':'test',
             'pwd':'123456',
-            'dataCode':'SURF_CHN_MUL_HOR_N',
+            'dataCode':'SURF_CHN_MUL_HOR',
             'elements':'Datetime,Station_Id_d,Lat,Lon,PRE_24h',
             'times':'20200910000000',
             'dataFormat':'json',
@@ -160,39 +160,6 @@ def cmadaas_obs_convert_type(obs_data):
     return obs_data
 
 
-def cmadaas_get_obs_latest_time(data_code="SURF_CHN_MUL_HOR", latestTime=12):
-    """
-    Get the latest time of the observations.
-    
-    Args:
-        data_code (str, optional): dataset code, like "SURF_CHN_MUL_HOR", 
-                                   "SURF_CHN_MUL_HOR_N". Defaults to "SURF_CHN_MUL_HOR".
-        latestTime (int, optional): latestTime > 0, like 2 is return 
-                                    the latest time in 2 hours. Defaults to 12.
-    Returns:
-        datetime object, the latest time
-
-    Examples:
-    >>> print(cmadaas_get_obs_latest_time())
-        2020-03-12 03:00:00
-    """
-
-    # set retrieve parameters
-    params = {'dataCode': data_code,
-              'latestTime': str(latestTime+8)}    # 由于服务器是世界时, 因此需要+8才能与当前时间比较.
-
-    # interface id
-    interface_id = "getSurfLatestTime"
-
-    # retrieve data contents
-    contents = get_rest_result(interface_id, params)
-    contents = _load_contents(contents)
-
-    # construct pandas DataFrame
-    data = pd.DataFrame(contents['DS'])
-    time = pd.to_datetime(data['Datetime'], format="%Y%m%d%H%M%S")
-
-    return time[0]
 
 
 def cmadaas_get_obs_files(times, data_code="SURF_CMPA_RT_NC", out_dir=None, pbar=True):
@@ -251,7 +218,7 @@ def cmadaas_get_obs_files(times, data_code="SURF_CMPA_RT_NC", out_dir=None, pbar
     return out_files
 
 
-def cmadaas_obs_by_time(times, data_code="SURF_CHN_MUL_HOR_N",
+def cmadaas_obs_by_time(times, data_code="SURF_CHN_MUL_HOR",
                         sta_levels=None, ranges=None, order=None, 
                         count=None, distinct=False, trans_type=True, 
                         elements="Station_Id_C,Station_Id_d,lat,lon,Datetime,TEM"):
@@ -260,7 +227,7 @@ def cmadaas_obs_by_time(times, data_code="SURF_CHN_MUL_HOR_N",
     
     Args:
         times (str): times for retrieve, 'YYYYMMDDHHMISS,YYYYMMDDHHMISS,...'
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR".
         sta_levels (str, optional): station levels, seperated by ',',
              like "011,012,013" for standard, base and general stations. Defaults to None.
         ranges (str, optional): elements value ranges, seperated by ';'
@@ -310,7 +277,7 @@ def cmadaas_obs_by_time(times, data_code="SURF_CHN_MUL_HOR_N",
     return data
 
 
-def cmadaas_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR_N",
+def cmadaas_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR",
                               sta_levels=None, ranges=None, order=None, 
                               count=None, distinct=False, trans_type=True,
                               elements="Station_Id_C,Datetime,Lat,Lon,TEM"):
@@ -320,7 +287,7 @@ def cmadaas_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR_N",
     Args:
         time_range (str): time range for retrieve,  "[YYYYMMDDHHMISS, YYYYMMDDHHMISS]",
                           like"[20160901000000,20161001000000]"
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR".
         sta_levels (str, optional): station levels, seperated by ',',
              like "011,012,013" for standard, base and general stations. Defaults to None.
         ranges (str, optional): elements value ranges, seperated by ';'
@@ -379,7 +346,7 @@ def cmadaas_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR_N",
     return data
 
 
-def cmadaas_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR_N",
+def cmadaas_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR",
                                sta_levels=None, ranges=None, order=None, 
                                count=None, trans_type=True,
                                elements="Station_Id_C,Datetime,TEM",
@@ -389,7 +356,7 @@ def cmadaas_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR_N",
     
     Args:
         times (str): time for retrieve, 'YYYYMMDDHHMISS,YYYYMMDDHHMISS,...'
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR".
         sta_levels (str, optional): station levels, seperated by ',',
              like "011,012,013" for standard, base and general stations. Defaults to None.
         ranges (str, optional): elements value ranges, seperated by ';'
@@ -439,7 +406,7 @@ def cmadaas_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR_N",
     return data
 
 
-def cmadaas_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR_N",
+def cmadaas_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR",
                                      sta_levels=None, ranges=None, order=None, 
                                      count=None, trans_type=True,
                                      elements="Station_Id_C,Datetime,TEM",
@@ -450,7 +417,7 @@ def cmadaas_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR_N",
     Args:
         time_range (str): time range for retrieve,  "[YYYYMMDDHHMISS, YYYYMMDDHHMISS]",
                           like"[201509010000,20150903060000]"
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR".
         sta_levels (str, optional): station levels, seperated by ',',
              like "011,012,013" for standard, base and general stations. Defaults to None.
         ranges (str, optional): elements value ranges, seperated by ';'
@@ -500,7 +467,7 @@ def cmadaas_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR_N",
     return data
 
 
-def cmadaas_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR_N",
+def cmadaas_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR",
                                 sta_levels=None, ranges=None, order=None, 
                                 count=None, trans_type=True,
                                 elements="Station_Id_C,Datetime,Lat,Lon,TEM"):
@@ -510,7 +477,7 @@ def cmadaas_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR_N",
     Args:
         times (str): time for retrieve, 'YYYYMMDDHHMISS,YYYYMMDDHHMISS,...'
         limit (list):  map limits, [min_lat, min_lon, max_lat, max_lon]
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR".
         sta_levels (str, optional): station levels, seperated by ',',
              like "011,012,013" for standard, base and general stations. Defaults to None.
         ranges (str, optional): elements value ranges, seperated by ';'
@@ -562,7 +529,7 @@ def cmadaas_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR_N",
     return data
 
 
-def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL_HOR_N",
+def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL_HOR",
                                       ranges=None, order=None, 
                                       count=None, trans_type=True,
                                       elements="Station_Id_C,Datetime,Lat,Lon,TEM"):
@@ -572,7 +539,7 @@ def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL
     Args:
         time_range (str): time for retrieve, "[YYYYMMDDHHMISS,YYYYMMDDHHMISS]"
         limit (list):  map limits, [min_lat, min_lon, max_lat, max_lon]
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR".
         ranges (str, optional): elements value ranges, seperated by ';'
             range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
                    [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
@@ -628,7 +595,7 @@ def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL
     return data
 
 
-def cmadaas_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_HOR_N",
+def cmadaas_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_HOR",
                                  sta_levels=None, ranges=None, order=None, 
                                  count=None, trans_type=True,
                                  elements="Station_Id_C,Datetime,Lat,Lon,TEM"):
@@ -639,7 +606,7 @@ def cmadaas_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_
         times (str): time for retrieve, 'YYYYMMDDHHMISS,YYYYMMDDHHMISS,...'
         admin (str, optional):  administration(or province code), sperated by ",",
                       like "110000" is Beijing, "440000" is Guangdong. Defaults to "110000".
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR".
         sta_levels (str, optional): station levels, seperated by ',',
              like "011,012,013" for standard, base and general stations. Defaults to None.
         ranges (str, optional): elements value ranges, seperated by ';'
@@ -688,7 +655,7 @@ def cmadaas_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_
     return data
 
 
-def cmadaas_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SURF_CHN_MUL_HOR_N",
+def cmadaas_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SURF_CHN_MUL_HOR",
                                        sta_levels=None, ranges=None, order=None, 
                                        count=None, trans_type=True,
                                        elements="Station_Id_C,Datetime,Lat,Lon,TEM"):
@@ -699,7 +666,7 @@ def cmadaas_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SU
         time_range (str): time for retrieve, "[YYYYMMDDHHMISS,YYYYMMDDHHMISS]"
         admin (str, optional):  administration(or province code), sperated by ",",
                       like "110000" is Beijing, "440000" is Guangdong. Defaults to "110000".
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR".
         sta_levels (str, optional): station levels, seperated by ',',
              like "011,012,013" for standard, base and general stations. Defaults to None.
         ranges (str, optional): elements value ranges, seperated by ';'
@@ -754,7 +721,7 @@ def cmadaas_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SU
     return data
 
 
-def cmadaas_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HOR_N",
+def cmadaas_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HOR",
                                  sta_levels=None, ranges=None, order=None, 
                                  count=None, trans_type=True,
                                  elements="Station_Id_C,Datetime,Lat,Lon,TEM"):
@@ -765,7 +732,7 @@ def cmadaas_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HO
         times (str): time for retrieve, 'YYYYMMDDHHMISS,YYYYMMDDHHMISS,...'
         basin (str, optional):  basin codes, sperated by ",",  like "CJLY" is Yangzi River, 
                                 "sta_2480" is 2480 stations. Defaults to "CJLY".
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR".
         sta_levels (str, optional): station levels, seperated by ',',
              like "011,012,013" for standard, base and general stations. Defaults to None.
         ranges (str, optional): elements value ranges, seperated by ';'
@@ -814,13 +781,13 @@ def cmadaas_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HO
     return data
 
 # Constants for clarity and maintainability
-DEFAULT_ELEMENTS_SURF_CHN_MUL_HOR_N = "Station_Id_C,Datetime,Lat,Lon,TEM"
+DEFAULT_ELEMENTS_SURF_CHN_MUL_HOR = "Station_Id_C,Datetime,Lat,Lon,TEM"
 INTERFACE_ID_SURF_ELE_IN_BASIN = "getSurfEleInBasinByTimeRange"
 
 def cmadaas_obs_in_basin_by_time_range(
     time_range: str,
     basin: str = "CJLY",
-    data_code: str = "SURF_CHN_MUL_HOR_N",
+    data_code: str = "SURF_CHN_MUL_HOR",
     sta_levels: Optional[str] = None,
     ranges: Optional[str] = None,
     order: Optional[str] = None,
@@ -835,7 +802,7 @@ def cmadaas_obs_in_basin_by_time_range(
         time_range (str): Time for retrieval, e.g., "[20160801000000,20160801000000]".
         basin (str, optional): Basin codes, separated by ",", e.g., "CJLY" (Yangzi River),
                                "sta_2480" (specific station group). Defaults to "CJLY".
-        data_code (str, optional): Dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): Dataset code. Defaults to "SURF_CHN_MUL_HOR".
         sta_levels (str, optional): Station levels, separated by ',',
              e.g., "011,012,013" for national, basic, and general stations. Defaults to None.
         ranges (str, optional): Element value ranges, separated by ';'.
@@ -855,7 +822,7 @@ def cmadaas_obs_in_basin_by_time_range(
                                      Defaults to True.
         elements (str, optional): Elements for retrieval, 'ele1,ele2,...'.
             If None, defaults to "Station_Id_C,Datetime,Lat,Lon,TEM" for
-            data_code "SURF_CHN_MUL_HOR_N". For other data_codes, if elements
+            data_code "SURF_CHN_MUL_HOR". For other data_codes, if elements
             is None, it's passed as such to the API (which might use its own
             default or error if mandatory).
             Original docstring default was "Station_Id_C,Station_Id_d,lat,lon,Datetime,TEM".
@@ -885,8 +852,8 @@ def cmadaas_obs_in_basin_by_time_range(
     """
     # Determine elements to use
     final_elements = elements
-    if final_elements is None and data_code == "SURF_CHN_MUL_HOR_N":
-        final_elements = DEFAULT_ELEMENTS_SURF_CHN_MUL_HOR_N
+    if final_elements is None and data_code == "SURF_CHN_MUL_HOR":
+        final_elements = DEFAULT_ELEMENTS_SURF_CHN_MUL_HOR
 
     # Prepare parameters for the API call
     api_params: Dict[str, Union[str, int]] = {
@@ -953,7 +920,7 @@ def cmadaas_obs_in_basin_by_time_range(
         return None
 
 
-def cmadaas_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MUL_HOR_N",
+def cmadaas_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MUL_HOR",
                           ranges=None, order=None, count=None, trans_type=True,
                           elements="Station_Id_C,Station_Id_d,lat,lon,Datetime,TEM"):
     """
@@ -964,7 +931,7 @@ def cmadaas_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MU
         maxYear (int): end year, like 2005
         minMD (str): start date, like "0125" is 01/25
         maxMD (str): end date, like "0205" is 02/25
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR".
         ranges (str, optional): elements value ranges, seperated by ';'
             range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
                    [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
@@ -1012,7 +979,7 @@ def cmadaas_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MU
     return data
 
 
-def cmadaas_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MUL_HOR_N",
+def cmadaas_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MUL_HOR",
                                  ranges=None, order=None, count=None, trans_type=True,
                                  elements="Station_Id_C,Station_Id_d,lat,lon,Datetime,TEM",
                                  sta_ids="54511"):
@@ -1024,7 +991,7 @@ def cmadaas_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF
         maxYear (int): end year, like 2005
         minMD (str): start date, like "0125" is 01/25
         maxMD (str): end date, like "0205" is 02/25
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR".
         ranges (str, optional): elements value ranges, seperated by ';'
             range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
                    [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
@@ -1074,7 +1041,7 @@ def cmadaas_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF
     return data
 
 
-def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000", data_code="SURF_CHN_MUL_HOR_N",
+def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000", data_code="SURF_CHN_MUL_HOR",
                                    ranges=None, order=None, count=None, trans_type=True,
                                    elements="Station_Id_C,Station_Id_d,lat,lon,Datetime,TEM"):
     """
@@ -1087,7 +1054,7 @@ def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000
         maxMD (str): end date, like "0205" is 02/25
         admin (str, optional):  administration(or province code), sperated by ",",
                       like "110000" is Beijing, "440000" is Guangdong. Defaults to "110000".
-        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR_N".
+        data_code (str, optional): dataset code. Defaults to "SURF_CHN_MUL_HOR".
         ranges (str, optional): elements value ranges, seperated by ';'
             range: (a,) is >a, [a,) is >=a, (,a) is <a, (,a] is <=a, (a,b) is >a & <b, 
                    [a,b) is >=a & <b, (a,b] is >a & <=b, [a,b] is >=a & <=b
