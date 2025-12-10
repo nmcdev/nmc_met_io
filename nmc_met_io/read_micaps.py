@@ -404,7 +404,7 @@ def read_micaps_4(fname, limit=None, varname='data', varattrs={'units':''}, scal
     boldCeof = float(txt[21])
 
     # extract data
-    data = (np.array(txt[22:])).astype(np.float)
+    data = (np.array(txt[22:])).astype(np.float64)
     data.shape = [nlat, nlon]
 
     # check latitude order
@@ -802,7 +802,7 @@ def read_micaps_11(fname, limit=None, scale_off=None, no_level=False,
     lat = slat + np.arange(nlat) * yint
 
     # extract data
-    data = (np.array(txt[ind:])).astype(np.float)
+    data = (np.array(txt[ind:])).astype(np.float64)
     data.shape = [2, nlat, nlon]
 
     # check latitude order
@@ -942,7 +942,7 @@ def read_micaps_14(fname):
                 idx += 1
 
                 # line xyz
-                xyz = np.array(txt[idx:(idx + 3*xyz_num)]).astype(np.float)
+                xyz = np.array(txt[idx:(idx + 3*xyz_num)]).astype(np.float64)
                 xyz.shape = [xyz_num, 3]
                 line_xyz.append(xyz)
                 idx += xyz_num * 3
@@ -960,7 +960,7 @@ def read_micaps_14(fname):
                 # label xyz
                 if label_num > 0:
                     label_xyz = np.array(
-                        txt[idx:(idx + 3*label_num)]).astype(np.float)
+                        txt[idx:(idx + 3*label_num)]).astype(np.float64)
                     label_xyz.shape = [label_num, 3]
                     line_label_xyz.append(label_xyz)
                     idx += label_num * 3
@@ -1010,7 +1010,7 @@ def read_micaps_14(fname):
                 idx += 1
 
                 # line symbol xyz
-                xyz = np.array(txt[idx:(idx + 3*xyz_num)]).astype(np.float)
+                xyz = np.array(txt[idx:(idx + 3*xyz_num)]).astype(np.float64)
                 xyz.shape = [xyz_num, 3]
                 linesym_xyz.append(xyz)
                 idx += xyz_num * 3
@@ -1054,7 +1054,7 @@ def read_micaps_14(fname):
                 idx += 1
 
                 # symbol xyz
-                xyz = np.array(txt[idx:(idx + 3)]).astype(np.float)
+                xyz = np.array(txt[idx:(idx + 3)]).astype(np.float64)
                 symbol_xyz.append(xyz)
                 idx += 3
 
@@ -1101,7 +1101,7 @@ def read_micaps_14(fname):
                 idx += 1
 
                 # line xyz
-                xyz = np.array(txt[idx:(idx + 3 * xyz_num)]).astype(np.float)
+                xyz = np.array(txt[idx:(idx + 3 * xyz_num)]).astype(np.float64)
                 xyz.shape = [xyz_num, 3]
                 cn_xyz.append(xyz)
                 idx += 3 * xyz_num
@@ -1119,7 +1119,7 @@ def read_micaps_14(fname):
                 # label xyz
                 if label_num > 0:
                     label_xyz = np.array(
-                        txt[idx:(idx + 3 * label_num)]).astype(np.float)
+                        txt[idx:(idx + 3 * label_num)]).astype(np.float64)
                     label_xyz.shape = [3, label_num]
                     cn_label_xyz.append(label_xyz)
                     idx += label_num * 3
@@ -1179,7 +1179,7 @@ def read_micaps_14(fname):
 
                 # region xyz point
                 xyz = np.array(
-                    txt[idx:(idx + 3*xyz_num)]).astype(np.float)
+                    txt[idx:(idx + 3*xyz_num)]).astype(np.float64)
                 xyz.shape = [xyz_num, 3]
                 weather_region_xyz.append(xyz)
                 idx += 3 * xyz_num
@@ -1228,7 +1228,7 @@ def read_micaps_14(fname):
 
                 # xyz point
                 xyz = np.array(
-                    txt[idx:(idx + 3 * xyz_num)]).astype(np.float)
+                    txt[idx:(idx + 3 * xyz_num)]).astype(np.float64)
                 xyz.shape = [xyz_num, 3]
                 fillarea_xyz.append(xyz)
                 idx += 3 * xyz_num
@@ -1311,7 +1311,7 @@ def read_micaps_14(fname):
                 idx += 1
 
                 # xyz
-                xyz = np.array(txt[idx:(idx + 3)]).astype(np.float)
+                xyz = np.array(txt[idx:(idx + 3)]).astype(np.float64)
                 nsymbol_xyz.append([xyz])
                 idx += 3
 
@@ -1425,7 +1425,7 @@ def read_micaps_14(fname):
                 idx += 1
 
                 # line symbol xyz
-                xyz = np.array(txt[idx:(idx + 3 * xyz_num)]).astype(np.float)
+                xyz = np.array(txt[idx:(idx + 3 * xyz_num)]).astype(np.float64)
                 xyz.shape = [xyz_num, 3]
                 plinesym_xyz.append(xyz)
                 idx += 3 * xyz_num
@@ -1443,7 +1443,7 @@ def read_micaps_14(fname):
                 # label xyz
                 if label_num > 0:
                     label_xyz = np.array(
-                        txt[idx:(idx + 3 * label_num)]).astype(np.float)
+                        txt[idx:(idx + 3 * label_num)]).astype(np.float64)
                     label_xyz.shape = [label_num, 3]
                     plinesym_label_xyz.append(label_xyz)
                     idx += label_num * 3
@@ -1554,3 +1554,4 @@ def read_micaps_120(fname, limit=None):
 
     # return
     return data
+
