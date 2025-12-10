@@ -80,13 +80,21 @@ def read_micaps_1(fname, limit=None):
 
     # cut the data
     txt = txt[8:]
-    if (len(txt) % 24) == 0:
+    expected_24 = number * 24
+    expected_26 = number * 26
+    actual_len = len(txt)
+    
+    if actual_len == expected_24:
         txt = np.array(txt)
         txt.shape = [number, 24]
-    else:
+    elif actual_len == expected_26:
         txt = np.array(txt)
         txt.shape = [number, 26]
         columns.extend(['temperature_24h_trend', 'pressure_24h_trend'])
+    else:
+        raise ValueError(f"Data length mismatch in Micaps 1 file. "
+                       f"Expected {expected_24} (24 cols) or {expected_26} (26 cols), "
+                       f"but got {actual_len} elements for {number} stations.")
 
     # initial data
     data = pd.DataFrame(txt, columns=columns)
@@ -96,7 +104,7 @@ def read_micaps_1(fname, limit=None):
         if column == 'ID':
             continue
         data[column] = pd.to_numeric(data[column], errors="coerce")
-        data[column].mask(data[column] ==  9999.0, inplace=True)
+        data[column] = data[column].mask(data[column] == 9999.0)
 
     # cut the region
     if limit is not None:
@@ -175,6 +183,14 @@ def read_micaps_2(fname, limit=None):
 
     # cut the data
     txt = np.array(txt[9:])
+    expected_len = number * 10
+    actual_len = len(txt)
+    
+    if actual_len != expected_len:
+        raise ValueError(f"Data length mismatch in Micaps 2 file. "
+                       f"Expected {expected_len} elements for {number} stations with 10 columns, "
+                       f"but got {actual_len} elements.")
+    
     txt.shape = [number, 10]
 
     # initial data
@@ -185,7 +201,7 @@ def read_micaps_2(fname, limit=None):
         if column == 'ID':
             continue
         data[column] = pd.to_numeric(data[column], errors="coerce")
-        data[column].mask(data[column] ==  9999.0, inplace=True)
+        data[column] = data[column].mask(data[column] == 9999.0)
 
     # cut the region
     if limit is not None:
@@ -307,7 +323,7 @@ def read_micaps_3(fname, limit=None):
         if column == 'ID':
             continue
         data[column] = pd.to_numeric(data[column], errors="coerce")
-        data[column].mask(data[column] ==  9999.0, inplace=True)
+        data[column] = data[column].mask(data[column] == 9999.0)
 
     # cut the region
     if limit is not None:
@@ -537,7 +553,7 @@ def read_micaps_5(fname, limit=None):
     for column in data.columns:
         if column == 'ID':
             continue
-        data[column].mask(data[column] ==  9999.0, inplace=True)
+        data[column] = data[column].mask(data[column] == 9999.0)
 
     # cut the region
     if limit is not None:
@@ -634,7 +650,7 @@ def read_micaps_7(fname):
     for column in data.columns:
         if column in ['name', 'ID', 'origin']:
             continue
-        data[column].mask(data[column] ==  9999.0, inplace=True)
+        data[column] = data[column].mask(data[column] == 9999.0)
 
     # return
     return data
@@ -698,6 +714,14 @@ def read_micaps_8(fname, limit=None):
 
     # cut the data
     txt = np.array(txt[9:])
+    expected_len = number * 12
+    actual_len = len(txt)
+    
+    if actual_len != expected_len:
+        raise ValueError(f"Data length mismatch in Micaps 8 file. "
+                       f"Expected {expected_len} elements for {number} stations with 12 columns, "
+                       f"but got {actual_len} elements.")
+    
     txt.shape = [number, 12]
 
     # initial data
@@ -708,7 +732,7 @@ def read_micaps_8(fname, limit=None):
         if column == 'ID':
             continue
         data[column] = pd.to_numeric(data[column], errors="coerce")
-        data[column].mask(data[column] ==  9999.0, inplace=True)
+        data[column] = data[column].mask(data[column] == 9999.0)
 
     # cut the region
     if limit is not None:
@@ -1528,6 +1552,13 @@ def read_micaps_120(fname, limit=None):
 
     # cut the data
     txt = np.array(txt[3:])
+    expected_len = len(txt)
+    
+    if expected_len % 12 != 0:
+        raise ValueError(f"Data length mismatch in Micaps 120 file. "
+                       f"Expected data length to be multiple of 12 columns, "
+                       f"but got {expected_len} elements.")
+    
     txt.shape = [-1, 12]
 
     # initial data
@@ -1538,7 +1569,7 @@ def read_micaps_120(fname, limit=None):
         if column == 'ID':
             continue
         data[column] = pd.to_numeric(data[column], errors="coerce")
-        data[column].mask(data[column] ==  9999.0, inplace=True)
+        data[column] = data[column].mask(data[column] == 9999.0)
 
     # cut the region
     if limit is not None:
@@ -1554,4 +1585,3 @@ def read_micaps_120(fname, limit=None):
 
     # return
     return data
-

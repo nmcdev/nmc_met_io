@@ -55,10 +55,10 @@ setup(
     exclude_package_data={'': ['.gitignore']},
 
     install_requires=[
-      'numpy>=1.17.0',
+      'numpy>=1.21.0',
       'scipy>=1.4.0',
-      'pandas>=1.0.0',
-      'xarray>=0.16.0',
+      'pandas>=1.3.0',
+      'xarray>=0.20.0',
       'protobuf>=3.17.0',
       'urllib3>=1.25.9',
       'tqdm>=4.47.0',
