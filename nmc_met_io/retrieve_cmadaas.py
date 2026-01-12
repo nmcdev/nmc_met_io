@@ -528,6 +528,371 @@ def cmadaas_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR",
     # return
     return data
 
+# 从天擎下载雷达基数据，S波段和C波段，朱文剑编写
+def cmadaas_radar_level2_by_timerange_and_id(
+                                             radar_ids="Z9010,Z9200",
+                                             time_range='[20250801080000,20250801090000]' ,
+                                             data_code= 'RADA_L2_FMT',
+                                             outpath=None):
+    """
+    Retrieve radar level2 files from CMADaaS by time range and radar ID.
+    
+    Args:
+        radar_ids (str, optional): radar ids, 'xxxxx,xxxxx,...'. Defaults to "Z9010,Z9200".
+        time_range (str): time range for retrieve,  "[YYYYMMDDHHMISS, YYYYMMDDHHMISS]",
+                          like"[20250701000000,20250701010000]"
+        data_code (str, optional): dataset code. Defaults to "RADA_L2_FMT".
+        outpath (str, optional): download files to outpath. if outpath is None,
+                                 the cached directory will be used. Defaults to None.
+        
+    
+    Returns:
+        bool: True if download successful, False otherwise.
+    
+    Examples:
+     >>> radar_ids = "Z9010,Z9200"
+    >>> time_range = "[20250701000000,20250701010000]"
+    >>> outpath = '/mnt/d/test_data/cmadaas/'
+    >>> cmadaas_radar_level2_by_timerange_and_id(radar_ids, time_range, outpath)
+    """
+    if outpath is None:
+        outpath = CONFIG.get_cache_file(data_code, "", name="radardata")
+    # set retrieve parameters
+
+    params = {'dataCode': data_code,
+                            'elements': 'FILE_NAME',
+                            'timeRange': time_range,
+                            "staIds" : radar_ids,
+                        }
+    
+    # interface id
+    interface_id = "getRadaFileByTimeRangeAndStaId"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+    if contents is None:
+        return None
+
+    # construct pandas DataFrame
+    dd = pd.DataFrame(contents['DS'])
+    http = urllib3.PoolManager()
+    for idx in range(len(dd)):
+
+        url = dd["FILE_URL"][idx]
+        filename = dd["FILE_NAME"][idx]
+        # 按年，月，日建立目录
+        
+        newoutpath = outpath + os.sep + filename[15:19] + os.sep + filename[19:21] + os.sep + filename[21:23] + os.sep + filename.split('_')[3]
+        if not os.path.exists(newoutpath):
+            os.makedirs(newoutpath)
+        out_file = newoutpath + os.sep + filename
+        if not os.path.isfile(out_file):
+            req = http.request('GET', url)
+            if req.status == 200:
+                with open(out_file, 'wb') as f:
+                    f.write(req.data)
+                    print('Save file to: ' + out_file)
+            else:
+                print('Can not access the url: ' + url)
+        else:
+            print('File already exists: ' + out_file)
+    return True
+
+# 从天擎下载雷达基数据，X波段，朱文剑编写
+def cmadaas_radar_level2_by_timerange_and_id_x(data_code= 'RADA_L2_X_FMT',
+                                             radar_ids="ZA001,ZA002",
+                                             time_range='[20250801080000,20250801090000]' ,
+                                             outpath=None):
+    """
+    Retrieve radar level2 files from CMADaaS by time range and radar ID.
+    
+    Args:
+        radar_ids (str, optional): radar ids, 'xxxxx,xxxxx,...'. Defaults to "Z9010,Z9200".
+        time_range (str): time range for retrieve,  "[YYYYMMDDHHMISS, YYYYMMDDHHMISS]",
+                          like"[20250701000000,20250701010000]"
+        outpath (str, optional): download files to outpath. if outpath is None,
+                                 the cached directory will be used. Defaults to None.
+        
+    
+    Returns:
+        bool: True if download successful, False otherwise.
+    
+    Examples:
+     >>> radar_ids = "ZA001,ZA002"
+    >>> time_range = "[20250701000000,20250701010000]"
+    >>> outpath = '/mnt/d/test_data/cmadaas/'
+    >>> cmadaas_radar_level2_by_timerange_and_id_x(radar_ids=radar_ids, time_range=time_range, outpath=outpath)
+    """
+    if outpath is None:
+        outpath = CONFIG.get_cache_file(data_code, "", name="radardata")
+    # set retrieve parameters
+
+    params = {'dataCode': data_code,
+                            'elements': 'FILE_NAME',
+                            'timeRange': time_range,
+                            "staIds" : radar_ids,
+                        }
+    
+    # interface id
+    interface_id = "getRadaFileByTimeRangeAndStaId"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+    if contents is None:
+        return None
+
+    # construct pandas DataFrame
+    dd = pd.DataFrame(contents['DS'])
+    http = urllib3.PoolManager()
+    for idx in range(len(dd)):
+
+        url = dd["FILE_URL"][idx]
+        filename = dd["FILE_NAME"][idx]
+        # 按年，月，日建立目录
+        
+        newoutpath = outpath + os.sep + filename[15:19] + os.sep + filename[19:21] + os.sep + filename[21:23] + os.sep + filename.split('_')[3]
+        if not os.path.exists(newoutpath):
+            os.makedirs(newoutpath)
+        out_file = newoutpath + os.sep + filename
+        
+        # 如果不存在，才下载
+        if not os.path.isfile(out_file):
+            req = http.request('GET', url)
+            if req.status == 200:
+                with open(out_file, 'wb') as f:
+                    f.write(req.data)
+                    print('Save file to: ' + out_file)
+            else:
+                print('Can not access the url: ' + url)
+        else:
+            print('File already exists: ' + out_file)
+    return True
+
+
+# 从天擎下载雷达拼图数据，朱文剑编写，天气雷达拼图系统V3.0组网混合扫描反射率因子产品
+def cmadaas_radarmosaic_qref_by_timerange(data_code= 'RADA_L3_MST_REF_QC',
+                                             time_range='[20250801080000,20250801090000]' ,
+                                             outpath=None):
+    """
+    Retrieve radar mosaic ref files from CMADaaS by time range .
+    
+    Args:
+       
+        time_range (str): time range for retrieve,  "[YYYYMMDDHHMISS, YYYYMMDDHHMISS]",
+                          like"[20250701000000,20250701010000]"
+        outpath (str, optional): download files to outpath. if outpath is None,
+                                 the cached directory will be used. Defaults to None.
+        
+    
+    Returns:
+        bool: True if download successful, False otherwise.
+    
+    Examples:
+    >>> time_range = "[20250701000000,20250701010000]"
+    >>> outpath = '/mnt/d/test_data/cmadaas/'
+    >>> cmadaas_radarmosaic_qref_by_timerange(time_range=time_range, outpath=outpath)
+    """
+    if outpath is None:
+        outpath = CONFIG.get_cache_file(data_code, "", name="mosaic_qref")
+    # set retrieve parameters
+
+    params = {'dataCode': data_code,
+                            'elements': 'FILE_NAME',
+                            'timeRange': time_range,
+                            'dataFormat':'json',
+    
+                        }
+    
+    # interface id
+    interface_id = "getRadaFileByTimeRange"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+    if contents is None:
+        return None
+
+    # construct pandas DataFrame
+    dd = pd.DataFrame(contents['DS'])
+    http = urllib3.PoolManager()
+    for idx in range(len(dd)):
+
+        url = dd["FILE_URL"][idx]
+        filename = dd["FILE_NAME"][idx]
+        # 按年，月，日建立目录
+        
+        year = filename.split('_')[-2][0:4]
+        month = filename.split('_')[-2][4:6]
+        day = filename.split('_')[-2][6:8]
+        
+        newoutpath = outpath  + os.sep + year + os.sep + month + os.sep + day + os.sep + data_code 
+        if not os.path.exists(newoutpath):
+            os.makedirs(newoutpath)
+        out_file = newoutpath + os.sep + filename
+        
+        # 如果不存在，才下载
+        if not os.path.isfile(out_file):
+            req = http.request('GET', url)
+            if req.status == 200:
+                with open(out_file, 'wb') as f:
+                    f.write(req.data)
+                    print('Save file to: ' + out_file)
+            else:
+                print('Can not access the url: ' + url)
+        else:
+            print('File already exists: ' + out_file)
+    return True
+
+
+# 从天擎下载雷达拼图数据，朱文剑编写，天气雷达拼图系统V3.0组网组合反射率因子产品
+def cmadaas_radarmosaic_cref_by_timerange(data_code= 'RADA_L3_MST_CREF_QC',
+                                             time_range='[20250801080000,20250801090000]' ,
+                                             outpath=None):
+    """
+    Retrieve radar mosaic ref files from CMADaaS by time range .
+    
+    Args:
+       
+        time_range (str): time range for retrieve,  "[YYYYMMDDHHMISS, YYYYMMDDHHMISS]",
+                          like"[20250701000000,20250701010000]"
+        outpath (str, optional): download files to outpath. if outpath is None,
+                                 the cached directory will be used. Defaults to None.
+        
+    
+    Returns:
+        bool: True if download successful, False otherwise.
+    
+    Examples:
+    >>> time_range = "[20250701000000,20250701010000]"
+    >>> outpath = '/mnt/d/test_data/cmadaas/'
+    >>> cmadaas_radarmosaic_cref_by_timerange(time_range=time_range, outpath=outpath)
+    """
+    if outpath is None:
+        outpath = CONFIG.get_cache_file(data_code, "", name="mosaic_cref")
+    # set retrieve parameters
+
+    params = {'dataCode': data_code,
+                            'elements': 'FILE_NAME',
+                            'timeRange': time_range,
+                            'dataFormat':'json',
+    
+                        }
+    
+    # interface id
+    interface_id = "getRadaFileByTimeRange"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+    if contents is None:
+        return None
+
+    # construct pandas DataFrame
+    dd = pd.DataFrame(contents['DS'])
+    http = urllib3.PoolManager()
+    for idx in range(len(dd)):
+
+        url = dd["FILE_URL"][idx]
+        filename = dd["FILE_NAME"][idx]
+        # 按年，月，日建立目录
+        
+        year = filename.split('_')[-2][0:4]
+        month = filename.split('_')[-2][4:6]
+        day = filename.split('_')[-2][6:8]
+        
+        newoutpath = outpath  + os.sep + year + os.sep + month + os.sep + day + os.sep + data_code 
+        if not os.path.exists(newoutpath):
+            os.makedirs(newoutpath)
+        out_file = newoutpath + os.sep + filename
+        
+        # 如果不存在，才下载
+        if not os.path.isfile(out_file):
+            req = http.request('GET', url)
+            if req.status == 200:
+                with open(out_file, 'wb') as f:
+                    f.write(req.data)
+                    print('Save file to: ' + out_file)
+            else:
+                print('Can not access the url: ' + url)
+        else:
+            print('File already exists: ' + out_file)
+    return True
+
+# 从天擎下载雷达拼图数据，朱文剑编写，天气雷达拼图系统V3.0组网三维反射率因子产品
+def cmadaas_radarmosaic_3dref_by_timerange(data_code= 'RADA_L3_MST_PRE_3REF_QC',
+                                             time_range='[20250801080000,20250801090000]' ,
+                                             outpath=None):
+    """
+    Retrieve radar mosaic ref files from CMADaaS by time range .
+    
+    Args:
+       
+        time_range (str): time range for retrieve,  "[YYYYMMDDHHMISS, YYYYMMDDHHMISS]",
+                          like"[20250701000000,20250701010000]"
+        outpath (str, optional): download files to outpath. if outpath is None,
+                                 the cached directory will be used. Defaults to None.
+        
+    
+    Returns:
+        bool: True if download successful, False otherwise.
+    
+    Examples:
+    >>> time_range = "[20250701000000,20250701010000]"
+    >>> outpath = '/mnt/d/test_data/cmadaas/'
+    >>> cmadaas_radarmosaic_3dref_by_timerange(time_range=time_range, outpath=outpath)
+    """
+    if outpath is None:
+        outpath = CONFIG.get_cache_file(data_code, "", name="mosaic_3dref")
+    # set retrieve parameters
+
+    params = {'dataCode': data_code,
+                            'elements': 'FILE_NAME',
+                            'timeRange': time_range,
+                            'dataFormat':'json',
+    
+                        }
+    
+    # interface id
+    interface_id = "getRadaFileByTimeRange"
+
+    # retrieve data contents
+    contents = get_rest_result(interface_id, params)
+    contents = _load_contents(contents)
+    if contents is None:
+        return None
+
+    # construct pandas DataFrame
+    dd = pd.DataFrame(contents['DS'])
+    http = urllib3.PoolManager()
+    for idx in range(len(dd)):
+
+        url = dd["FILE_URL"][idx]
+        filename = dd["FILE_NAME"][idx]
+        # 按年，月，日建立目录
+        
+        year = filename.split('_')[-3][0:4]
+        month = filename.split('_')[-3][4:6]
+        day = filename.split('_')[-3][6:8]
+        
+        newoutpath = outpath  + os.sep + year + os.sep + month + os.sep + day + os.sep + data_code 
+        if not os.path.exists(newoutpath):
+            os.makedirs(newoutpath)
+        out_file = newoutpath + os.sep + filename
+        
+        # 如果不存在，才下载
+        if not os.path.isfile(out_file):
+            req = http.request('GET', url)
+            if req.status == 200:
+                with open(out_file, 'wb') as f:
+                    f.write(req.data)
+                    print('Save file to: ' + out_file)
+            else:
+                print('Can not access the url: ' + url)
+        else:
+            print('File already exists: ' + out_file)
+    return True
 
 def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL_HOR",
                                       ranges=None, order=None, 
