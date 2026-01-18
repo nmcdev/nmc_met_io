@@ -20,7 +20,7 @@ import uuid
 import warnings
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Union
 
 import numpy as np
 import pandas as pd
@@ -2566,8 +2566,8 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
         if limit is None:
             params = {'dataCode': data_code,
                     'time': init_time_str + '0000',
-                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
-                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'fcstLevel': fcst_level if isinstance(fcst_level, str) else '{:d}'.format(fcst_level),
+                    'levelType': level_type if isinstance(level_type, str) else '{:d}'.format(level_type),
                     'validTime': '{:d}'.format(valid_time),
                     'fcstEle': fcst_ele}
             interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
@@ -2578,8 +2578,8 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
                     "minLon": '{:.10f}'.format(limit[1]),
                     "maxLat": '{:.10f}'.format(limit[2]),
                     "maxLon": '{:.10f}'.format(limit[3]),
-                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
-                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'fcstLevel': fcst_level if isinstance(fcst_level, str) else '{:d}'.format(fcst_level),
+                    'levelType': level_type if isinstance(level_type, str) else '{:d}'.format(level_type),
                     'validTime': '{:d}'.format(valid_time),
                     'fcstEle': fcst_ele}
             interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
@@ -2587,8 +2587,8 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
         if limit is None:
             params = {'dataCode': data_code,
                     'time': init_time_str + '0000',
-                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
-                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'fcstLevel': fcst_level if isinstance(fcst_level, str) else '{:d}'.format(fcst_level),
+                    'levelType': level_type if isinstance(level_type, str) else '{:d}'.format(level_type),
                     'validTime': '{:d}'.format(valid_time),
                     'fcstEle': fcst_ele,
                     'fcstMember': '{:d}'.format(fcst_member)}
@@ -2600,8 +2600,8 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
                     "minLon": '{:.10f}'.format(limit[1]),
                     "maxLat": '{:.10f}'.format(limit[2]),
                     "maxLon": '{:.10f}'.format(limit[3]),
-                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
-                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'fcstLevel': fcst_level if isinstance(fcst_level, str) else '{:d}'.format(fcst_level),
+                    'levelType': level_type if isinstance(level_type, str) else '{:d}'.format(level_type),
                     'validTime': '{:d}'.format(valid_time),
                     'fcstEle': fcst_ele,
                     'fcstMember': '{:d}'.format(fcst_member)}
@@ -2634,7 +2634,7 @@ def cmadaas_model_grid(data_code, init_time, valid_time, fcst_ele, fcst_level, l
         units = contents['fieldUnits']
         
     # set missing fcst_level for like fcst_leve='-'
-    if type(fcst_level) == str:
+    if isinstance(fcst_level, str):
         fcst_level = 0
 
     # define coordinates and variables
@@ -2948,8 +2948,8 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None, fcst_member=None,
         if limit is None:
             params = {'dataCode': data_code,
                     'time': init_time_str + '0000',
-                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
-                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'fcstLevel': fcst_level if isinstance(fcst_level, str) else '{:d}'.format(fcst_level),
+                    'levelType': level_type if isinstance(level_type, str) else '{:d}'.format(level_type),
                     'validTime': '{:d}'.format(valid_time),
                     'fcstEle': fcst_ele}
             interface_id = 'getNafpEleGridByTimeAndLevelAndValidtime'
@@ -2960,8 +2960,8 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None, fcst_member=None,
                     "minLon": '{:.10f}'.format(limit[1]),
                     "maxLat": '{:.10f}'.format(limit[2]),
                     "maxLon": '{:.10f}'.format(limit[3]),
-                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
-                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'fcstLevel': fcst_level if isinstance(fcst_level, str) else '{:d}'.format(fcst_level),
+                    'levelType': level_type if isinstance(level_type, str) else '{:d}'.format(level_type),
                     'validTime': '{:d}'.format(valid_time),
                     'fcstEle': fcst_ele}
             interface_id = 'getNafpEleGridInRectByTimeAndLevelAndValidtime'
@@ -2969,8 +2969,8 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None, fcst_member=None,
         if limit is None:
             params = {'dataCode': data_code,
                     'time': init_time_str + '0000',
-                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
-                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'fcstLevel': fcst_level if isinstance(fcst_level, str) else '{:d}'.format(fcst_level),
+                    'levelType': level_type if isinstance(level_type, str) else '{:d}'.format(level_type),
                     'validTime': '{:d}'.format(valid_time),
                     'fcstEle': fcst_ele,
                     'fcstMember': '{:d}'.format(fcst_member)}
@@ -2982,8 +2982,8 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None, fcst_member=None,
                     "minLon": '{:.10f}'.format(limit[1]),
                     "maxLat": '{:.10f}'.format(limit[2]),
                     "maxLon": '{:.10f}'.format(limit[3]),
-                    'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
-                    'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+                    'fcstLevel': fcst_level if isinstance(fcst_level, str) else '{:d}'.format(fcst_level),
+                    'levelType': level_type if isinstance(level_type, str) else '{:d}'.format(level_type),
                     'validTime': '{:d}'.format(valid_time),
                     'fcstEle': fcst_ele,
                     'fcstMember': '{:d}'.format(fcst_member)}
@@ -3017,7 +3017,7 @@ def cmadaas_model_by_time(init_time, valid_time=0, limit=None, fcst_member=None,
         units = contents['fieldUnits']
         
     # set missing fcst_level for fcst_leve='-'
-    if type(fcst_level) == str:
+    if isinstance(fcst_level, str):
         fcst_level = 0
 
     # define coordinates and variables
@@ -3138,8 +3138,8 @@ def cmadaas_model_by_pionts(init_time_str, data_code='NAFP_FOR_FTM_HIGH_EC_ANEA'
     # set retrieve parameters
     params = {'dataCode': data_code,
               'time': init_time_str + '0000',
-              'fcstLevel': fcst_level if type(fcst_level) == str else '{:d}'.format(fcst_level),
-              'levelType': level_type if type(level_type) == str else '{:d}'.format(level_type),
+              'fcstLevel': fcst_level if isinstance(fcst_level, str) else '{:d}'.format(fcst_level),
+              'levelType': level_type if isinstance(level_type, str) else '{:d}'.format(level_type),
               'minVT': '{:d}'.format(time_range[0]),
               'maxVT': '{:d}'.format(time_range[1]),
               'latLons': points,

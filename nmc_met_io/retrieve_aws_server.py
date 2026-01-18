@@ -8,9 +8,7 @@ Retrieve Open data on AWS (从亚马逊云开源数据服务上获取数据).
 refer to https://registry.opendata.aws/
 """
 
-import os
 import sys
-import datetime
 import numpy as np
 import xarray as xr
 

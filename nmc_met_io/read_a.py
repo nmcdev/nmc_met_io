@@ -336,21 +336,21 @@ def ReadAfile(afile:str):
         else:
             for i in range(len(metadata['FJ']['JY'])):
                 ds=metadata['FJ']['JY'][i].strip().split('/')
-                metadata['FJ']['JY'][i]=ds;
+                metadata['FJ']['JY'][i]=ds
             
         line_end=min(filter(lambda x:x>0,[metadata['FJ_BZ_i'],len(lines)]))
         metadata['FJ']['GK']=lines[metadata['FJ_GK_i']+1:line_end]
         metadata['FJ']['GK'][-1]=metadata['FJ']['GK'][-1][:-1]
         for i in range(len(metadata['FJ']['GK'])):
             ds=metadata['FJ']['GK'][i].strip().split('/')
-            metadata['FJ']['GK'][i]=ds;
+            metadata['FJ']['GK'][i]=ds
             
         line_end=len(lines)
         metadata['FJ']['BZ']=lines[metadata['FJ_BZ_i']+1:line_end-1]
         metadata['FJ']['BZ'][-1]=metadata['FJ']['BZ'][-1][:-1]
         for i in range(len(metadata['FJ']['BZ'])):
             ds=metadata['FJ']['BZ'][i].strip().split('/')
-            metadata['FJ']['BZ'][i]=ds;
+            metadata['FJ']['BZ'][i]=ds
         
     #endregion
 
@@ -359,13 +359,13 @@ def ReadAfile(afile:str):
     def txt2int(txt):
         try:
             return int(txt)
-        except:
+        except (ValueError, TypeError):
             return np.nan
-        
+
     def txt2float(txt):
         try:
             return int(txt)/10
-        except:
+        except (ValueError, TypeError):
             return np.nan
 
     def rx(x):
@@ -463,7 +463,7 @@ def ReadAfile(afile:str):
 
     #region 核心行数据处理函数
     def f_line(lines,left_len,right_len,left_fs=txt2float,right_fs=txt2float,linesplit=None,datasplit=' ',removechar='=',removelineblank=True,removedatablank=True):
-        if(linesplit!=None):
+        if(linesplit is not None):
             lines_copy=datasplit.join(lines)
             if(linesplit in lines_copy):
                 lines=lines_copy.split(linesplit)
@@ -472,9 +472,9 @@ def ReadAfile(afile:str):
         lines=list(map(lambda x:x.replace(removechar,''),lines))
         left_datas=[]
         right_datas=[]
-        if(type(left_fs)!=list):
+        if(not isinstance(left_fs, list)):
             left_fs=[left_fs]*left_len
-        if(type(right_fs)!=list and right_len>0):
+        if(not isinstance(right_fs, list) and right_len>0):
             right_fs=[right_fs]*right_len
         for line in lines:
             ds=line.split(datasplit)

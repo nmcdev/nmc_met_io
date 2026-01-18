@@ -7,7 +7,7 @@
 Read FY satellite awx format file.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 import numpy as np
 import xarray as xr
 
@@ -72,11 +72,11 @@ def resolve_awx_bytearray(btarray, units=''):
 
         # color table
         if head2_info['dataLengthOfColorTable'] != 0:
-            table_R =  np.frombuffer(btarray[ind:(ind + 256)], dtype='u1')
+            np.frombuffer(btarray[ind:(ind + 256)], dtype='u1')
             ind += 256
-            table_G =  np.frombuffer(btarray[ind:(ind + 256)], dtype='u1')
+            np.frombuffer(btarray[ind:(ind + 256)], dtype='u1')
             ind += 256
-            table_B =  np.frombuffer(btarray[ind:(ind + 256)], dtype='u1')
+            np.frombuffer(btarray[ind:(ind + 256)], dtype='u1')
             ind += 256
         
         # calibration table  定标数据块, 描述的是图像灰度值与探测物理量之间的关系
@@ -112,11 +112,11 @@ def resolve_awx_bytearray(btarray, units=''):
             geolocation_info = np.frombuffer(btarray[ind:(ind+16)], dtype=geolocation_dtype)
             ind += 16
             geolocation_length = geolocation_info['horizontal_number'][0] * geolocation_info['vertical_number'][0] * 2
-            geolocation_table = np.frombuffer(btarray[ind:(ind+geolocation_length)], dtype='i2')
+            np.frombuffer(btarray[ind:(ind+geolocation_length)], dtype='i2')
             ind += geolocation_length
 
         # pad field
-        pad_field = np.frombuffer(btarray[ind:(ind+head1_info['padDataLength'][0])], dtype='u1')
+        np.frombuffer(btarray[ind:(ind+head1_info['padDataLength'][0])], dtype='u1')
         ind += head1_info['padDataLength'][0]
 
         # retrieve data records

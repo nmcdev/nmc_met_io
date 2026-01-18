@@ -59,7 +59,6 @@ def standard_data_to_pyart(f: StandardData, radius: int = 460) -> pyart.core.Rad
 
     metadata = filemetadata("metadata")
     metadata["original_container"] = "CINRAD"
-    vcp_pattern = f.scan_type
     metadata["instrument_name"] = f.code
 
     scan_type = "ppi"

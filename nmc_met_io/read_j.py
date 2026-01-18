@@ -12,9 +12,6 @@ Change Log:
 import numpy as np
 import pandas as pd 
 import calendar
-import os
-import re
-import glob
 from datetime import datetime,timedelta
 import dateutil.rrule
 
@@ -55,13 +52,13 @@ def ReadJfile(jfile:str):
     def txt2int(txt):
         try:
             return int(txt)
-        except:
+        except (ValueError, TypeError):
             return np.nan
 
     def txt2float(txt):
         try:
             return float(txt)
-        except:
+        except (ValueError, TypeError):
             return np.nan  
         
 

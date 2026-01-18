@@ -211,7 +211,7 @@ def dk_io_write_micaps_3(ids, lons, lats, alts, values, obs_time,
     if not isinstance(obs_time, datetime):
         try:
             obs_time = datetime.fromtimestamp(obs_time)
-        except:
+        except (ValueError, TypeError, OSError):
             if not isinstance(obs_time, datetime):
                 obs_time = datetime.now()
 

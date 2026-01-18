@@ -6,7 +6,6 @@
 import json
 import requests
 import pandas as pd
-from datetime import datetime
 from pandas.io.json._normalize import nested_to_record
 import nmc_met_io.config as CONFIG
 

@@ -205,7 +205,7 @@ def get_cmpas_hist_files(time_range, outdir='.', resolution=None):
     filenames = files['DS']
     for file in filenames:
         if resolution is not None:
-            if not resolution in file['FILE_NAME']:
+            if resolution not in file['FILE_NAME']:
                 continue
         outfile = os.path.join(outdir, file['FILE_NAME'])
         if not os.path.isfile(outfile):
@@ -214,6 +214,6 @@ def get_cmpas_hist_files(time_range, outdir='.', resolution=None):
             try:
                 time.sleep(2)
                 urllib.request.urlretrieve(file['FILE_URL'], outfile)
-            except:
+            except Exception:
                 time.sleep(60)
                 urllib.request.urlretrieve(file['FILE_URL'], outfile)

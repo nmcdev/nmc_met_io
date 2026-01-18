@@ -59,7 +59,7 @@ def read_micaps_1(fname, limit=None):
         return None
 
     # head information
-    head_info = txt[2]
+    txt[2]
 
     # date and time
     year = int(txt[3]) if len(txt[3]) == 4 else int(txt[3]) + 2000
@@ -161,7 +161,7 @@ def read_micaps_2(fname, limit=None):
         return None
 
     # head information
-    head_info = txt[2]
+    txt[2]
 
     # date and time
     year = int(txt[3]) if len(txt[3]) == 4 else int(txt[3]) + 2000
@@ -271,7 +271,7 @@ def read_micaps_3(fname, limit=None):
         return None
 
     # head information
-    head_info = txt[2]
+    txt[2]
 
     # date and time
     year = int(txt[3]) if len(txt[3]) == 4 else int(txt[3]) + 2000
@@ -287,20 +287,20 @@ def read_micaps_3(fname, limit=None):
     n_contour = int(txt[8])
     pt = 9
     if n_contour > 0:
-        contours = np.array(txt[pt:(pt + n_contour - 1)])
+        np.array(txt[pt:(pt + n_contour - 1)])
         pt += n_contour
 
     # smooth and bold value
-    smoothCeof = float(txt[pt])
+    float(txt[pt])
     pt += 1
-    boldCeof = float(txt[pt])
+    float(txt[pt])
     pt += 1
 
     # boundary
     n_bound = int(txt[pt])
     pt += 1
     if n_bound > 0:
-        bound = np.array(txt[pt:(pt + 2 * n_bound - 1)])
+        np.array(txt[pt:(pt + 2 * n_bound - 1)])
         pt += 2 * n_bound
 
     # number of elements and data
@@ -380,7 +380,7 @@ def read_micaps_4(fname, limit=None, varname='data', varattrs={'units':''}, scal
         return None
 
     # head information
-    head_info = txt[2]
+    txt[2]
 
     # date and time
     year = int(txt[3]) if len(txt[3]) == 4 else int(txt[3]) + 2000
@@ -411,13 +411,13 @@ def read_micaps_4(fname, limit=None, varname='data', varattrs={'units':''}, scal
     lat = slat + np.arange(nlat) * yint
 
     # contour information
-    cnInterval = float(txt[17])
-    cnStart = float(txt[18])
-    cnEnd = float(txt[19])
+    float(txt[17])
+    float(txt[18])
+    float(txt[19])
 
     # smooth and bold value
-    smoothCeof = float(txt[20])
-    boldCeof = float(txt[21])
+    float(txt[20])
+    float(txt[21])
 
     # extract data
     data = (np.array(txt[22:])).astype(np.float64)
@@ -507,7 +507,7 @@ def read_micaps_5(fname, limit=None):
         return None
 
     # head information
-    head_info = txt[2]
+    txt[2]
 
     # date and time
     year = int(txt[3]) if len(txt[3]) == 4 else int(txt[3]) + 2000
@@ -520,8 +520,6 @@ def read_micaps_5(fname, limit=None):
     number = int(txt[7])
 
     # set record column names
-    columns = ['ID', 'lon', 'lat', 'alt', 'pressure', 'height', 'temperature', 'dewpoint',
-               'wind_angle', 'wind_speed']
 
     # loop every station
     pid = 8
@@ -605,7 +603,7 @@ def read_micaps_7(fname):
         return None
 
     # head information
-    head_info = txt[2]
+    txt[2]
 
     # loop every 
     pid = 3
@@ -695,7 +693,7 @@ def read_micaps_8(fname, limit=None):
         return None
 
     # head information
-    head_info = txt[2]
+    txt[2]
 
     # date and time
     year = int(txt[3]) if len(txt[3]) == 4 else int(txt[3]) + 2000
@@ -788,7 +786,7 @@ def read_micaps_11(fname, limit=None, scale_off=None, no_level=False,
         return None
 
     # head information
-    head_info = txt[2]
+    txt[2]
 
     # date and time
     year = int(txt[3]) if len(txt[3]) == 4 else int(txt[3]) + 2000
@@ -1263,17 +1261,17 @@ def read_micaps_14(fname):
                 idx += 1
 
                 # line color
-                color = np.array(txt[idx:(idx + 4)]).astype(np.int)
+                color = np.array(txt[idx:(idx + 4)]).astype(int)
                 fillarea_color.append(color)
                 idx += 4
 
                 # front color
-                front_color = np.array(txt[idx:(idx + 4)]).astype(np.int)
+                front_color = np.array(txt[idx:(idx + 4)]).astype(int)
                 fillarea_frontcolor.append(front_color)
                 idx += 4
 
                 # background color
-                back_color = np.array(txt[idx:(idx + 4)]).astype(np.int)
+                back_color = np.array(txt[idx:(idx + 4)]).astype(int)
                 fillarea_backcolor.append(back_color)
                 idx += 4
 
@@ -1375,7 +1373,7 @@ def read_micaps_14(fname):
                 idx += 1
 
                 # color
-                color = np.array(txt[idx:(idx + 4)]).astype(np.int)
+                color = np.array(txt[idx:(idx + 4)]).astype(int)
                 nsymbol_color.append(color)
                 idx += 4
 
@@ -1429,7 +1427,7 @@ def read_micaps_14(fname):
                 idx += 1
 
                 # line color
-                color = np.array(txt[idx:(idx + 3)]).astype(np.int)
+                color = np.array(txt[idx:(idx + 3)]).astype(int)
                 plinesym_color.append([color])
                 idx += 3
 
@@ -1542,7 +1540,7 @@ def read_micaps_120(fname, limit=None):
     time_str = head_info.split('_')[1]
     try:
         time = datetime.strptime(time_str, '%Y%m%d%H')
-    except:
+    except ValueError:
         print("Can not extract time information from "+head_info)
         return None
 

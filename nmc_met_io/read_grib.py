@@ -115,7 +115,7 @@ def read_ecmwf_ens_efi(filename, short_name='tpi', init_hour=0,
             ds = xr.open_dataset(
                 filename, engine='cfgrib',
                 backend_kwargs={'filter_by_keys': filter_by_keys, 'read_keys': ['stepRange']})
-        except:
+        except (FileNotFoundError, ValueError, OSError, Exception):
             print('Can not read data from file '+ filename)
             return None
         ds.coords['stepRange'] = srange

@@ -7,7 +7,6 @@
 Read configure file.
 """
 
-import glob
 import datetime
 import shutil
 import configparser

@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0f\x44\x61taBloc
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'DataBlock_pb2', _globals)
-if _descriptor._USE_C_DESCRIPTORS == False:
+if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\034cn.gov.cma.cimiss.gds.serverB\tDataBlock'
   _globals['_MAPRESULT_RESULTMAPENTRY']._options = None

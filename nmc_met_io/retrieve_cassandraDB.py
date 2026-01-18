@@ -22,7 +22,6 @@ import sys
 import warnings
 import zlib
 from datetime import datetime, timedelta
-from glob import glob
 from io import BytesIO
 
 import numpy as np
@@ -36,7 +35,6 @@ from nmc_met_io.read_satellite import resolve_awx_bytearray
 
 try:
     # please install cassandra-driver first
-    from cassandra.auth import PlainTextAuthProvider
     from cassandra.cluster import Cluster
 except ImportError:
     print("cassandra-driver is not installed (pip install cassandra-driver)")
@@ -59,7 +57,7 @@ class CassandraDB:
     def __init__(self):
         # set MICAPS Cassandra集群地址
         # 创建类自动建立与数据库连接，也需要手动关闭连接
-        if(_db_session==None):
+        if(_db_session is None):
             _open_DB()
         self.session=_db_session
 
@@ -69,9 +67,9 @@ class CassandraDB:
         response=None
         status=200
         try:
-            rows=self.session.execute("select * from \"latestdatatime\" where \"dataPath\" = '"+directory+"' and \"column1\"='"+filter+"' limit 1")           
+            rows=self.session.execute("select * from \"latestdatatime\" where \"dataPath\" = '"+directory+"' and \"column1\"='"+filter+"' limit 1")
             response=rows.one().value
-        except :
+        except Exception:
             status=100
             response=None
 
@@ -85,9 +83,9 @@ class CassandraDB:
         response=None
         status=200
         try:
-            rows=self.session.execute("select * from \""+table+"\" where \"dataPath\" = '"+key+"' and \"column1\"='"+fileName+"' limit 1")           
+            rows=self.session.execute("select * from \""+table+"\" where \"dataPath\" = '"+key+"' and \"column1\"='"+fileName+"' limit 1")
             response=rows.one().value
-        except :
+        except Exception:
             status=100
             response=None
 
@@ -100,10 +98,10 @@ class CassandraDB:
         response=None
         status=None
         try:
-            rows=self.session.execute("select * from \"treeview\" where \"dataPath\" = '"+directory+"' ")  
-            response=list(map(lambda x:x.column1,rows.all()))            
+            rows=self.session.execute("select * from \"treeview\" where \"dataPath\" = '"+directory+"' ")
+            response=list(map(lambda x:x.column1,rows.all()))
             status=200
-        except :
+        except Exception:
             status=100
             response=None
 

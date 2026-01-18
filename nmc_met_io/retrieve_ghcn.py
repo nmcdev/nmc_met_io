@@ -102,7 +102,7 @@ def get_ghcnd_stn_metadata(fname=None, download=False):
     >>> stnmd = get_ghcnd_stn_metadata()
     """
     
-    if fname == None:
+    if fname is None:
         fname = get_cache_file("pub/data/ghcn/daily/", "ghcnd-stations.txt", name="GHCN")
         if not fname.is_file() or download:
             url = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt'
@@ -218,7 +218,7 @@ def _create_DataFrame_1stn(filename, verbose=False):
 
     ### Print any warnings
     warnings = np.unique(np.array(warnings))
-    if verbose ==True:
+    if verbose:
         for w in warnings: print(w)
 
     ### Convert to Pandas DataFrame

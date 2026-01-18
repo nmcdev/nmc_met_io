@@ -38,13 +38,15 @@ setup(
       'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
       'Topic :: Scientific/Engineering',
       'Topic :: Scientific/Engineering :: Atmospheric Science',
-      'Programming Language :: Python :: 3.7',
-      'Programming Language :: Python :: 3.8',
+      'Programming Language :: Python :: 3.9',
+      'Programming Language :: Python :: 3.10',
+      'Programming Language :: Python :: 3.11',
+      'Programming Language :: Python :: 3.12',
       'Operating System :: POSIX :: Linux',
       'Operating System :: MacOS :: MacOS X',
       'Operating System :: Microsoft :: Windows'],
 
-    python_requires='>=3.6',
+    python_requires='>=3.9',
     zip_safe = False,
     platforms = ["all"],
 
@@ -55,15 +57,15 @@ setup(
     exclude_package_data={'': ['.gitignore']},
 
     install_requires=[
-      'numpy>=1.21.0',
-      'scipy>=1.4.0',
-      'pandas>=1.3.0',
-      'xarray>=0.20.0',
-      'protobuf>=3.17.0',
-      'urllib3>=1.25.9',
-      'tqdm>=4.47.0',
-      'python-dateutil>=2.8.1',
-      'openpyxl>=3.0.4',]
+      'numpy>=1.24.0',
+      'scipy>=1.10.0',
+      'pandas>=2.0.0',
+      'xarray>=2023.0.0',
+      'protobuf>=4.21.0',
+      'urllib3>=1.26.0',
+      'tqdm>=4.65.0',
+      'python-dateutil>=2.8.2',
+      'openpyxl>=3.1.0',]
 )
 
 # development mode (DOS command):

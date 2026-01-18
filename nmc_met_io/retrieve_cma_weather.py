@@ -51,7 +51,7 @@ def get_current_weather(lon, lat, apikey, pwd, elements=None, url_only=False):
     try:
         params['lon'] = ",".join([str(ilon).strip() for ilon in lon])
         params['lat'] = ",".join([str(ilat).strip() for ilat in lat])
-    except:
+    except (TypeError, AttributeError):
         params['lon'] = str(lon).strip()
         params['lat'] = str(lat).strip()
 

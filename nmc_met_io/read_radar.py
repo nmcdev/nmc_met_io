@@ -12,13 +12,11 @@ Adopt from https://github.com/CyanideCN/PyCINRAD
 import warnings
 import abc
 import datetime
-from pathlib import Path
 from collections import namedtuple, defaultdict
 from array import array
 import numpy as np
 from numpy import ndarray
 from typing import Union, Optional, Any, List, Generator
-import re
 from copy import deepcopy as dc
 import bz2
 import gzip
@@ -638,7 +636,7 @@ class StandardData(RadarBase):
             ("flags", "i2"),
             ("block_length", "i4"),
             ("res", "12c"),])
-        SDD_pheader =  np.dtype([
+        np.dtype([
             ("product_type", "i4"),
             ("product_name", "32c"),
             ("product_gentime", "i4"),
