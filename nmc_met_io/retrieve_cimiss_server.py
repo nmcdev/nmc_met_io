@@ -24,6 +24,7 @@ import xarray as xr
 from tqdm import tqdm
 
 import nmc_met_io.config as CONFIG
+from nmc_met_io.retrieve_shared import extract_nafp_grid_metadata
 
 
 def get_http_result(interface_id, params, data_format='json'):
@@ -1369,29 +1370,9 @@ def cimiss_model_grid(data_code, init_time_str, valid_time, fcst_ele, fcst_level
     if contents['returnCode'] != '0':
         return None
 
-    # get time information
-    init_time = datetime.strptime(init_time_str, '%Y%m%d%H')
-    fhour = np.array([valid_time], dtype=np.float64)
-    time = init_time + timedelta(hours=fhour[0])
-    init_time = np.array([init_time], dtype='datetime64[ms]')
-    time = np.array([time], dtype='datetime64[ms]')
-
-    # extract coordinates and data
-    start_lat = float(contents['startLat'])
-    start_lon = float(contents['startLon'])
-    nlon = int(contents['lonCount'])
-    nlat = int(contents['latCount'])
-    dlon = float(contents['lonStep'])
-    dlat = float(contents['latStep'])
-    lon = start_lon + np.arange(nlon)*dlon
-    lat = start_lat + np.arange(nlat)*dlat
-    name = contents['fieldNames']
-    if units is None:
-        units = contents['fieldUnits']
-        
-    # set missing fcst_level for fcst_leve='-'
-    if isinstance(fcst_level, str):
-        fcst_level = 0
+    init_time, fhour, time, lon, lat, name, units, fcst_level = extract_nafp_grid_metadata(
+        contents, init_time_str, valid_time, fcst_level, units
+    )
 
     # define coordinates and variables
     time_coord = ('time', time)
