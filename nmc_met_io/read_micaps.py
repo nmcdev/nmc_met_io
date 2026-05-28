@@ -116,8 +116,15 @@ def read_micaps_1(fname, limit=None):
         return None
 
     # decode the sea leavl pressure
-    data.loc[data['MSLP'] <= 600, 'MSLP'] = data.loc[data['MSLP'] <= 600, 'MSLP']/10. + 1000.
-    data.loc[data['MSLP'] >  600, 'MSLP'] = data.loc[data['MSLP'] >  600, 'MSLP']/10. +  900.
+    
+    # data.loc[data['MSLP'] <= 600, 'MSLP'] = data.loc[data['MSLP'] <= 600, 'MSLP']/10. + 1000.
+    # data.loc[data['MSLP'] >  600, 'MSLP'] = data.loc[data['MSLP'] >  600, 'MSLP']/10. +  900.
+    
+    valid_mslp = data["MSLP"].notna()
+    low_mask = valid_mslp & (data["MSLP"] <= 600)
+    high_mask = valid_mslp & (data["MSLP"] > 600)
+    data.loc[low_mask, "MSLP"] = data.loc[low_mask, "MSLP"] / 10.0 + 1000.0
+    data.loc[high_mask, "MSLP"] = data.loc[high_mask, "MSLP"] / 10.0 + 900.0
 
     # add time
     data['time'] = time
