@@ -115,9 +115,9 @@ def read_micaps_1(fname, limit=None):
     if len(data) == 0:
         return None
 
-    # decode the sea leavl pressure
-    data.loc[data['MSLP'] <= 600, 'MSLP'] = data.loc[data['MSLP'] <= 600, 'MSLP']/10. + 1000.
-    data.loc[data['MSLP'] >  600, 'MSLP'] = data.loc[data['MSLP'] >  600, 'MSLP']/10. +  900.
+    # Decode sea level pressure once, using the original encoded values.
+    # A single assignment also preserves NaNs and produces a float column.
+    data['MSLP'] = data['MSLP'] / 10.0 + np.where(data['MSLP'] <= 600, 1000.0, 900.0)
 
     # add time
     data['time'] = time
