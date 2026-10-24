@@ -1,0 +1,80 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nmc_met_io"
+dynamic = ["version"]
+description = "Collection of tools for I/O or accessing meteorological data."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "GPL-3.0-only"
+authors = [
+    { name = "The R & D Center for Weather Forecasting Technology in NMC, CMA" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+]
+dependencies = [
+    "numpy>=1.24.0",
+    "openpyxl>=3.1.0",
+    "pandas>=2.0.0",
+    "protobuf>=4.21.0",
+    "python-dateutil>=2.8.2",
+    "scipy>=1.10.0",
+    "tqdm>=4.65.0",
+    "urllib3>=1.26.0",
+    "xarray>=2023.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/nmcdev/nmc_met_io"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+platforms = ["all"]
+
+[tool.setuptools.dynamic]
+version = { attr = "nmc_met_io.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["nmc_met_io", "nmc_met_io.*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+"*" = ["LICENSE", "README.md"]
+
+[tool.setuptools.exclude-package-data]
+"*" = [".gitignore"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py39"
+include = ["*.py", "*.pyi", "*.ipynb", "**/pyproject.toml"]
+extend-exclude = ["nmc_met_io/DataBlock_pb2.py", "examples/*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.format]
+line-ending = "lf"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "ruff>=0.17.2",
+]

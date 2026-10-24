@@ -10,6 +10,27 @@ Only Python 3 is supported.
 建议安装[Anaconda](https://www.anaconda.com/products/individual)数据科学工具库,
 已包括scipy, numpy, matplotlib等大多数常用科学程序库.
 
+## 开发环境（uv）
+
+项目使用 [uv](https://docs.astral.sh/uv/) 管理依赖和开发环境，开发解释器固定为 Python 3.12，包的最低 Python 要求保持为 3.9。
+
+在仓库根目录执行：
+
+```powershell
+uv sync --locked
+uv run pytest
+uv run pytest tests\test_read_micaps.py::test_pressure_is_decoded_once
+uv run ruff format .
+uv run ruff check --fix .
+uv build
+```
+
+`uv sync --locked` 按 `uv.lock` 创建 `.venv`，以可编辑模式安装本项目，并安装 pytest、Ruff。VS Code 请选择 `.venv\Scripts\python.exe` 作为解释器；运行命令使用 `uv run`，无需手动激活环境。
+
+包元数据和运行依赖统一维护在 `pyproject.toml`，`setup.py` 仅保留兼容入口。添加运行依赖使用 `uv add <package>`，添加开发依赖使用 `uv add --dev <package>`，移除依赖使用 `uv remove <package>`；同时保留更新后的 `uv.lock`。Ruff 使用默认 Python 检查规则、兼容 Python 3.9，并排除自动生成的 Protobuf 文件及包含非 Python 单元的示例笔记本；历史代码可能仍有 lint 问题，避免为环境配置任务批量改写源代码。
+
+访问在线数据服务还需要按下文配置用户目录中的 `config.ini`；离线读取测试不需要服务账号。GRIB、Py-ART、Cassandra 等可选功能依赖不包含在基础开发环境中。
+
 ## Install
 
 Using the fellowing command to install packages:
@@ -46,7 +67,7 @@ Using the fellowing command to install packages:
 
 * 在系统用户目录下("C:\Users\用户名"(windows)或"/home/用户名/"(Linux)), 建立文件夹".nmcdev"(若Windows下无法直接创建, 在命令窗口中输入`mkdir .nmcdev`创建)
 * 在".nmcdev"中创建文本文件"config.ini", 内容模板为:
-  
+
 ```
 # 用于nmc_met_io读取大数据云, MICAPS服务器等的配置文件.
 # 若用不到某个服务器, 则不设置或删除改段落即可.

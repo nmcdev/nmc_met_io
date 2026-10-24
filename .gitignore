@@ -72,8 +72,7 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# pyenv
-.python-version
+# Python version is pinned in .python-version for uv.
 
 # celery beat schedule file
 celerybeat-schedule
