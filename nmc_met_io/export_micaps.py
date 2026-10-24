@@ -75,14 +75,20 @@ def dk_io_write_micaps_4(data, lon, lat,
     输出数组为 MICAPS 第4类格点格式数据文件 (对应 IDL: dk_io_write_micaps_4)。
     """
     # 参数预处理
-    if hasattr(data, 'values'): data = data.values
-    if hasattr(lon, 'values'): lon = lon.values
-    if hasattr(lat, 'values'): lat = lat.values
+    if hasattr(data, 'values'):
+        data = data.values
+    if hasattr(lon, 'values'):
+        lon = lon.values
+    if hasattr(lat, 'values'):
+        lat = lat.values
 
-    if init_time is None: init_time = datetime.now()
+    if init_time is None:
+        init_time = datetime.now()
     
-    if cn_start is None: cn_start = np.nanmin(data)
-    if cn_end is None: cn_end = np.nanmax(data)
+    if cn_start is None:
+        cn_start = np.nanmin(data)
+    if cn_end is None:
+        cn_end = np.nanmax(data)
     if cn_interval is None:
         diff = cn_end - cn_start
         cn_interval = 1.0 if diff == 0 else diff / 9.0
@@ -320,12 +326,17 @@ def dk_io_write_micaps_11(u, v, lon, lat,
     """
     
     # 参数处理
-    if hasattr(u, 'values'): u = u.values
-    if hasattr(v, 'values'): v = v.values
-    if hasattr(lon, 'values'): lon = lon.values
-    if hasattr(lat, 'values'): lat = lat.values
+    if hasattr(u, 'values'):
+        u = u.values
+    if hasattr(v, 'values'):
+        v = v.values
+    if hasattr(lon, 'values'):
+        lon = lon.values
+    if hasattr(lat, 'values'):
+        lat = lat.values
 
-    if init_time is None: init_time = datetime.now()
+    if init_time is None:
+        init_time = datetime.now()
     
     # 文件名处理
     if out_filename is None:
@@ -426,12 +437,17 @@ def dk_io_write_micaps_grid_3(data, lon, lat,
     (对应 IDL: dk_io_write_micaps_grid_3)。
     """
     # 参数处理
-    if hasattr(data, 'values'): data = data.values
-    if hasattr(lon, 'values'): lon = lon.values
-    if hasattr(lat, 'values'): lat = lat.values
+    if hasattr(data, 'values'):
+        data = data.values
+    if hasattr(lon, 'values'):
+        lon = lon.values
+    if hasattr(lat, 'values'):
+        lat = lat.values
 
-    if init_time is None: init_time = datetime.now()
-    if level is None: level = -1
+    if init_time is None:
+        init_time = datetime.now()
+    if level is None:
+        level = -1
 
     # 文件名处理
     if out_filename is None:

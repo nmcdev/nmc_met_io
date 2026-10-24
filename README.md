@@ -27,7 +27,7 @@ uv build
 
 `uv sync --locked` 按 `uv.lock` 创建 `.venv`，以可编辑模式安装本项目，并安装 pytest、Ruff。VS Code 请选择 `.venv\Scripts\python.exe` 作为解释器；运行命令使用 `uv run`，无需手动激活环境。
 
-包元数据和运行依赖统一维护在 `pyproject.toml`，`setup.py` 仅保留兼容入口。添加运行依赖使用 `uv add <package>`，添加开发依赖使用 `uv add --dev <package>`，移除依赖使用 `uv remove <package>`；同时保留更新后的 `uv.lock`。Ruff 使用默认 Python 检查规则、兼容 Python 3.9，并排除自动生成的 Protobuf 文件及包含非 Python 单元的示例笔记本；历史代码可能仍有 lint 问题，避免为环境配置任务批量改写源代码。
+包元数据和运行依赖统一维护在 `pyproject.toml`，`setup.py` 仅保留兼容入口。添加运行依赖使用 `uv add <package>`，添加开发依赖使用 `uv add --dev <package>`，移除依赖使用 `uv remove <package>`；同时保留更新后的 `uv.lock`。Ruff 使用默认 Python 检查规则、兼容 Python 3.9，并排除自动生成的 Protobuf 文件及包含非 Python 单元的示例笔记本；当前源代码通过 `uv run ruff check .`，修改时请保持检查通过，避免为无关任务批量格式化源代码。
 
 访问在线数据服务还需要按下文配置用户目录中的 `config.ini`；离线读取测试不需要服务账号。GRIB、Py-ART、Cassandra 等可选功能依赖不包含在基础开发环境中。
 

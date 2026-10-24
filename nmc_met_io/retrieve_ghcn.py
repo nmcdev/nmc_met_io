@@ -144,8 +144,10 @@ def nearest_stn(df, my_x, my_y, n_neighbours=1):
     tree = spatial.KDTree(list(zip(x, y)))
     d, i = tree.query( [(my_x, my_y)], k=n_neighbours )
 
-    if i.ndim == 1: index = i
-    if i.ndim == 2: index = i[0]
+    if i.ndim == 1:
+        index = i
+    if i.ndim == 2:
+        index = i[0]
     df1 = df.loc[index]
 
     return df1
@@ -219,7 +221,8 @@ def _create_DataFrame_1stn(filename, verbose=False):
     ### Print any warnings
     warnings = np.unique(np.array(warnings))
     if verbose:
-        for w in warnings: print(w)
+        for w in warnings:
+            print(w)
 
     ### Convert to Pandas DataFrame
     df = pd.DataFrame(columns=['station', 'year', 'month', 'day',

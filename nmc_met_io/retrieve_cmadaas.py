@@ -256,10 +256,14 @@ def cmadaas_obs_by_time(times, data_code="SURF_CHN_MUL_HOR",
               'times': times,
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
-    if distinct: params['distinct'] = "true"
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
+    if distinct:
+        params['distinct'] = "true"
 
     # Interface, refer to
     interface_id = "getSurfEleByTime"
@@ -272,7 +276,8 @@ def cmadaas_obs_by_time(times, data_code="SURF_CHN_MUL_HOR",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -325,10 +330,14 @@ def cmadaas_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR",
               'timeRange': time_range,
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements,}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
-    if distinct: params['distinct'] = "true"
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
+    if distinct:
+        params['distinct'] = "true"
 
     # interface id
     interface_id = "getSurfEleByTimeRange"
@@ -341,7 +350,8 @@ def cmadaas_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -386,9 +396,12 @@ def cmadaas_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR",
               'times': times,
               'staIds': sta_ids,
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleByTimeAndStaID"
@@ -401,7 +414,8 @@ def cmadaas_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -447,9 +461,12 @@ def cmadaas_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR",
               'timeRange': time_range,
               'staIds': sta_ids,
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleByTimeRangeAndStaID"
@@ -462,7 +479,8 @@ def cmadaas_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -509,9 +527,12 @@ def cmadaas_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR",
               'maxLat': '{:.10f}'.format(limit[2]),
               'maxLon': '{:.10f}'.format(limit[3]),
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleInRectByTime"
@@ -524,7 +545,8 @@ def cmadaas_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -941,8 +963,10 @@ def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL
               'maxLon': '{:.10f}'.format(limit[3]),
               'orderby': order if order is not None else "Datetime:ASC"}
     #if sta_levels is not None: params['staLevels'] = sta_levels    # getSurfEleInRectByTimeRange not support this parameter.
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleInRectByTimeRange"
@@ -955,7 +979,8 @@ def cmadaas_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -1000,9 +1025,12 @@ def cmadaas_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_
               'times': times,
               'adminCodes': admin,
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleInRegionByTime"
@@ -1015,7 +1043,8 @@ def cmadaas_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -1066,9 +1095,12 @@ def cmadaas_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SU
               'timeRange': time_range,
               'adminCodes': admin,
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleInRegionByTimeRange"
@@ -1081,7 +1113,8 @@ def cmadaas_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SU
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -1126,9 +1159,12 @@ def cmadaas_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HO
               'times': times,
               'basinCodes': basin,
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleInBasinByTime"
@@ -1141,7 +1177,8 @@ def cmadaas_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HO
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -1325,8 +1362,10 @@ def cmadaas_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MU
               'maxMD': str(maxMD),
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # Interface, refer to
     interface_id = "getSurfEleByInHistoryBySamePeriod"
@@ -1339,7 +1378,8 @@ def cmadaas_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MU
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -1387,8 +1427,10 @@ def cmadaas_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements,
               'staIds': sta_ids}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # Interface, refer to
     interface_id = "getSurfEleInHistoryBySamePeriodAndStaID"
@@ -1401,7 +1443,8 @@ def cmadaas_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -1449,8 +1492,10 @@ def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000
               'adminCodes': admin,
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # Interface, refer to
     interface_id = "getSurfEleInHistoryBySamePeriodAndRegion"
@@ -1463,7 +1508,8 @@ def cmadaas_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -1526,7 +1572,8 @@ def cmadaas_obs_grid_by_time(time, limit=None, data_code="SURF_CMPA_FAST_5KM",
         params = {'dataCode': data_code,
                   'time': time_str,
                   'fcstEle': fcst_ele}
-        if zoom is not None: params['zoomOut'] = str(zoom)
+        if zoom is not None:
+            params['zoomOut'] = str(zoom)
         interface_id = "getSurfEleGridByTime"
     else:
         params = {'dataCode': data_code,
@@ -1536,7 +1583,8 @@ def cmadaas_obs_grid_by_time(time, limit=None, data_code="SURF_CMPA_FAST_5KM",
                   "maxLat": '{:.10f}'.format(limit[2]),
                   "maxLon": '{:.10f}'.format(limit[3]),
                   'fcstEle': fcst_ele}
-        if zoom is not None: params['zoomOut'] = str(zoom)
+        if zoom is not None:
+            params['zoomOut'] = str(zoom)
         interface_id = "getSurfEleGridInRectByTime"
     
     # retrieve data contents
@@ -1661,8 +1709,10 @@ def cmadaas_obs_by_days_of_year(data_code="SURF_CHN_DAY_MMUT_19812010",
     params = {'dataCode': data_code,
               'elements': elements,
               'daysOfYear': days_of_year}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     if sta_ids is None:
@@ -1679,7 +1729,8 @@ def cmadaas_obs_by_days_of_year(data_code="SURF_CHN_DAY_MMUT_19812010",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -1721,8 +1772,10 @@ def cmadaas_obs_by_pens_of_year(data_code="SURF_CHN_PEN_MMUT_19812010",
     params = {'dataCode': data_code,
               'elements': elements,
               'pensOfYear': pens_of_year}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     if sta_ids is None:
@@ -1739,7 +1792,8 @@ def cmadaas_obs_by_pens_of_year(data_code="SURF_CHN_PEN_MMUT_19812010",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -1781,8 +1835,10 @@ def cmadaas_obs_by_tens_of_year(data_code="SURF_CHN_TEN_MMUT_19812010",
     params = {'dataCode': data_code,
               'elements': elements,
               'tensOfYear': tens_of_year}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     if sta_ids is None:
@@ -1799,7 +1855,8 @@ def cmadaas_obs_by_tens_of_year(data_code="SURF_CHN_TEN_MMUT_19812010",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -1838,8 +1895,10 @@ def cmadaas_obs_by_months_of_year(data_code="SURF_CHN_MON_MMUT_19812010",
     params = {'dataCode': data_code,
               'elements': elements,
               'monsOfYear': mons_of_year}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     if sta_ids is None:
@@ -1856,7 +1915,8 @@ def cmadaas_obs_by_months_of_year(data_code="SURF_CHN_MON_MMUT_19812010",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -1892,8 +1952,10 @@ def cmadaas_obs_by_years(data_code="SURF_CHN_YER_MMUT_19812010",
     # set retrieve parameters
     params = {'dataCode': data_code,
               'elements': elements}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     if sta_ids is None:
@@ -1910,7 +1972,8 @@ def cmadaas_obs_by_years(data_code="SURF_CHN_YER_MMUT_19812010",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -1983,9 +2046,12 @@ def cmadaas_sounding_by_time(times, data_code="UPAR_CHN_MUL_FTM", ranges=None,
               'times': times,
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
-    if distinct: params['distinct'] = "true"
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
+    if distinct:
+        params['distinct'] = "true"
 
     # Interface, refer to
     interface_id = "getUparEleByTime"
@@ -1998,7 +2064,8 @@ def cmadaas_sounding_by_time(times, data_code="UPAR_CHN_MUL_FTM", ranges=None,
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -2040,9 +2107,12 @@ def cmadaas_sounding_by_time_and_press(
               'pLayers': str(press).strip(),
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
-    if distinct: params['distinct'] = "true"
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
+    if distinct:
+        params['distinct'] = "true"
 
     # Interface, refer to
     interface_id = "getUparEleByTimeAndPress"
@@ -2055,7 +2125,8 @@ def cmadaas_sounding_by_time_and_press(
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -2097,9 +2168,12 @@ def cmadaas_sounding_by_time_and_height(
               'hLayers': str(height).strip(),
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
-    if distinct: params['distinct'] = "true"
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
+    if distinct:
+        params['distinct'] = "true"
 
     # Interface, refer to
     interface_id = "getUparEleByTimeAndHeight"
@@ -2112,7 +2186,8 @@ def cmadaas_sounding_by_time_and_height(
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -2156,8 +2231,10 @@ def cmadaas_sounding_in_rect_by_time(
               'maxLat': '{:.10f}'.format(limit[2]),
               'maxLon': '{:.10f}'.format(limit[3]),
               'orderby': order if order is not None else "Datetime:ASC"}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getUparEleInRectByTime"
@@ -2170,7 +2247,8 @@ def cmadaas_sounding_in_rect_by_time(
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -2212,9 +2290,12 @@ def cmadaas_sounding_by_time_and_id(
               'staIds': str(sta_ids).strip(),
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
-    if distinct: params['distinct'] = "true"
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
+    if distinct:
+        params['distinct'] = "true"
 
     # Interface, refer to
     interface_id = "getUparEleByTimeAndStaID"
@@ -2227,7 +2308,8 @@ def cmadaas_sounding_by_time_and_id(
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -2261,12 +2343,12 @@ def get_tlogp_metradar(tlogp_ids, timelist, path_tlogp,
                     'staids': tlogp_id,
                     }
             contents = get_rest_result(interface_id_tlogp, params, data_format='json')
-            if contents == None:
+            if contents is None:
                 print('No Valid data for tlogp: ' + timestr + ' ' + tlogp_id)
                 continue
             json_dic1 = _load_contents(contents)
             # json_dic1 = js.loads(contents)
-            if not json_dic1 is None:
+            if json_dic1 is not None:
                 if json_dic1['returnCode'] == '0':
                     if 'DS' in json_dic1:
                         dd = json_dic1['DS']
@@ -2408,8 +2490,10 @@ def cmadaas_sounding_in_rect_by_time_range(
               'maxLat': '{:.10f}'.format(limit[2]),
               'maxLon': '{:.10f}'.format(limit[3]),
               'orderby': order if order is not None else "Datetime:ASC"}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getUparEleInRectByTimeRange"
@@ -2422,7 +2506,8 @@ def cmadaas_sounding_in_rect_by_time_range(
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cmadaas_obs_convert_type(data)
+    if trans_type:
+        data = cmadaas_obs_convert_type(data)
 
     # return
     return data
@@ -2487,7 +2572,8 @@ def cmadaas_analysis_by_time(time, limit=None, data_code='NAFP_CLDAS2.0_NRT_ASI_
                   'time': time_str,
                   'levelType': str(level_type).strip(),
                   'fcstEle': fcst_ele}
-        if zoom is not None: params['zoomOut'] = str(zoom)
+        if zoom is not None:
+            params['zoomOut'] = str(zoom)
         interface_id = 'getNafpAnaEleGridByTimeAndLevel'
     else:
         params = {'dataCode': data_code,

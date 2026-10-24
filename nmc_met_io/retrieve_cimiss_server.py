@@ -158,10 +158,14 @@ def cimiss_obs_by_time(times, data_code="SURF_CHN_MUL_HOR_N",
               'times': times,
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
-    if distinct: params['distinct'] = "true"
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
+    if distinct:
+        params['distinct'] = "true"
 
     # Interface, refer to
     # http://10.20.76.55/cimissapiweb/apicustomapiclassdefine_list.action?ids=getSurfEleByTime&apiclass=SURF_API
@@ -177,7 +181,8 @@ def cimiss_obs_by_time(times, data_code="SURF_CHN_MUL_HOR_N",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -227,10 +232,14 @@ def cimiss_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR_N",
               'timeRange': time_range,
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements,}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
-    if distinct: params['distinct'] = "true"
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
+    if distinct:
+        params['distinct'] = "true"
 
     # interface id
     interface_id = "getSurfEleByTimeRange"
@@ -245,7 +254,8 @@ def cimiss_obs_by_time_range(time_range, data_code="SURF_CHN_MUL_HOR_N",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -290,9 +300,12 @@ def cimiss_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR_N",
               'times': times,
               'staIds': sta_ids,
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleByTimeAndStaID"
@@ -307,7 +320,8 @@ def cimiss_obs_by_time_and_id(times, data_code="SURF_CHN_MUL_HOR_N",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -353,9 +367,12 @@ def cimiss_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR_N",
               'timeRange': time_range,
               'staIds': sta_ids,
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleByTimeRangeAndStaID"
@@ -370,7 +387,8 @@ def cimiss_obs_by_time_range_and_id(time_range, data_code="SURF_CHN_MUL_HOR_N",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -417,9 +435,12 @@ def cimiss_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR_N",
               'maxLat': '{:.10f}'.format(limit[2]),
               'maxLon': '{:.10f}'.format(limit[3]),
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleInRectByTime"
@@ -434,7 +455,8 @@ def cimiss_obs_in_rect_by_time(times, limit, data_code="SURF_CHN_MUL_HOR_N",
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -487,9 +509,12 @@ def cimiss_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL_
               'maxLat': '{:.10f}'.format(limit[2]),
               'maxLon': '{:.10f}'.format(limit[3]),
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleInRectByTimeRange"
@@ -504,7 +529,8 @@ def cimiss_obs_in_rect_by_time_range(time_range, limit, data_code="SURF_CHN_MUL_
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -549,9 +575,12 @@ def cimiss_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_H
               'times': times,
               'adminCodes': admin,
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleInRegionByTime"
@@ -566,7 +595,8 @@ def cimiss_obs_in_admin_by_time(times, admin="110000", data_code="SURF_CHN_MUL_H
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -617,9 +647,12 @@ def cimiss_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SUR
               'timeRange': time_range,
               'adminCodes': admin,
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleInRegionByTimeRange"
@@ -634,7 +667,8 @@ def cimiss_obs_in_admin_by_time_range(time_range, admin="110000", data_code="SUR
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -679,9 +713,12 @@ def cimiss_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HOR
               'times': times,
               'basinCodes': basin,
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     interface_id = "getSurfEleInBasinByTime"
@@ -696,7 +733,8 @@ def cimiss_obs_in_basin_by_time(times, basin="CJLY", data_code="SURF_CHN_MUL_HOR
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -747,9 +785,12 @@ def cimiss_obs_in_basin_by_time_range(time_range, basin="CJLY", data_code="SURF_
               'timeRange': time_range,
               'basinCodes': basin,
               'orderby': order if order is not None else "Datetime:ASC"}
-    if sta_levels is not None: params['staLevels'] = sta_levels
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if sta_levels is not None:
+        params['staLevels'] = sta_levels
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # interface id
     # http://10.20.76.55/cimissapiweb/apicustomapiclassdefine_list.action?ids=getNafpEleGridByTimeAndLevelAndValidtime&apiclass=NAFP_API
@@ -765,7 +806,8 @@ def cimiss_obs_in_basin_by_time_range(time_range, basin="CJLY", data_code="SURF_
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -810,8 +852,10 @@ def cimiss_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MUL
               'maxMD': str(maxMD),
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # Interface, refer to
     interface_id = "getSurfEleByInHistoryBySamePeriod"
@@ -826,7 +870,8 @@ def cimiss_obs_by_period(minYear, maxYear, minMD, maxMD, data_code="SURF_CHN_MUL
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -874,8 +919,10 @@ def cimiss_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF_
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements,
               'staIds': sta_ids}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # Interface, refer to
     interface_id = "getSurfEleInHistoryBySamePeriodAndStaID"
@@ -890,7 +937,8 @@ def cimiss_obs_by_period_and_id(minYear, maxYear, minMD, maxMD, data_code="SURF_
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -938,8 +986,10 @@ def cimiss_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000"
               'adminCodes': admin,
               'orderby': order if order is not None else "Datetime:ASC",
               'elements': elements}
-    if ranges is not None: params['eleValueRanges'] = ranges
-    if count is not None: params['limitCnt'] = str(count)
+    if ranges is not None:
+        params['eleValueRanges'] = ranges
+    if count is not None:
+        params['limitCnt'] = str(count)
 
     # Interface, refer to
     interface_id = "getSurfEleInHistoryBySamePeriodAndRegion"
@@ -954,7 +1004,8 @@ def cimiss_obs_in_admin_by_period(minYear, maxYear, minMD, maxMD, admin="110000"
 
     # construct pandas DataFrame
     data = pd.DataFrame(contents['DS'])
-    if trans_type: data = cimiss_obs_convert_type(data)
+    if trans_type:
+        data = cimiss_obs_convert_type(data)
 
     # return
     return data
@@ -1006,7 +1057,8 @@ def cimiss_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FRT_5KM",
         params = {'dataCode': data_code,
                   'time': time_str,
                   'fcstEle': fcst_ele}
-        if zoom is not None: params['zoomOut'] = str(zoom)
+        if zoom is not None:
+            params['zoomOut'] = str(zoom)
         interface_id = "getSurfEleGridByTime"
     else:
         params = {'dataCode': data_code,
@@ -1016,7 +1068,8 @@ def cimiss_obs_grid_by_time(time_str, limit=None, data_code="SURF_CMPA_FRT_5KM",
                   "maxLat": '{:.10f}'.format(limit[2]),
                   "maxLon": '{:.10f}'.format(limit[3]),
                   'fcstEle': fcst_ele}
-        if zoom is not None: params['zoomOut'] = str(zoom)
+        if zoom is not None:
+            params['zoomOut'] = str(zoom)
         interface_id = "getSurfEleGridInRectByTime"
     
     # retrieve data contents
@@ -1184,7 +1237,8 @@ def cimiss_analysis_by_time(time_str, limit=None, data_code='NAFP_CLDAS2.0_RT_GR
         params = {'dataCode': data_code,
                   'time': time_str,
                   'fcstEle': fcst_ele}
-        if zoom is not None: params['zoomOut'] = str(zoom)
+        if zoom is not None:
+            params['zoomOut'] = str(zoom)
         interface_id = 'getNafpAnaEleGridByTimeAndLevel'
     else:
         params = {'dataCode': data_code,

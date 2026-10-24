@@ -14,17 +14,8 @@ http://10.32.8.164:8080/DataService?requestType=getLatestDataName&directory=ECMW
 import bz2
 import http.client
 import pickle
-import re
 import urllib.parse
-import warnings
-import zlib
-from datetime import datetime, timedelta
 from io import BytesIO
-
-import numpy as np
-import pandas as pd
-import xarray as xr
-from tqdm import tqdm
 
 import nmc_met_io.config as CONFIG
 from nmc_met_io import DataBlock_pb2
